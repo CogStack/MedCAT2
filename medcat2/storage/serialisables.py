@@ -1,7 +1,14 @@
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Tuple, Union, Protocol, runtime_checkable
 
 
-class Serialisable:
+@runtime_checkable
+class Serialisable(Protocol):
+
+    def get_save_name(self, name: str) -> str:
+        pass
+
+
+class AbstractSerialisable:
 
     def __init__(self, name_format: str = "{0}.dat") -> None:
         self._name_format = name_format

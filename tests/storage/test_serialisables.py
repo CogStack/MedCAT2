@@ -15,17 +15,17 @@ class MyDummyTestClass1:
     @classmethod
     def get_def_correct_inst(cls) -> tuple['MyDummyTestClass1', set[str]]:
         return cls(
-            attr1=serialisables.Serialisable(),
-            attr2=serialisables.Serialisable(),
+            attr1=serialisables.AbstractSerialisable(),
+            attr2=serialisables.AbstractSerialisable(),
             attr3=-1, attr4='string',
         ), {'attr1', 'attr2'}
 
     @classmethod
     def get_def_incorrect_inst(cls) -> tuple['MyDummyTestClass1', set[str]]:
         return cls(
-            attr1=serialisables.Serialisable(),
+            attr1=serialisables.AbstractSerialisable(),
             attr2=10,
-            attr3=serialisables.Serialisable(),
+            attr3=serialisables.AbstractSerialisable(),
             attr4='string',
         ), {"attr1", 'attr3'}
 
