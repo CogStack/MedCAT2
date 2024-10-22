@@ -16,6 +16,19 @@ class AbstractSerialisable:
     def get_save_name(self, name: str) -> str:
         return self._name_format.format(name)
 
+    def __eq__(self, other: 'Serialisable') -> bool:
+        if type(self) is not type(other):
+            return False
+        if set(self.__dict__) != set(other.__dict__):
+            return False
+        for attr_name, attr_value in self.__dict__.items():
+            if not hasattr(other, attr_name):
+                return False
+            other_value = getattr(other, attr_name)
+            if attr_value != other_value:
+                return False
+        return True
+
 
 def name_all_serialisable_elements(target_list: Union[List, Tuple],
                                    name_start: str = '',
