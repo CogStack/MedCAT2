@@ -16,7 +16,7 @@ class AbstractSerialisable:
     def get_save_name(self, name: str) -> str:
         return self._name_format.format(name)
 
-    def __eq__(self, other: 'Serialisable') -> bool:
+    def __eq__(self, other: Any) -> bool:
         if type(self) is not type(other):
             return False
         if set(self.__dict__) != set(other.__dict__):
