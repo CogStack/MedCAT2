@@ -148,22 +148,9 @@ class MutableDocument(Protocol):
     def base(self) -> BaseDocument:
         pass
 
-    # @property
-    # def entities(self) -> list[BaseEntity]:
-    #     pass
-
-    # @entities.setter
-    # def entities(self, value: list[BaseEntity]) -> None:
-    #     pass
-
     @property
     def final_ents(self) -> list[MutableEntity]:
         pass
-
-    # NOTE: can just manipulate the list, surely?
-    # @final_ents.setter
-    # def final_ents(self, value: list[MutableEntity]) -> None:
-    #     pass
 
     def __iter__(self) -> Iterator[MutableToken]:
         pass
