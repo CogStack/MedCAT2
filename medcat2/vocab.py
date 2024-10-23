@@ -4,7 +4,7 @@ from typing_extensions import TypedDict
 import dill
 import numpy as np
 
-from medcat2.storage.serialisables import Serialisable
+from medcat2.storage.serialisables import AbstractSerialisable
 
 
 WordDescriptor = TypedDict('WordDescriptor',
@@ -12,7 +12,7 @@ WordDescriptor = TypedDict('WordDescriptor',
                             'count': int, 'index': int})
 
 
-class Vocab(Serialisable):
+class Vocab(AbstractSerialisable):
     """Vocabulary used to store word embeddings for context similarity
     calculation. Also used by the spell checker - but not for fixing the
     spelling only for checking is something correct.
@@ -29,6 +29,7 @@ class Vocab(Serialisable):
             Negative sampling.
     """
     def __init__(self) -> None:
+        super.__init__()
         self.vocab: Dict[str, WordDescriptor] = {}
         self.index2word: Dict[int, str] = {}
         self.vec_index2word: Dict[int, str] = {}
