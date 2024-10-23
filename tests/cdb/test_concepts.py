@@ -47,4 +47,4 @@ class NameInfoTests(unittest.TestCase):
         for cui in self.cuis:
             with self.subTest(cui):
                 status = self.info.per_cui_status[cui]
-                self.assertEquals(status, concepts.ST.AUTOMATIC)
+                self.assertEqual(status, concepts.ST.AUTOMATIC)
