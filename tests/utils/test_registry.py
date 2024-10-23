@@ -81,6 +81,10 @@ class RegistryWith1ItemTests(BaseRegistryTests):
             self.registry.get_component(self.COMP_NAME_TO_REGISTER1),
             self.registry[self.COMP_NAME_TO_REGISTER1])
 
+    def test_lists_registered_components(self):
+        reg_comps = self.registry.list_components()
+        self.assertEqual(len(reg_comps), 1)  # 1 at a time
+
 
 class RegistryWith2ItemsTests(BaseRegistryTests):
 
@@ -97,6 +101,10 @@ class RegistryWith2ItemsTests(BaseRegistryTests):
             self.assert_registered(self.COMP_NAME_TO_REGISTER2,
                                    self.TYPE_TO_REGISTER2)
 
+    def test_lists_registered_components(self):
+        reg_comps = self.registry.list_components()
+        self.assertEqual(len(reg_comps), 2)  # both registered
+
 
 class UnregisteringWithRegistryTests(BaseRegistryTests):
 
@@ -112,6 +120,10 @@ class UnregisteringWithRegistryTests(BaseRegistryTests):
     def test_has_kept_other(self):
         self.assertIn(self.COMP_NAME_TO_REGISTER2, self.registry)
 
+    def test_lists_registered_component(self):
+        reg_comps = self.registry.list_components()
+        self.assertEqual(len(reg_comps), 1)  # 1 left
+
 
 class UnregisterAllWithRegistryTests(BaseRegistryTests):
 
@@ -126,6 +138,10 @@ class UnregisterAllWithRegistryTests(BaseRegistryTests):
 
     def test_has_unregistered2(self):
         self.assertNotIn(self.COMP_NAME_TO_REGISTER2, self.registry)
+
+    def test_lists_no_components(self):
+        reg_comps = self.registry.list_components()
+        self.assertEqual(len(reg_comps), 0)  # none left
 
 
 class RegistryWithDefaultsTests(TestCase):
@@ -153,3 +169,12 @@ class RegistryWithDefaultsTests(TestCase):
                 comp = self.registry.get_component(name)
                 self.assertIs(comp, expected)
                 self.assertIn(name, self.registry)
+
+    def test_lists_registered_components(self):
+        reg_comps = self.registry.list_components()
+        comp_names = [n for n, _ in reg_comps]
+        comp_classes = [c for _, c in reg_comps]
+        self.assertEqual(len(reg_comps), len(self.LAZY_DEFAULTS))
+        self.assertEqual(set(comp_names), set(self.LAZY_DEFAULTS))
+        exp_classes = [c for _, c in self.LAZY_DEFAULTS.values()]
+        self.assertEqual(set(comp_classes), set(exp_classes))

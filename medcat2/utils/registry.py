@@ -48,6 +48,13 @@ class Registry(Generic[P]):
         for comp_name in list(self._lazy_defaults):
             self._ensure_lazy_default(comp_name)
 
+    def list_components(self) -> list[tuple[str, str]]:
+        comps = [(comp_name, comp.__name__)
+                 for comp_name, comp in self._components.items()]
+        for lazy_def_name, (_, lazy_def_class) in self._lazy_defaults.items():
+            comps.append((lazy_def_name, lazy_def_class))
+        return comps
+
     def unregister_component(self, component_name: str
                              ) -> Callable[..., P]:
         if component_name not in self._components:
