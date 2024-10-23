@@ -72,6 +72,7 @@ dependencies = [ # Optional
 dev = [
   "ruff~=0.1.7",
   "mypy",
+  "pydantic>2.0",
 ]
 test = []  # TODO - list
 
