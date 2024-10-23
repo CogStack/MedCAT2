@@ -29,7 +29,7 @@ class Vocab(AbstractSerialisable):
             Negative sampling.
     """
     def __init__(self) -> None:
-        super.__init__()
+        super().__init__()
         self.vocab: Dict[str, WordDescriptor] = {}
         self.index2word: Dict[int, str] = {}
         self.vec_index2word: Dict[int, str] = {}
