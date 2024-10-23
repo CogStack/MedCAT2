@@ -57,6 +57,7 @@ classifiers = [
 dependencies = [ # Optional
   "numpy<2.0",
   "dill",
+  "spacy",
   # TODO - others
 ]
 
