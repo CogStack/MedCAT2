@@ -6,6 +6,7 @@ from medcat2.tokenizing.tokens import BaseDocument, MutableDocument
 
 
 class CoreComponentType(Enum):
+    tokenizing = auto()
     tagging = auto()
     token_normalizing = auto()
     ner = auto()
@@ -28,6 +29,9 @@ class BaseComponent(Protocol):
 
 
 # TODO: look into these
+_DEFAULT_TOKENIZING: dict[str, tuple[str, str]] = {
+    # "default": ("medcat2.components.tokenizing.spacy", "Tokenizer"),
+}
 _DEFAULT_TAGGERS: dict[str, tuple[str, str]] = {
     # "default": ("medcat2.components.tagging.tagger", "TagAndSkipTagger"),
 }
@@ -44,6 +48,8 @@ _DEFAULT_LINKING: dict[str, tuple[str, str]] = {
 
 
 _CORE_REGISTRIES: dict[CoreComponentType, Registry[BaseComponent]] = {
+    CoreComponentType.token_normalizing: Registry(
+        BaseComponent, lazy_defaults=_DEFAULT_TOKENIZING),  # type: ignore
     CoreComponentType.tagging: Registry(
         BaseComponent, lazy_defaults=_DEFAULT_TAGGERS),  # type: ignore
     CoreComponentType.token_normalizing: Registry(
