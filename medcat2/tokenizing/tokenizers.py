@@ -1,7 +1,7 @@
 from typing import Protocol, Type
 import logging
 
-from medcat2.tokenizing.tokens import BaseDocument
+from medcat2.tokenizing.tokens import MutableDocument
 from medcat2.utils.registry import Registry
 
 
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class BaseTokenizer(Protocol):
 
-    def __call__(selt, text: str) -> BaseDocument:
+    def __call__(selt, text: str) -> MutableDocument:
         pass
 
 
@@ -18,7 +18,7 @@ _DEFAULT_TOKENIZING: dict[str, tuple[str, str]] = {
     "default": ("medcat2.components.tokenizing.spacy", "Tokenizer")
 }
 
-_TOKENIZERS_REGISTRY = Registry(BaseTokenizer,
+_TOKENIZERS_REGISTRY = Registry(BaseTokenizer,  # type: ignore
                                 lazy_defaults=_DEFAULT_TOKENIZING)
 
 

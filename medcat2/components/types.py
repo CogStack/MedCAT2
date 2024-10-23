@@ -2,7 +2,7 @@ from typing import Optional, Protocol, Callable, runtime_checkable
 from enum import Enum, auto
 
 from medcat2.utils.registry import Registry
-from medcat2.tokenizing.tokens import BaseDocument, MutableDocument
+from medcat2.tokenizing.tokens import MutableDocument
 
 
 class CoreComponentType(Enum):
@@ -22,8 +22,7 @@ class BaseComponent(Protocol):
     def get_type(self) -> CoreComponentType:
         pass
 
-    def __call__(self, raw: BaseDocument, mutable: MutableDocument
-                 ) -> MutableDocument:
+    def __call__(self, doc: MutableDocument) -> MutableDocument:
         pass
 
 
