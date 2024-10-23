@@ -30,10 +30,6 @@ class MutableToken(Protocol):
     def tag(self) -> Optional[str]:
         pass
 
-    @tag.setter
-    def tag(self, tag: Optional[str]) -> None:
-        pass
-
     def should_include(self) -> bool:
         pass
 
@@ -117,7 +113,7 @@ class MutableEntity(Protocol):
     def id(self, value: int) -> None:
         pass
 
-    def __iter__(self) -> Iterator['MutableEntity']:
+    def __iter__(self) -> Iterator[MutableToken]:
         pass
 
     def __len__(self) -> int:
