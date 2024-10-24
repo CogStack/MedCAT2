@@ -28,7 +28,7 @@ class BaseComponent(Protocol):
 
 # TODO: look into these
 _DEFAULT_TAGGERS: dict[str, tuple[str, str]] = {
-    # "default": ("medcat2.components.tagging.tagger", "TagAndSkipTagger"),
+    "default": ("medcat2.components.tagging.tagger", "TagAndSkipTagger"),
 }
 _DEFAULT_NORMALIZERS: dict[str, tuple[str, str]] = {
     # "default": ("medcat2.components.normalizers.normalizers",
