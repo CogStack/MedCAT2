@@ -15,7 +15,7 @@ class BaseTokenizer(Protocol):
 
 
 _DEFAULT_TOKENIZING: dict[str, tuple[str, str]] = {
-    "default": ("medcat2.components.tokenizing.spacy", "Tokenizer")
+    "spacy": ("medcat2.components.tokenizing.spacy", "SpacyTokenizer")
 }
 
 _TOKENIZERS_REGISTRY = Registry(BaseTokenizer,  # type: ignore
