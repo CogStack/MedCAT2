@@ -280,7 +280,7 @@ class CDBMaker(BaseModel):
     for a concept"""
 
 
-class Ner(BaseModel, CoreComponentConfig):
+class Ner(CoreComponentConfig):
     """The NER part of the config"""
     min_name_len: int = 3
     """Do not detect names below this limit, skip them"""
