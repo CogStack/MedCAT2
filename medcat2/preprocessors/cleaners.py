@@ -1,0 +1,117 @@
+import re
+from dataclasses import dataclass
+from typing import Protocol
+
+from medcat2.tokenizing.tokens import MutableDocument
+from medcat2.tokenizing.tokenizers import BaseTokenizer
+
+
+@dataclass
+class NameDescriptor:
+    tokens: list[str]
+    snames: set[str]
+    raw_name: str
+    is_upper: bool
+
+
+class LGeneral(Protocol):
+    separator: str
+
+
+class LPreprocessing(Protocol):
+    min_len_normalize: int
+    do_not_normalize: set[str]
+
+
+class LCDBMaker(Protocol):
+    name_versions: list[str]
+    min_letters_required: int
+
+
+class LConfig(Protocol):
+    general: LGeneral
+    preprocessing: LPreprocessing
+    cdb_maker: LCDBMaker
+
+
+def _get_tokens(config: LPreprocessing,
+                sc_name: MutableDocument,
+                version: str) -> list[str]:
+    if version == "LOWER":
+        return [tkn.base.lower for tkn in sc_name if not tkn.to_skip]
+    if version == "CLEAN":
+        min_norm_len = config.min_len_normalize
+        tokens = []
+        for tkn in sc_name:
+            if not tkn.to_skip:
+                if len(tkn.base.lower) < min_norm_len:
+                    tokens.append(tkn.base.lower)
+                elif (config.do_not_normalize and
+                        tkn.tag is not None and
+                        tkn.tag in config.do_not_normalize):
+                    tokens.append(tkn.base.lower)
+                else:
+                    tokens.append(tkn.lemma.lower())
+        return tokens
+    raise UnknownTokenVersion(version)
+
+
+def _update_dict(config: LConfig, raw_name: str,
+                 names: dict[str, NameDescriptor],
+                 tokens: list[str], is_upper: bool) -> None:
+    snames = set()
+    name = config.general.separator.join(tokens)
+    mlr = config.cdb_maker.min_letters_required
+    if (mlr and len(re.sub("[^A-Za-z]*", '', name)) < mlr):
+        return  # too short
+    if name in names:
+        return  # already exists
+    sname = ""
+    for token in tokens:
+        if sname:
+            sname = sname + config.general.separator + token
+        else:
+            sname = token
+        snames.add(sname.strip())
+
+    names[name] = NameDescriptor(tokens=tokens, snames=snames,
+                                 raw_name=raw_name, is_upper=is_upper)
+
+
+def prepare_name(raw_name: str, nlp: BaseTokenizer,
+                 names: dict[str, NameDescriptor], config: LConfig
+                 ) -> dict[str, NameDescriptor]:
+    """Generates different forms of a name. Will edit the provided `names`
+    dictionary and add information generated from the `name`.
+
+    Args:
+        nlp (BaseTokenizer): The tokenizer.
+        names (Dict[str, NameDescriptor]):
+            Dictionary of existing names for this concept in this row of a CSV.
+            The new generated name versions and other required information will
+            be added here.
+        config (medcat.config.Config):
+            Global config for medcat.
+
+    Returns:
+        names (Dict):
+            The updated dictionary of prepared names.
+    """
+    sc_name = nlp(raw_name)
+
+    for version in config.cdb_maker.name_versions:
+        tokens = None
+
+        tokens = _get_tokens(config.preprocessing, sc_name, version)
+
+        if tokens is not None and tokens:
+            _update_dict(config, raw_name, names, tokens,
+                         sc_name.base.isupper())
+
+    return names
+
+
+class UnknownTokenVersion(ValueError):
+
+    def __init__(self, version: str) -> None:
+        super().__init__(f"Unknown token version: '{version}'")
