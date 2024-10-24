@@ -8,7 +8,15 @@ class BaseToken(Protocol):
         pass
 
     @property
+    def lower(self) -> str:
+        pass
+
+    @property
     def text_versions(self) -> list[str]:
+        pass
+
+    @property
+    def is_upper(self) -> bool:
         pass
 
 
@@ -24,6 +32,18 @@ class MutableToken(Protocol):
 
     @is_punctuation.setter
     def is_punctuation(self, val: bool) -> None:
+        pass
+
+    @property
+    def to_skip(self) -> bool:
+        pass
+
+    @to_skip.setter
+    def to_skip(self, new_val: bool) -> None:
+        pass
+
+    @property
+    def lemma(self) -> str:
         pass
 
     @property
@@ -135,6 +155,9 @@ class BaseDocument(Protocol):
         pass
 
     def __iter__(self) -> Iterator[BaseToken]:
+        pass
+
+    def isupper(self) -> bool:
         pass
 
 
