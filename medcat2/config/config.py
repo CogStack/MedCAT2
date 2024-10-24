@@ -315,6 +315,8 @@ class Components(BaseModel):
     token_normalizing: CoreComponentConfig = CoreComponentConfig()
     ner: Ner = Ner()
     linking: Linking = Linking()
+    comp_order: list[str] = ['tagging', 'token_normalizing',
+                             'ner', 'linking']
 
 
 class Config(BaseModel):
