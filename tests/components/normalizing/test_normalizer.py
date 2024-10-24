@@ -19,7 +19,7 @@ class FakeTokenizer:
         return FakeDocument(text)
 
 
-class TaggerInitTests(ComponentInitTests, unittest.TestCase):
+class NormaliserInitTests(ComponentInitTests, unittest.TestCase):
     comp_type = types.CoreComponentType.token_normalizing
     default_cls = normalizer.TokenNormalizer
     module = normalizer
