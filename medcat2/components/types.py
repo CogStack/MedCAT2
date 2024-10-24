@@ -35,7 +35,7 @@ _DEFAULT_NORMALIZERS: dict[str, tuple[str, str]] = {
                 "TokenNormalizer"),
 }
 _DEFAULT_NER: dict[str, tuple[str, str]] = {
-    # "default": ("medcat2.components.ner.vocab_based_ner", "NER"),
+    "default": ("medcat2.components.ner.vocab_based_ner", "NER"),
 }
 _DEFAULT_LINKING: dict[str, tuple[str, str]] = {
     # "default": ("medcat2.components.linking.context_based_linker", "Linker"),

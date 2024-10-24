@@ -39,4 +39,7 @@ def set_components_defaults(cdb: CDB, vocab: Vocab, tokenizer: BaseTokenizer):
             from medcat2.components.normalizing import normalizer
             normalizer.set_default_args(cdb.config, tokenizer,
                                         cdb.token_counts, vocab)
+        if comp_name == 'ner':
+            from medcat2.components.ner import vocab_based_ner
+            vocab_based_ner.set_def_args_kwargs(cdb.config, tokenizer, cdb)
         # TODO: other components
