@@ -23,6 +23,10 @@ class BaseToken(Protocol):
     def is_stop(self) -> bool:
         pass
 
+    @property
+    def index(self) -> int:
+        pass
+
 
 class MutableToken(Protocol):
 
