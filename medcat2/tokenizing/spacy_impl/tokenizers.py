@@ -9,6 +9,7 @@ from spacy.language import Language
 from medcat2.tokenizing.tokens import MutableDocument
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.tokenizing.spacy_impl.tokens import Document
+from medcat2.tokenizing.spacy_impl.utils import ensure_spacy_model
 from medcat2.config import Config
 
 
@@ -40,6 +41,7 @@ class SpacyTokenizer(BaseTokenizer):
                  tokenizer_getter: Callable[[Language, bool], Tokenizer
                                             ] = spacy_split_all,
                  stopwords: Optional[set[str]] = None,):
+        ensure_spacy_model(spacy_model_name)
         if stopwords is not None:
             lang_str = os.path.basename(spacy_model_name).split('_', 1)[0]
             cls = spacy.util.get_lang_class(lang_str)
