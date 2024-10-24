@@ -9,6 +9,7 @@ from spacy.language import Language
 from medcat2.tokenizing.tokens import MutableDocument
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.tokenizing.spacy_impl.tokens import Document
+from medcat2.config import Config
 
 
 def spacy_split_all(nlp: Language, use_diacritics: bool) -> Tokenizer:
@@ -50,3 +51,15 @@ class SpacyTokenizer(BaseTokenizer):
 
     def __call__(self, text: str) -> MutableDocument:
         return Document(self._nlp(text))
+
+
+def set_def_args_kwargs(config: Config) -> None:
+    nlp_cnf = config.general.nlp
+    nlp_cnf.init_args = [
+        nlp_cnf.disabled_components,
+        config.general.diacritics,
+        config.preprocessing.max_document_length,
+    ]
+    nlp_cnf.init_kwargs = {
+        "stopwords": config.preprocessing.stopwords
+    }
