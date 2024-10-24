@@ -1,14 +1,15 @@
-from typing import Optional, Callable
+from typing import Optional, Callable, cast
 import re
 import os
 
 import spacy
+from spacy.tokens import Span
 from spacy.tokenizer import Tokenizer  # type: ignore
 from spacy.language import Language
 
-from medcat2.tokenizing.tokens import MutableDocument
+from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.tokenizing.tokenizers import BaseTokenizer
-from medcat2.tokenizing.spacy_impl.tokens import Document
+from medcat2.tokenizing.spacy_impl.tokens import Document, Entity
 from medcat2.tokenizing.spacy_impl.utils import ensure_spacy_model
 from medcat2.config import Config
 
@@ -50,6 +51,13 @@ class SpacyTokenizer(BaseTokenizer):
                                disable=spacy_disabled_components)
         self._nlp.tokenizer = tokenizer_getter(self._nlp, use_diacritics)
         self._nlp.max_length = max_document_lenth
+
+    def create_entity(self, doc: MutableDocument,
+                      token_start_index: int, token_end_index: int,
+                      label: str) -> MutableEntity:
+        spacy_doc = cast(Document, doc)._delegate
+        span = Span(spacy_doc, token_start_index, token_end_index, label)
+        return Entity(span)
 
     def __call__(self, text: str) -> MutableDocument:
         return Document(self._nlp(text))
