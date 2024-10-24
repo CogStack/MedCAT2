@@ -31,8 +31,8 @@ _DEFAULT_TAGGERS: dict[str, tuple[str, str]] = {
     "default": ("medcat2.components.tagging.tagger", "TagAndSkipTagger"),
 }
 _DEFAULT_NORMALIZERS: dict[str, tuple[str, str]] = {
-    # "default": ("medcat2.components.normalizers.normalizers",
-    #             "TokenNormalizer"),
+    "default": ("medcat2.components.normalizing.normalizer",
+                "TokenNormalizer"),
 }
 _DEFAULT_NER: dict[str, tuple[str, str]] = {
     # "default": ("medcat2.components.ner.vocab_based_ner", "NER"),
