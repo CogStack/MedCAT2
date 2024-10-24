@@ -2,6 +2,8 @@
 in the config for the default tokenizer and the defualt
 components creation.
 """
+from typing import cast
+
 from medcat2.config.config import Config, CoreComponentConfig
 
 import logging
@@ -17,8 +19,8 @@ def set_defaults(config: Config):
         from medcat2.tokenizing.spacy_impl.tokenizers import (
             set_def_args_kwargs)
         set_def_args_kwargs(config)
-    for comp_name, comp_cnf in config.components:
-        comp_cnf: CoreComponentConfig
+    for comp_name, comp_config in config.components:
+        comp_cnf = cast(CoreComponentConfig, comp_config)
         if comp_cnf.comp_name != 'default':
             continue
         logging.debug("Setting default arguments for component '%s'",
