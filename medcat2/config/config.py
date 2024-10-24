@@ -171,7 +171,7 @@ class LinkingFilters(BaseModel):
             return False
 
 
-class Linking(BaseModel):
+class Linking(CoreComponentConfig):
     """The linking part of the config"""
     optim: dict = {'type': 'linear', 'base_lr': 1, 'min_lr': 0.00005}
     """Linear anneal"""
