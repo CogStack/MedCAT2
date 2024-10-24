@@ -59,7 +59,7 @@ class NLPConfig(BaseModel):
     For default components, these will be automatically filled. However, if a
     custom component is used, these would need to be set manually.
     """
-    init_kwargs: list = Field(default_factory=dict, exclude=True)
+    init_kwargs: dict = Field(default_factory=dict, exclude=True)
     """These are the keyword arguments required to construct the component.
 
     For default components, these will be automatically filled. However, if a
