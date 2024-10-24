@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from medcat2.storage.serialisables import Serialisable
+from medcat2.storage.serialisables import AbstractSerialisable
 from medcat2.cdb.concepts import CUIInfo, NameInfo, TypeInfo
 from medcat2.utils.defaults import default_weighted_average, StatusTypes as ST
 from medcat2.preprocessors.cleaners import NameDescriptor
@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CDB(Serialisable):
+class CDB(AbstractSerialisable):
     NAME_FORMAT = "cdb_{0}.dat"
 
     def __init__(self, config: Config) -> None:
