@@ -18,7 +18,7 @@ class Token:
     def __init__(self, delegate: SpacyToken) -> None:
         self._delegate = delegate
         # defaults
-        self.norm = self.text
+        self.norm = ''
         self.to_skip = False
         self.is_punctuation = self._delegate.is_punct
 
