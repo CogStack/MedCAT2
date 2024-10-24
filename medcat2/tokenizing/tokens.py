@@ -4,7 +4,7 @@ from typing import Protocol, Optional, Iterator, overload
 class BaseToken(Protocol):
 
     @property
-    def raw_text(self) -> str:
+    def text(self) -> str:
         pass
 
     @property
