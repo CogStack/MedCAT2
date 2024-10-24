@@ -57,6 +57,14 @@ class MutableToken(Protocol):
     def should_include(self) -> bool:
         pass
 
+    @property
+    def norm(self) -> str:
+        pass
+
+    @norm.setter
+    def norm(self, value: str) -> None:
+        pass
+
 
 class BaseEntity(Protocol):
 
@@ -176,4 +184,12 @@ class MutableDocument(Protocol):
         pass
 
     def __iter__(self) -> Iterator[MutableToken]:
+        pass
+
+    @overload
+    def __getitem__(self, index: int) -> MutableToken:
+        pass
+
+    @overload
+    def __getitem__(self, index: slice) -> MutableEntity:
         pass
