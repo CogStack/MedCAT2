@@ -56,6 +56,7 @@ class SpacyTokenizer(BaseTokenizer):
 def set_def_args_kwargs(config: Config) -> None:
     nlp_cnf = config.general.nlp
     nlp_cnf.init_args = [
+        nlp_cnf.modelname,
         nlp_cnf.disabled_components,
         config.general.diacritics,
         config.preprocessing.max_document_length,
