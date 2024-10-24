@@ -19,6 +19,10 @@ class BaseToken(Protocol):
     def is_upper(self) -> bool:
         pass
 
+    @property
+    def is_stop(self) -> bool:
+        pass
+
 
 class MutableToken(Protocol):
 
