@@ -18,9 +18,13 @@ class ComponentInitTests:
     module: FModule
 
     @classmethod
+    def set_def_args(cls):
+        cls.module.set_def_args_kwargs(cls.cnf)
+
+    @classmethod
     def setUpClass(cls):
         cls.cnf = Config()
-        cls.module.set_def_args_kwargs(cls.cnf)
+        cls.set_def_args()
         cls.comp_cnf: CoreComponentConfig = getattr(
             cls.cnf.components, cls.comp_type.name)
 
