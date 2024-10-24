@@ -4,8 +4,11 @@ components creation.
 """
 from typing import cast
 
+from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.config.config import CoreComponentConfig
+from medcat2.config import Config
 from medcat2.cdb import CDB
+from medcat2.vocab import Vocab
 
 import logging
 
@@ -13,13 +16,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def set_defaults(cdb: CDB):
-    nlp_cnf = cdb.config.general.nlp
+def set_tokenizer_defaults(config: Config) -> None:
+    nlp_cnf = config.general.nlp
     if nlp_cnf.provider == 'spacy':
         logging.debug("Setting default arguments for spacy constructor")
         from medcat2.tokenizing.spacy_impl.tokenizers import (
             set_def_args_kwargs)
-        set_def_args_kwargs(cdb.config)
+        set_def_args_kwargs(config)
+
+
+def set_components_defaults(cdb: CDB, vocab: Vocab, tokenizer: BaseTokenizer):
     for comp_name, comp_config in cdb.config.components:
         comp_cnf = cast(CoreComponentConfig, comp_config)
         if comp_cnf.comp_name != 'default':
@@ -29,4 +35,8 @@ def set_defaults(cdb: CDB):
         if comp_name == "tagging":
             from medcat2.components.tagging import tagger
             tagger.set_def_args_kwargs(cdb.config)
+        if comp_name == 'normalizing':
+            from medcat2.components.normalizing import normalizer
+            normalizer.set_default_args(cdb.config, tokenizer,
+                                        cdb.token_counts, vocab)
         # TODO: other components
