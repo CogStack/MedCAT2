@@ -58,6 +58,7 @@ dependencies = [ # Optional
   "numpy>2.0",
   "dill",
   "spacy",
+  "gensim>=4.3.0,<5.0.0",  # 5.3.0 is first to support 3.11; avoid major version bump
   # TODO - others
 ]
 
