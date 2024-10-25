@@ -1,4 +1,4 @@
-from typing import Set, Optional
+from typing import Optional
 import logging
 
 from pydantic import BaseModel, Field
@@ -140,8 +140,8 @@ class LinkingFilters(BaseModel):
     While any other CUIs can be included in the the extra CUI filter or
     the MCT filter, they would not have any real effect.
     """
-    cuis: Set[str] = set()
-    cuis_exclude: Set[str] = set()
+    cuis: set[str] = set()
+    cuis_exclude: set[str] = set()
 
     def __init__(self, **data):
         if 'cuis' in data:
