@@ -2,8 +2,6 @@
 in the config for the default tokenizer and the defualt
 components creation.
 """
-from typing import cast
-
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.config.config import CoreComponentConfig
 from medcat2.config import Config
