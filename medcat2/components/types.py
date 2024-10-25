@@ -38,7 +38,7 @@ _DEFAULT_NER: dict[str, tuple[str, str]] = {
     "default": ("medcat2.components.ner.vocab_based_ner", "NER"),
 }
 _DEFAULT_LINKING: dict[str, tuple[str, str]] = {
-    # "default": ("medcat2.components.linking.context_based_linker", "Linker"),
+    "default": ("medcat2.components.linking.context_based_linker", "Linker"),
 }
 
 
