@@ -42,4 +42,6 @@ def set_components_defaults(cdb: CDB, vocab: Vocab, tokenizer: BaseTokenizer):
         if comp_name == 'ner':
             from medcat2.components.ner import vocab_based_ner
             vocab_based_ner.set_def_args_kwargs(cdb.config, tokenizer, cdb)
-        # TODO: other components
+        if comp_name == 'linking':
+            from medcat2.components.linking import context_based_linker
+            context_based_linker.set_def_args_kwargs(cdb.config, cdb, vocab)
