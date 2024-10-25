@@ -29,8 +29,10 @@ def set_tokenizer_defaults(config: Config) -> None:
 #       we don't need to import these parts if we don't
 #       use them (i.e non-default components are used).
 def set_components_defaults(cdb: CDB, vocab: Vocab, tokenizer: BaseTokenizer):
-    for comp_name, comp_config in cdb.config.components:
-        comp_cnf = cast(CoreComponentConfig, comp_config)
+    for comp_name, comp_cnf in cdb.config.components:
+        if not isinstance(comp_cnf, CoreComponentConfig):
+            # e.g ignore order
+            continue
         if comp_cnf.comp_name != 'default':
             continue
         logging.debug("Setting default arguments for component '%s'",
@@ -38,7 +40,7 @@ def set_components_defaults(cdb: CDB, vocab: Vocab, tokenizer: BaseTokenizer):
         if comp_name == "tagging":
             from medcat2.components.tagging import tagger
             tagger.set_def_args_kwargs(cdb.config)
-        if comp_name == 'normalizing':
+        if comp_name == 'token_normalizing':
             from medcat2.components.normalizing import normalizer
             normalizer.set_default_args(cdb.config, tokenizer,
                                         cdb.token_counts, vocab)
