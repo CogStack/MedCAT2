@@ -37,6 +37,19 @@ class TypesRegistrationTests(unittest.TestCase):
     def tearDown(self):
         for registry in types._CORE_REGISTRIES.values():
             registry.unregister_all_components()
+        # register defaults
+        for registry, def_lazy in [
+            (types._CORE_REGISTRIES[types.CoreComponentType.tagging],
+             types._DEFAULT_TAGGERS),
+            (types._CORE_REGISTRIES[
+                types.CoreComponentType.token_normalizing],
+                types._DEFAULT_NORMALIZERS),
+            (types._CORE_REGISTRIES[types.CoreComponentType.ner],
+             types._DEFAULT_NER),
+            (types._CORE_REGISTRIES[types.CoreComponentType.linking],
+             types._DEFAULT_LINKING),
+        ]:
+            registry._lazy_defaults.update(def_lazy)
 
     def test_registered_is_base_component(self):
         self.assertIsInstance(self.registered, types.BaseComponent)
