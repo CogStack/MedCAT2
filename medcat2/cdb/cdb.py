@@ -221,3 +221,13 @@ class CDB(AbstractSerialisable):
         if full_build:
             self._add_full_build(cui, names, ontologies, description, type_ids)
         self.is_dirty = True
+
+    def reset_training(self) -> None:
+        """Will remove all training efforts - in other words all embeddings
+        that are learnt for concepts in the current CDB. Please note that this
+        does not remove synonyms (names) that were potentially added during
+        supervised/online learning.
+        """
+        for info in self.cui2info.values():
+            info.reset_training()
+        self.is_dirty = True
