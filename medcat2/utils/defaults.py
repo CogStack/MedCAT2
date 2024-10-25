@@ -1,4 +1,4 @@
-from typing import Optional, Set
+from typing import Optional
 from multiprocessing import cpu_count
 
 
@@ -23,7 +23,7 @@ def workers(workers_override: Optional[int] = None) -> int:
 class StatusTypes:
     PRIMARY_STATUS_NO_DISAMB = 'P'
     PRIMARY_STATUS_W_DISAMB = 'PD'
-    PRIMARY_STATUS: Set[str] = {PRIMARY_STATUS_NO_DISAMB,
+    PRIMARY_STATUS: set[str] = {PRIMARY_STATUS_NO_DISAMB,
                                 PRIMARY_STATUS_W_DISAMB}
     MUST_DISAMBIGATE = 'N'
     AUTOMATIC = 'A'
