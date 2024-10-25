@@ -25,6 +25,9 @@ def set_tokenizer_defaults(config: Config) -> None:
         set_def_args_kwargs(config)
 
 
+# NOTE: this method does dynamic imports so that
+#       we don't need to import these parts if we don't
+#       use them (i.e non-default components are used).
 def set_components_defaults(cdb: CDB, vocab: Vocab, tokenizer: BaseTokenizer):
     for comp_name, comp_config in cdb.config.components:
         comp_cnf = cast(CoreComponentConfig, comp_config)
