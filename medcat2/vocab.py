@@ -1,4 +1,4 @@
-from typing import Dict, Optional, List
+from typing import Optional
 from typing_extensions import TypedDict
 
 import dill
@@ -18,10 +18,10 @@ class Vocab(AbstractSerialisable):
     spelling only for checking is something correct.
 
     Properties:
-        vocab (Dict[str, WordDescriptor]):
+        vocab (dict[str, WordDescriptor]):
             Map from word to attributes, e.g. {'house':
                 {'vector': <np.array>, 'count': <int>, ...}, ...}
-        index2word (Dict[int, str]):
+        index2word (dict[int, str]):
             From word to an index - used for negative sampling
         vec_index2word (dict):
             Same as index2word but only words that have vectors
@@ -30,9 +30,9 @@ class Vocab(AbstractSerialisable):
     """
     def __init__(self) -> None:
         super().__init__()
-        self.vocab: Dict[str, WordDescriptor] = {}
-        self.index2word: Dict[int, str] = {}
-        self.vec_index2word: Dict[int, str] = {}
+        self.vocab: dict[str, WordDescriptor] = {}
+        self.index2word: dict[int, str] = {}
+        self.vec_index2word: dict[int, str] = {}
         self.unigram_table: np.ndarray = np.array([])
 
     def inc_or_add(self, word: str, cnt: int = 1,
@@ -121,11 +121,11 @@ class Vocab(AbstractSerialisable):
         for word in self.vocab.keys():
             self.vocab[word]['count'] = cnt
 
-    def update_counts(self, tokens: List[str]) -> None:
+    def update_counts(self, tokens: list[str]) -> None:
         """Given a list of tokens update counts for words in the vocab.
 
         Args:
-            tokens(List[str]):
+            tokens(list[str]):
                 Usually a large block of text split into tokens/words.
         """
         for token in tokens:
@@ -222,7 +222,7 @@ class Vocab(AbstractSerialisable):
         self.unigram_table = np.array(unigram_table)
 
     def get_negative_samples(self, n: int = 6,
-                             ignore_punct_and_num: bool = False) -> List[int]:
+                             ignore_punct_and_num: bool = False) -> list[int]:
         """Get N negative samples.
 
         Args:
@@ -235,7 +235,7 @@ class Vocab(AbstractSerialisable):
             Exception: If no unigram table is present.
 
         Returns:
-            List[int]:
+            list[int]:
                 Indices for words in this vocabulary.
         """
         if len(self.unigram_table) == 0:
@@ -250,7 +250,7 @@ class Vocab(AbstractSerialisable):
                     if self.index2word[ind].upper().isupper()]
         return inds.tolist()
 
-    def get_vectors(self, indices: List[int]) -> List[np.ndarray]:
+    def get_vectors(self, indices: list[int]) -> list[np.ndarray]:
         return [self.vec(self.index2word[ind])  # type: ignore
                 for ind in indices if ind in self.vec_index2word]
 
