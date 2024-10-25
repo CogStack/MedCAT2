@@ -27,6 +27,10 @@ class BaseToken(Protocol):
     def index(self) -> int:
         pass
 
+    @property
+    def text_with_ws(self) -> str:
+        pass
+
 
 class MutableToken(Protocol):
 
