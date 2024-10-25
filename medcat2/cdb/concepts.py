@@ -1,4 +1,4 @@
-from typing import Set, List, Optional, Dict, Any
+from typing import Optional, Any
 from dataclasses import dataclass, field
 from collections import defaultdict
 
@@ -11,18 +11,18 @@ from medcat2.utils.defaults import StatusTypes as ST
 class CUIInfo:
     cui: str  # NOTE: we _could_ get away without to save on memory
     preferred_name: str
-    names: Set[str] = field(default_factory=set)
-    subnames: Set[str] = field(default_factory=set)
-    type_ids: Set[str] = field(default_factory=set)
+    names: set[str] = field(default_factory=set)
+    subnames: set[str] = field(default_factory=set)
+    type_ids: set[str] = field(default_factory=set)
     # optional parts start here
     description: Optional[str] = None
-    original_names: Optional[Set[str]] = None
-    tags: List[str] = field(default_factory=list)
+    original_names: Optional[set[str]] = None
+    tags: list[str] = field(default_factory=list)
     group: Optional[str] = None
-    in_other_ontology: Dict[str, Any] = field(default_factory=dict)
+    in_other_ontology: dict[str, Any] = field(default_factory=dict)
     # stuff related to training starts here
     count_train: int = 0  # TODO: separate supervised and unsupervised
-    context_vectors: Optional[Dict[str, np.ndarray]] = None
+    context_vectors: Optional[dict[str, np.ndarray]] = None
     average_confidence: float = 0.0
 
     def reset_training(self) -> None:
@@ -34,8 +34,8 @@ class CUIInfo:
 @dataclass
 class NameInfo:
     name: str  # NOTE: we _could_ get away without to save on memory
-    cuis: Set[str]  # = field(default_factory=set)
-    per_cui_status: Dict[str, str] = field(
+    cuis: set[str]  # = field(default_factory=set)
+    per_cui_status: dict[str, str] = field(
         default_factory=lambda: defaultdict(lambda: ST.AUTOMATIC))
     is_upper: bool = False
     # stuff related to training starts here
@@ -46,4 +46,4 @@ class NameInfo:
 class TypeInfo:
     type_id: str  # NOTE: we _could_ get away without to save on memory
     name: str
-    cuis: Set[str] = field(default_factory=set)
+    cuis: set[str] = field(default_factory=set)
