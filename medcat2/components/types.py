@@ -26,7 +26,6 @@ class BaseComponent(Protocol):
         pass
 
 
-# TODO: look into these
 _DEFAULT_TAGGERS: dict[str, tuple[str, str]] = {
     "default": ("medcat2.components.tagging.tagger", "TagAndSkipTagger"),
 }
