@@ -34,25 +34,9 @@ class Token:
     def text_versions(self) -> list[str]:
         return [self.text, self.norm]
 
-    # @property
-    # def norm(self) -> bool:
-    #     return self._delegate._.norm
-
-    # @norm.setter
-    # def norm(self, value: Union[bool, str]) -> None:
-    #     self._delegate._.norm = value
-
     @property
     def lower(self) -> str:
         return self._delegate.lower_
-
-    # @property
-    # def to_skip(self) -> bool:
-    #     return self._delegate._.to_skip
-
-    # @to_skip.setter
-    # def to_skip(self, new_val: bool) -> None:
-    #     self._delegate._.to_skip = new_val
 
     @property
     def is_stop(self) -> bool:
@@ -61,14 +45,6 @@ class Token:
     @property
     def is_digit(self) -> bool:
         return self._delegate.is_digit
-
-    # @property
-    # def is_punct(self) -> bool:
-    #     return self._delegate.is_punct
-
-    # @is_punct.setter
-    # def is_punct(self, new_val: bool) -> None:
-    #     self._delegate.is_punct = new_val
 
     @property
     def is_upper(self) -> bool:
@@ -119,46 +95,6 @@ class Entity:
     def label(self) -> int:
         return self._delegate.label
 
-    # @property
-    # def link_candidates(self) -> Optional[list[str]]:
-    #     return self._delegate._.link_candidates
-
-    # @link_candidates.setter
-    # def link_candidates(self, candidates: list[str]) -> None:
-    #     self._delegate._.link_candidates = candidates
-
-    # @property
-    # def context_similarity(self) -> float:
-    #     return self._delegate._.context_similarity
-
-    # @context_similarity.setter
-    # def context_similarity(self, val: float) -> None:
-    #     self._delegate._.context_similarity = val
-
-    # @property
-    # def confidence(self) -> float:
-    #     return self._delegate._.confidence
-
-    # @confidence.setter
-    # def confidence(self, val: float) -> None:
-    #     self._delegate._.confidence = val
-
-    # @property
-    # def cui(self) -> str:
-    #     return self._delegate._.cui
-
-    # @cui.setter
-    # def cui(self, value: str) -> None:
-    #     self._delegate._.cui = value
-
-    # @property
-    # def id(self) -> int:
-    #     return self._delegate._._id
-
-    # @id.setter
-    # def id(self, value: int) -> None:
-    #     self._delegate._._id = value
-
     @property
     def start_index(self) -> int:
         return self._delegate[0].i
@@ -166,14 +102,6 @@ class Entity:
     @property
     def end_index(self) -> int:
         return self._delegate[-1].i
-
-    # @property
-    # def detected_name(self) -> str:
-    #     return self._delegate._.detected_name
-
-    # @detected_name.setter
-    # def detected_name(self, name: str) -> None:
-    #     self._delegate._.detected_name = name
 
     def __iter__(self) -> Iterator[MutableToken]:
         for tkn in self._delegate:
