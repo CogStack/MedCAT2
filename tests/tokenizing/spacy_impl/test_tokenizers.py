@@ -30,3 +30,4 @@ class DefaultTokenizerInitTests(unittest.TestCase):
             **self.cnf.general.nlp.init_kwargs)
         self.assertIsInstance(tokenizer,
                               runtime_checkable(tokenizers.BaseTokenizer))
+        self.assertIsInstance(tokenizer, self.default_cls)
