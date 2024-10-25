@@ -187,19 +187,11 @@ class Document:
 
     def __init__(self, delegate: SpacyDoc) -> None:
         self._delegate = delegate
+        self.all_ents: list[MutableEntity] = []
 
     @property
     def base(self) -> BaseDocument:
         return cast(BaseDocument, self)
-
-    @property
-    def entities(self) -> list[MutableEntity]:
-        return [e if isinstance(e, Entity) else Entity(e)
-                for e in self._delegate._.ents]
-
-    @entities.setter
-    def entities(self, value: list[MutableEntity]) -> None:
-        self._delegate._.ents = value
 
     @property
     def final_ents(self) -> list[MutableEntity]:

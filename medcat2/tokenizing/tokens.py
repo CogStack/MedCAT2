@@ -187,6 +187,10 @@ class MutableDocument(Protocol):
     def final_ents(self) -> list[MutableEntity]:
         pass
 
+    @property
+    def all_ents(self) -> list[MutableEntity]:
+        pass
+
     def __iter__(self) -> Iterator[MutableToken]:
         pass
 
