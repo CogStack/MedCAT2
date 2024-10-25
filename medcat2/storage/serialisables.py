@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple, Union, Protocol, runtime_checkable
+from typing import Any, Union, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -30,10 +30,10 @@ class AbstractSerialisable:
         return True
 
 
-def name_all_serialisable_elements(target_list: Union[List, Tuple],
+def name_all_serialisable_elements(target_list: Union[list, tuple],
                                    name_start: str = '',
                                    all_or_nothing: bool = True
-                                   ) -> List[Tuple[Serialisable, str]]:
+                                   ) -> list[tuple[Serialisable, str]]:
     """Gets all serialisable elements from a list or tuple.
 
     There's two strategies for finding the parts:
@@ -43,7 +43,7 @@ def name_all_serialisable_elements(target_list: Union[List, Tuple],
         serialisable while others may not be.
 
     Args:
-        target_list (Union[List, Tuple]): The list/tuple of objects to look in.
+        target_list (Union[list, tuple]): The list/tuple of objects to look in.
         name_start (str, optional): The start of the name. Defaults to ''.
         all_or_nothing (bool, optional):
             Whether to disallow lists/tuple where only some elements are
@@ -54,9 +54,9 @@ def name_all_serialisable_elements(target_list: Union[List, Tuple],
             are serialisable.
 
     Returns:
-        List[Tuple[Serialisable, str]]: The serialisable parts along with name.
+        list[tuple[Serialisable, str]]: The serialisable parts along with name.
     """
-    out_parts: List[Tuple[Serialisable, str]] = []
+    out_parts: list[tuple[Serialisable, str]] = []
     if not target_list:
         return out_parts
     for el_nr, el in enumerate(target_list):
@@ -71,7 +71,7 @@ def name_all_serialisable_elements(target_list: Union[List, Tuple],
 
 
 def get_all_serialisable_members(object: Any
-                                 ) -> List[Tuple[Serialisable, str]]:
+                                 ) -> list[tuple[Serialisable, str]]:
     """Gets all serialisable members of an object.
 
     This looks for public and protected members, but not private ones.
@@ -82,10 +82,10 @@ def get_all_serialisable_members(object: Any
         object (Any): The target object.
 
     Returns:
-        List[Tuple[Serialisable, str]]:
-            List of serialisable objects along with their names
+        list[tuple[Serialisable, str]]:
+            list of serialisable objects along with their names
     """
-    serialisable_parts: List[Tuple[Serialisable, str]] = []
+    serialisable_parts: list[tuple[Serialisable, str]] = []
     for name, obj in object.__dict__.items():
         if name.startswith("__"):
             # ignore private members
