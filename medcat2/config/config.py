@@ -14,7 +14,7 @@ class CoreComponentConfig(BaseModel):
     """The name of the component.
 
     If a custom implementation is required, it needs to be registered
-    using `medcat2.components.base.register_core_component(
+    using `medcat2.components.types.register_core_component(
             <core component type>, <component name>, <implementing class>)
     By default, only the 'default' component is registered.
     """
@@ -309,7 +309,7 @@ class AnnotationOutput(BaseModel):
 
 
 # NOTE: this class should have an attribute for each
-#       medcat2.components.base.CoreComponentType
+#       medcat2.components.types.CoreComponentType
 class Components(BaseModel):
     tagging: CoreComponentConfig = CoreComponentConfig()
     token_normalizing: CoreComponentConfig = CoreComponentConfig()
