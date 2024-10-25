@@ -3,7 +3,7 @@ nicely for CDB once the software is trained the main thing are the context
 vectors.
 """
 import logging
-from typing import List, Optional
+from typing import Optional
 from medcat2.tokenizing.tokens import (MutableEntity, MutableToken,
                                        MutableDocument)
 from medcat2.cdb import CDB
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def maybe_annotate_name(tokenizer: BaseTokenizer, name: str,
-                        tkns: List[MutableToken],
+                        tkns: list[MutableToken],
                         doc: MutableDocument, cdb: CDB, config: Config,
                         label: str = 'concept'
                         ) -> Optional[MutableEntity]:
