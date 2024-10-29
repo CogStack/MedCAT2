@@ -5,6 +5,7 @@ from medcat2.cdb import CDB
 from medcat2.data.mctexport import (MedCATTrainerExport,
                                     MedCATTrainerExportProject,
                                     MedCATTrainerExportDocument)
+from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 
 
 class TestTrainSplitter:
@@ -146,3 +147,16 @@ def make_mc_train_test(data: MedCATTrainerExport,
             and the total annotations
     """
     return TestTrainSplitter(data, cdb, test_size).split()
+
+
+def get_false_positives(doc: MedCATTrainerExportDocument,
+                        spacy_doc: MutableDocument
+                        ) -> list[MutableEntity]:
+    truth = set([(ent['start'], ent['cui']) for ent in doc['annotations']])
+
+    fps = []
+    for ent in spacy_doc.all_ents:
+        if (ent.base.start_index, ent.cui) not in truth:
+            fps.append(ent)
+
+    return fps
