@@ -67,6 +67,12 @@ class Platform:
             doc = comp(doc)
         return doc
 
+    def get_component(self, ctype: CoreComponentType) -> BaseComponent:
+        for comp in self._components:
+            if comp.get_type() is ctype:
+                return comp
+        raise ValueError(f"No component found of type {ctype}")
+
 
 class IncorrectArgumentsForTokenizer(TypeError):
 
