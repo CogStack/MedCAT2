@@ -1,8 +1,8 @@
-from typing import Optional, Protocol, Callable, runtime_checkable
+from typing import Optional, Protocol, Callable, runtime_checkable, Union
 from enum import Enum, auto
 
 from medcat2.utils.registry import Registry
-from medcat2.tokenizing.tokens import MutableDocument
+from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 
 
 class CoreComponentType(Enum):
@@ -23,6 +23,17 @@ class BaseComponent(Protocol):
         pass
 
     def __call__(self, doc: MutableDocument) -> MutableDocument:
+        pass
+
+
+@runtime_checkable
+class TrainableComponent(Protocol):
+
+    def train(self, cui: str,
+              entity: MutableEntity,
+              doc: MutableDocument,
+              negative: bool = False,
+              names: Union[list[str], dict] = []) -> None:
         pass
 
 

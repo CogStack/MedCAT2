@@ -1,7 +1,7 @@
 import random
 import logging
+from typing import Iterator, Optional, Union
 
-from typing import Iterator, Optional
 from medcat2.components.types import CoreComponentType
 from medcat2.tokenizing.tokens import MutableEntity, MutableDocument
 from medcat2.components.linking.vector_context_model import ContextModel
@@ -194,6 +194,13 @@ class Linker:
         # TODO - reintroduce groups? and map here?
 
         return doc
+
+    def train(self, cui: str,
+              entity: MutableEntity,
+              doc: MutableDocument,
+              negative: bool = False,
+              names: Union[list[str], dict] = []) -> None:
+        self.context_model.train(cui, entity, doc, negative, names)
 
 
 def set_def_args_kwargs(config: Config, cdb: CDB, vocab: Optional[Vocab]):
