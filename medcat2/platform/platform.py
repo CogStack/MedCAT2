@@ -26,6 +26,10 @@ class Platform:
         #       a specific default component is used
         self._init_components()
 
+    @property
+    def tokenizer(self) -> BaseTokenizer:
+        return self._tokenizer
+
     def _init_tokenizer(self) -> BaseTokenizer:
         nlp_cnf = self.config.general.nlp
         try:
