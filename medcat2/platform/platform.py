@@ -1,3 +1,5 @@
+from typing import Optional
+
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
 from medcat2.components.types import (CoreComponentType, create_core_component,
                                       BaseComponent)
@@ -11,7 +13,7 @@ from medcat2.utils.default_args import (set_tokenizer_defaults,
 
 class Platform:
 
-    def __init__(self, cdb: CDB, vocab: Vocab):
+    def __init__(self, cdb: CDB, vocab: Optional[Vocab]):
         # NOTE: this only sets the default arguments if the
         #       default tokenizer is used
         set_tokenizer_defaults(cdb.config)

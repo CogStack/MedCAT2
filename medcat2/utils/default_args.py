@@ -2,6 +2,8 @@
 in the config for the default tokenizer and the defualt
 components creation.
 """
+from typing import Optional
+
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.config.config import CoreComponentConfig
 from medcat2.config import Config
@@ -26,7 +28,8 @@ def set_tokenizer_defaults(config: Config) -> None:
 # NOTE: this method does dynamic imports so that
 #       we don't need to import these parts if we don't
 #       use them (i.e non-default components are used).
-def set_components_defaults(cdb: CDB, vocab: Vocab, tokenizer: BaseTokenizer):
+def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],
+                            tokenizer: BaseTokenizer):
     for comp_name, comp_cnf in cdb.config.components:
         if not isinstance(comp_cnf, CoreComponentConfig):
             # e.g ignore order

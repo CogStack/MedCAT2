@@ -196,7 +196,8 @@ class Linker:
         return doc
 
 
-def set_def_args_kwargs(config: Config, cdb: CDB, vocab: Vocab):
+def set_def_args_kwargs(config: Config, cdb: CDB, vocab: Optional[Vocab]):
+    # NOTE: if Vocab is None, a linker cannot be used.
     config.components.linking.init_args = [
         cdb, vocab, config,
     ]

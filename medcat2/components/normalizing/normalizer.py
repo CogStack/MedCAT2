@@ -189,7 +189,8 @@ class TokenNormalizer:
 
 
 def set_default_args(config: Config, tokenizer: BaseTokenizer,
-                     cdb_vocab: dict[str, int], vocab: Vocab) -> None:
+                     cdb_vocab: dict[str, int], vocab: Optional[Vocab]
+                     ) -> None:
     config.components.token_normalizing.init_args = [
         tokenizer, config, cdb_vocab, vocab
     ]
