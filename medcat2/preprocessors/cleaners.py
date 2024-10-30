@@ -28,12 +28,6 @@ class LCDBMaker(Protocol):
     min_letters_required: int
 
 
-class LConfig(Protocol):
-    general: LGeneral
-    preprocessing: LPreprocessing
-    cdb_maker: LCDBMaker
-
-
 def _get_tokens(config: LPreprocessing,
                 sc_name: MutableDocument,
                 version: str) -> list[str]:
@@ -56,12 +50,14 @@ def _get_tokens(config: LPreprocessing,
     raise UnknownTokenVersion(version)
 
 
-def _update_dict(config: LConfig, raw_name: str,
+def _update_dict(configs: tuple[LGeneral, LPreprocessing, LCDBMaker],
+                 raw_name: str,
                  names: dict[str, NameDescriptor],
                  tokens: list[str], is_upper: bool) -> None:
+    general, _, cdb_maker = configs
     snames = set()
-    name = config.general.separator.join(tokens)
-    mlr = config.cdb_maker.min_letters_required
+    name = general.separator.join(tokens)
+    mlr = cdb_maker.min_letters_required
     if (mlr and len(re.sub("[^A-Za-z]*", '', name)) < mlr):
         return  # too short
     if name in names:
@@ -69,7 +65,7 @@ def _update_dict(config: LConfig, raw_name: str,
     sname = ""
     for token in tokens:
         if sname:
-            sname = sname + config.general.separator + token
+            sname = sname + general.separator + token
         else:
             sname = token
         snames.add(sname.strip())
@@ -79,7 +75,8 @@ def _update_dict(config: LConfig, raw_name: str,
 
 
 def prepare_name(raw_name: str, nlp: BaseTokenizer,
-                 names: dict[str, NameDescriptor], config: LConfig
+                 names: dict[str, NameDescriptor],
+                 configs: tuple[LGeneral, LPreprocessing, LCDBMaker],
                  ) -> dict[str, NameDescriptor]:
     """Generates different forms of a name. Will edit the provided `names`
     dictionary and add information generated from the `name`.
@@ -90,22 +87,23 @@ def prepare_name(raw_name: str, nlp: BaseTokenizer,
             Dictionary of existing names for this concept in this row of a CSV.
             The new generated name versions and other required information will
             be added here.
-        config (medcat.config.Config):
-            Global config for medcat.
+        configs (tuple[LGeneral, LPreprocessing, LCDBMaker]):
+            Applicable configs for medcat.
 
     Returns:
         names (Dict):
             The updated dictionary of prepared names.
     """
     sc_name = nlp(raw_name)
+    _, preprocessing, cdb_maker = configs
 
-    for version in config.cdb_maker.name_versions:
+    for version in cdb_maker.name_versions:
         tokens = None
 
-        tokens = _get_tokens(config.preprocessing, sc_name, version)
+        tokens = _get_tokens(preprocessing, sc_name, version)
 
         if tokens is not None and tokens:
-            _update_dict(config, raw_name, names, tokens,
+            _update_dict(configs, raw_name, names, tokens,
                          sc_name.base.isupper())
 
     return names

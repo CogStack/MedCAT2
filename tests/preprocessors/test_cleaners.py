@@ -1,12 +1,20 @@
 from typing import runtime_checkable
 
 from medcat2.preprocessors import cleaners
-from medcat2.config import Config
+from medcat2.config.config import General, Preprocessing, CDBMaker
 
 import unittest
 
 
 class AbstractionTests(unittest.TestCase):
+    to_check = [
+        (cleaners.LGeneral, General),
+        (cleaners.LPreprocessing, Preprocessing),
+        (cleaners.LCDBMaker, CDBMaker),
+    ]
 
     def test_config_fits_local_config(self):
-        self.assertIsInstance(Config(), runtime_checkable(cleaners.LConfig))
+        for protocol, implementation in self.to_check:
+            with self.subTest(implementation.__name__):
+                self.assertIsInstance(implementation(),
+                                      runtime_checkable(protocol))
