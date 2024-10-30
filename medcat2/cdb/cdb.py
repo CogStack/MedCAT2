@@ -231,3 +231,48 @@ class CDB(AbstractSerialisable):
         for info in self.cui2info.values():
             info.reset_training()
         self.is_dirty = True
+
+    def _remove_names(self, cui: str, names: Iterable[str]) -> None:
+        """Remove names from an existing concept - effect is this name will
+        never again be used to link to this concept. This will only remove the
+        name from the linker (namely name2cuis and name2cuis2status), the name
+        will still be present everywhere else. Why? Because it is bothersome
+        to remove it from everywhere, but could also be useful to keep the
+        removed names in e.g. cui2names.
+
+        Args:
+            cui (str):
+                Concept ID or unique identifier in this database.
+            names (Iterable[str]):
+                Names to be removed (e.g list, set, or even a dict (in which
+                case keys will be used)).
+        """
+        for name in names:
+            if name in self.name2info:
+                info = self.name2info[name]
+                if cui in info.cuis:
+                    info.cuis.remove(cui)
+                if len(info.cuis) == 0:
+                    del self.name2info[name]
+
+            # Remove from name2cuis2status
+            if name in self.name2info:
+                info = self.name2info[name]
+                cuis2status = info.per_cui_status
+                if cui in cuis2status[name]:
+                    _ = cuis2status.pop(cui)
+                if len(cuis2status[name]) == 0:
+                    # TODO: does this make sense?
+                    del self.name2info[name]
+
+            # Set to disamb always if name2cuis2status is now only one CUI
+            if name in self.name2info:
+                info = self.name2info[name]
+                cuis2status = info.per_cui_status
+                if len(cuis2status) == 1:
+                    for _cui in cuis2status:
+                        if cuis2status[_cui] == 'A':
+                            cuis2status[_cui] = 'N'
+                        elif cuis2status[_cui] == 'P':
+                            cuis2status[_cui] = 'PD'
+        self.is_dirty = True
