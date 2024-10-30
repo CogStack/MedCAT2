@@ -33,22 +33,27 @@ class MedCATTrainerExport(TypedDict):
     projects: List[MedCATTrainerExportProject]
 
 
-def iter_projects(export: MedCATTrainerExport) -> Iterator[MedCATTrainerExportProject]:
+def iter_projects(export: MedCATTrainerExport
+                  ) -> Iterator[MedCATTrainerExportProject]:
     yield from export['projects']
 
 
 def iter_docs(export: MedCATTrainerExport
-              ) -> Iterator[Tuple[MedCATTrainerExportProjectInfo, MedCATTrainerExportDocument]]:
+              ) -> Iterator[Tuple[MedCATTrainerExportProjectInfo,
+                                  MedCATTrainerExportDocument]]:
     for project in iter_projects(export):
         info: MedCATTrainerExportProjectInfo = (
-            project['name'], project['id'], project['cuis'], project.get('tuis', None)
+            project['name'], project['id'], project['cuis'],
+            project.get('tuis', None)
         )
         for doc in project['documents']:
             yield info, doc
 
 
 def iter_anns(export: MedCATTrainerExport
-              ) -> Iterator[Tuple[MedCATTrainerExportProjectInfo, MedCATTrainerExportDocument, MedCATTrainerExportAnnotation]]:
+              ) -> Iterator[Tuple[MedCATTrainerExportProjectInfo,
+                                  MedCATTrainerExportDocument,
+                                  MedCATTrainerExportAnnotation]]:
     for proj_info, doc in iter_docs(export):
         for ann in doc['annotations']:
             yield proj_info, doc, ann
