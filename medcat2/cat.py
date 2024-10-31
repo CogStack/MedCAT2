@@ -145,7 +145,7 @@ class CAT:
         if not self._trainer:
             self._trainer = Trainer(self.cdb, self.__call__,
                                     self.unlink_concept_name,
-                                    self.add)  # TODO - proper init
+                                    self.add_and_train_concept)
         return self._trainer
 
     def save_model_pack(
