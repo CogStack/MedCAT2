@@ -77,6 +77,7 @@ class Trainer:
         """
         train_start = datetime.now()
         _names: list[str] = []
+        # NOTE: leaving a default just in case somethign goes wrong
         _counts: list[int] = [0]
 
         def iter_callback(name: str, count: int) -> None:
