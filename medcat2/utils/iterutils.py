@@ -1,11 +1,11 @@
-from typing import Callable, Iterator, TypeVar, Sized
+from typing import Callable, Iterable, TypeVar, Sized
 
 T = TypeVar("T")
 
 
-def _callback_iterator_iterable(identifier: str, data_iterator: Iterator[T],
+def _callback_iterator_iterable(identifier: str, data_iterator: Iterable[T],
                                 callback: Callable[[str, int], None]
-                                ) -> Iterator[T]:
+                                ) -> Iterable[T]:
     count = 0
     try:
         for item in data_iterator:
@@ -15,8 +15,8 @@ def _callback_iterator_iterable(identifier: str, data_iterator: Iterator[T],
         callback(identifier, count)
 
 
-def callback_iterator(identifier: str, data_iterator: Iterator[T],
-                      callback: Callable[[str, int], None]) -> Iterator[T]:
+def callback_iterator(identifier: str, data_iterator: Iterable[T],
+                      callback: Callable[[str, int], None]) -> Iterable[T]:
     if isinstance(data_iterator, Sized):
         callback(identifier, len(data_iterator))
         return data_iterator
