@@ -95,8 +95,8 @@ class Trainer:
                                                 nepochs)
             if len(_names) != 1:
                 logger.warning(
-                    "Something went wrong druing unsupervised training. "
-                    "The number of documents trained was unable to be obtained!")
+                    "Something went wrong druing unsupervised training. The "
+                    "number of documents trained was unable to be obtained!")
 
     def _train_unsupervised(self,
                             data_iterator: Iterable,
