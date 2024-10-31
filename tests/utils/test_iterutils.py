@@ -1,4 +1,5 @@
 from typing import Generator
+from itertools import chain, repeat
 
 from medcat2.utils import iterutils
 
@@ -8,11 +9,12 @@ from unittest.mock import MagicMock
 
 class TestCallbackIterator(unittest.TestCase):
     IDENTIFIER = "test_id"
+    CNT_NO_LEN = 18
 
     def setUp(self):
         self.callback = MagicMock()
         self.data_with_len = list(range(12))
-        self.data_without_len = (i for i in range(18))
+        self.data_without_len = (i for i in range(self.CNT_NO_LEN))
 
     def test_with_len_returns_same_object(self):
         result = iterutils.callback_iterator(self.IDENTIFIER,
@@ -53,3 +55,21 @@ class TestCallbackIterator(unittest.TestCase):
         with self.assertRaises(ValueError):
             list(result)  # Trigger the exception
         self.callback.assert_called_once_with(self.IDENTIFIER, exp_calls)
+
+    def test_wihtout_len_callback_called_after_iteration(self):
+        result = iterutils.callback_iterator(self.IDENTIFIER,
+                                             self.data_without_len,
+                                             self.callback)
+        for _ in result:
+            pass
+        self.callback.assert_called_once_with(self.IDENTIFIER,
+                                              self.CNT_NO_LEN)
+
+    def test_reports_correctly_after_repeats(self, repeats: int = 3):
+        result = iterutils.callback_iterator(self.IDENTIFIER,
+                                             self.data_without_len,
+                                             self.callback)
+        for _ in chain.from_iterable(repeat(result, repeats)):
+            pass
+        self.callback.assert_called_once_with(self.IDENTIFIER,
+                                              self.CNT_NO_LEN)
