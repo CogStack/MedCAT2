@@ -352,6 +352,13 @@ class ModelMeta(BaseModel):
             project_name=project_name, num_docs=num_docs,
             num_epochs=num_epochs))
 
+    def add_sup_training(self, start_time: datetime, num_docs: int,
+                         project_name: str) -> None:
+        self.sup_trained.append(TrainingDescriptor(
+            train_time_start=start_time, train_time_end=datetime.now(),
+            project_name=project_name, num_docs=num_docs, num_epochs=1
+        ))
+
     @contextmanager
     def prepare_and_report_training(self,
                                     data_iterator: Iterable[Union[str, dict]],
@@ -370,11 +377,14 @@ class ModelMeta(BaseModel):
             yield wrapped
         finally:
             # even if something fails, log the count
+            num_docs = _counts[1]
             if supervised:
-                pass  # TODO
+                self.add_sup_training(start_time=start_time,
+                                      num_docs=num_docs,
+                                      project_name=project_name)
             else:
                 self.add_unsup_training(start_time=start_time,
-                                        num_docs=_counts[-1],
+                                        num_docs=num_docs,
                                         num_epochs=num_epochs,
                                         project_name=project_name)
                 if len(_names) != 1:
