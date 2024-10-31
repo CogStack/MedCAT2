@@ -337,6 +337,9 @@ class ModelMeta(BaseModel):
     sup_trained: list[TrainingDescriptor] = []  # TODO - implement
     saved_environ: Environment = get_environment_info()  # TODO - implement
 
+    def mark_saved_now(self):
+        self.last_saved = datetime.now()
+
 
 class Config(BaseModel):
     general: General = General()

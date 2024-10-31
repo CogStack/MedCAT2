@@ -3,7 +3,6 @@ import os
 
 import shutil
 import logging
-from datetime import datetime
 
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
@@ -153,7 +152,7 @@ class CAT:
             self, target_folder: str, pack_name: str = DEFAULT_PACK_NAME,
             serialiser_type: Union[str, AvailableSerialisers] = 'dill'
             ) -> None:
-        self.config.meta.last_saved = datetime.now()
+        self.config.meta.mark_saved_now()
         # figure out the location/folder of the saved files
         model_pack_path = os.path.join(target_folder, pack_name)
         # ensure target folder and model pack folder exist
