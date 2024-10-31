@@ -7,9 +7,10 @@ from spacy.tokens import Span
 from spacy.tokenizer import Tokenizer  # type: ignore
 from spacy.language import Language
 
-from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
+from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
+                                       MutableToken)
 from medcat2.tokenizing.tokenizers import BaseTokenizer
-from medcat2.tokenizing.spacy_impl.tokens import Document, Entity
+from medcat2.tokenizing.spacy_impl.tokens import Document, Entity, Token
 from medcat2.tokenizing.spacy_impl.utils import ensure_spacy_model
 from medcat2.config import Config
 
@@ -57,6 +58,14 @@ class SpacyTokenizer(BaseTokenizer):
                       label: str) -> MutableEntity:
         spacy_doc = cast(Document, doc)._delegate
         span = Span(spacy_doc, token_start_index, token_end_index, label)
+        return Entity(span)
+
+    def entity_from_tokens(self, tokens: list[MutableToken]) -> MutableEntity:
+        if not tokens:
+            raise ValueError("Need at least one token for an entity")
+        spacy_tokens = cast(list[Token], tokens)
+        span = Span(spacy_tokens[0]._delegate.doc, spacy_tokens[0].index,
+                    spacy_tokens[-1].index)
         return Entity(span)
 
     def __call__(self, text: str) -> MutableDocument:

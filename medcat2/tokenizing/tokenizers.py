@@ -1,7 +1,8 @@
 from typing import Protocol, Type
 import logging
 
-from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
+from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
+                                       MutableToken)
 from medcat2.utils.registry import Registry
 
 
@@ -13,6 +14,9 @@ class BaseTokenizer(Protocol):
     def create_entity(self, doc: MutableDocument,
                       token_start_index: int, token_end_index: int,
                       label: str) -> MutableEntity:
+        pass
+
+    def entity_from_tokens(self, tokens: list[MutableToken]) -> MutableEntity:
         pass
 
     def __call__(selt, text: str) -> MutableDocument:
