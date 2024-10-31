@@ -3,7 +3,8 @@ from typing import Optional
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
 from medcat2.components.types import (CoreComponentType, create_core_component,
                                       BaseComponent)
-from medcat2.tokenizing.tokens import MutableDocument
+from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
+                                       MutableToken)
 from medcat2.vocab import Vocab
 from medcat2.cdb import CDB
 from medcat2.config.config import CoreComponentConfig
@@ -66,6 +67,9 @@ class Platform:
         for comp in self._components:
             doc = comp(doc)
         return doc
+
+    def entity_from_tokens(self, tokens: list[MutableToken]) -> MutableEntity:
+        return self._tokenizer.entity_from_tokens(tokens)
 
     def get_component(self, ctype: CoreComponentType) -> BaseComponent:
         for comp in self._components:

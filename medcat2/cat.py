@@ -290,6 +290,8 @@ class CAT:
                     "because it has no train method: %s", linker)
             else:
                 # Train Linking
+                if isinstance(mut_entity, list):
+                    mut_entity = self._platform.entity_from_tokens(mut_entity)
                 linker.train(cui=cui, entity=mut_entity, doc=mut_doc,
                              negative=negative, names=names)
 
