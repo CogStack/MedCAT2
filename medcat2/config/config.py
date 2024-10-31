@@ -1,9 +1,11 @@
 from typing import Optional
 import logging
+from datetime import datetime
 
 from pydantic import BaseModel, Field
 
 from medcat2.utils.defaults import workers
+from medcat2.utils.envsnapshot import Environment, get_environment_info
 
 
 logger = logging.getLogger(__name__)
@@ -319,6 +321,22 @@ class Components(BaseModel):
                              'ner', 'linking']
 
 
+class TrainingDescriptor(BaseModel):
+    train_time: datetime = Field(default_factory=datetime.now)
+    project_name: Optional[str]
+    num_docs: int
+
+
+class ModelMeta(BaseModel):
+    description: str
+    ontology: list[str] = []
+    hash: str = ''  # TODO - implement
+    last_saved: datetime  # TODO - implement
+    unsup_trained: list[TrainingDescriptor] = []  # TODO - implement
+    sup_trained: list[TrainingDescriptor] = []  # TODO - implement
+    saved_environ: Environment = get_environment_info()  # TODO - implement
+
+
 class Config(BaseModel):
     general: General = General()
     components: Components = Components()
@@ -327,3 +345,4 @@ class Config(BaseModel):
     cdb_maker: CDBMaker = CDBMaker()
     # ner: Ner = Ner()
     annotation_output: AnnotationOutput = AnnotationOutput()
+    meta: ModelMeta = ModelMeta()
