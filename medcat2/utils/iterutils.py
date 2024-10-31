@@ -1,4 +1,4 @@
-from typing import Callable, Iterator, TypeVar
+from typing import Callable, Iterator, TypeVar, Sized
 
 T = TypeVar("T")
 
@@ -17,7 +17,7 @@ def _callback_iterator_iterable(identifier: str, data_iterator: Iterator[T],
 
 def callback_iterator(identifier: str, data_iterator: Iterator[T],
                       callback: Callable[[str, int], None]) -> Iterator[T]:
-    if hasattr(data_iterator, "__len__"):
+    if isinstance(data_iterator, Sized):
         callback(identifier, len(data_iterator))
         return data_iterator
     return _callback_iterator_iterable(identifier, data_iterator, callback)
