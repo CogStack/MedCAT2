@@ -1,60 +1,55 @@
+from typing import Generator
+
 from medcat2.utils import iterutils
 
 import unittest
+from unittest.mock import MagicMock
 
 
-class CallbackIterableTests(unittest.TestCase):
-    EXP_LEN_LIST = 12
-    EXP_LEN_ITER = 18
-    ID_LEN = 'with length'
-    ID_NO_LEN = 'no length'
-
-    @classmethod
-    def setUpClass(cls):
-        cls._w_len = list(range(cls.EXP_LEN_LIST))
+class TestCallbackIterator(unittest.TestCase):
+    IDENTIFIER = "test_id"
 
     def setUp(self):
-        self._no_len = ('a' * nr for nr in range(self.EXP_LEN_ITER))
-        self.last_id = 'N/A'
-        self.last_count = -1
+        self.callback = MagicMock()
+        self.data_with_len = list(range(12))
+        self.data_without_len = (i for i in range(18))
 
-    def init_w_len(self):
-        self.w_len = iterutils.callback_iterator(self.ID_LEN,
-                                                 self._w_len, self.callback)
+    def test_with_len_returns_same_object(self):
+        result = iterutils.callback_iterator(self.IDENTIFIER,
+                                             self.data_with_len, self.callback)
+        self.assertIs(result, self.data_with_len)
 
-    def init_no_len(self):
-        self.no_len = iterutils.callback_iterator(self.ID_NO_LEN,
-                                                  self._no_len, self.callback)
+    def test_with_len_callback_called_before_iterating(self):
+        result = iterutils.callback_iterator(self.IDENTIFIER,
+                                             self.data_with_len, self.callback)
+        self.callback.assert_called_once_with(self.IDENTIFIER,
+                                              len(self.data_with_len))
+        self.assertEqual(list(result), self.data_with_len)
 
-    def callback(self, identifier: str, count: str):
-        self.last_id = identifier
-        self.last_count = count
+    def test_without_len_callback_not_called_before_iterating(self):
+        iterutils.callback_iterator(self.IDENTIFIER, self.data_without_len,
+                                    self.callback)
+        self.callback.assert_not_called()
 
-    def consume(self, iterable):
-        for _ in iterable:
-            pass
+    def test_without_len_callback_not_called_during_partial_iteration(self):
+        result = iterutils.callback_iterator(self.IDENTIFIER,
+                                             self.data_without_len,
+                                             self.callback)
+        _ = next(result)  # Partial iteration
+        self.callback.assert_not_called()
 
-    def test_gets_len_of_list_before_full_iter(self):
-        self.init_w_len()
-        for _ in self.w_len:
-            # still need to iter over the first element
-            break
-        self.assertEqual(self.last_id, self.ID_LEN)
-        self.assertEqual(self.last_count, self.EXP_LEN_LIST)
+    def test_without_len_callback_called_with_partial_count_on_exception(self):
+        exp_calls = 2
 
-    def test_list_len_correct_after_iter(self):
-        self.init_w_len()
-        self.consume(self.w_len)
-        self.assertEqual(self.last_id, self.ID_LEN)
-        self.assertEqual(self.last_count, self.EXP_LEN_LIST)
+        def error_prone_gen() -> Generator[int, None, None]:
+            yield 1
+            yield 2
+            raise ValueError("Test exception")
 
-    def test_no_len_of_gen_before_iter(self):
-        self.init_no_len()
-        self.assertNotEqual(self.last_id, self.ID_NO_LEN)
-        self.assertNotEqual(self.last_count, self.EXP_LEN_ITER)
-
-    def test_gets_len_of_gen_after_iter(self):
-        self.init_no_len()
-        self.consume(self.no_len)
-        self.assertEqual(self.last_id, self.ID_NO_LEN)
-        self.assertEqual(self.last_count, self.EXP_LEN_ITER)
+        data_with_exception = error_prone_gen()
+        result = iterutils.callback_iterator(self.IDENTIFIER,
+                                             data_with_exception,
+                                             self.callback)
+        with self.assertRaises(ValueError):
+            list(result)  # Trigger the exception
+        self.callback.assert_called_once_with(self.IDENTIFIER, exp_calls)
