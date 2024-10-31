@@ -3,6 +3,7 @@ import logging
 from itertools import chain, repeat, islice
 from tqdm import trange
 from contextlib import nullcontext
+from datetime import datetime
 
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
                                        MutableToken)
@@ -10,6 +11,7 @@ from medcat2.cdb import CDB
 from medcat2.config.config import LinkingFilters
 from medcat2.utils.config_utils import temp_changed_config
 from medcat2.utils.data_utils import make_mc_train_test, get_false_positives
+from medcat2.utils.iterutils import callback_iterator
 from medcat2.data.mctexport import (MedCATTrainerExport,
                                     MedCATTrainerExportProject)
 
@@ -73,10 +75,28 @@ class Trainer:
                 If True resume the previous training; If False, start a fresh
                 new training.
         """
-        with temp_changed_config(self.config.components.linking,
-                                 'train', True):
-            self._train_unsupervised(data_iterator, nepochs, fine_tune,
-                                     progress_print)
+        train_start = datetime.now()
+        _names: list[str] = []
+        _counts: list[int] = [0]
+
+        def iter_callback(name: str, count: int) -> None:
+            _names.append(name)
+            _counts.append(count)
+        wrapped_iter: Iterable[str] = callback_iterator(
+            f"TRAIN: {id(data_iterator)}", data_iterator, iter_callback)
+        try:
+            with temp_changed_config(self.config.components.linking,
+                                     'train', True):
+                self._train_unsupervised(wrapped_iter, nepochs, fine_tune,
+                                         progress_print)
+        finally:
+            # even if something fails during training
+            self.config.meta.add_unsup_training(train_start, _counts[-1],
+                                                nepochs)
+            if len(_names) != 1:
+                logger.warning(
+                    "Something went wrong druing unsupervised training. "
+                    "The number of documents trained was unable to be obtained!")
 
     def _train_unsupervised(self,
                             data_iterator: Iterable,
