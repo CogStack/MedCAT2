@@ -12,8 +12,8 @@ from medcat2.components.types import CoreComponentType, TrainableComponent
 from medcat2.storage.serialisers import serialise, AvailableSerialisers
 from medcat2.utils.fileutils import ensure_folder_if_parent
 from medcat2.platform.platform import Platform
-from medcat2.tokenizing.tokenizers import (MutableDocument, MutableEntity,
-                                           MutableToken)
+from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
+                                       MutableToken)
 from medcat2.data.entities import Entity, Entities, OnlyCUIEntities
 from medcat2.preprocessors.cleaners import prepare_name, NameDescriptor
 
