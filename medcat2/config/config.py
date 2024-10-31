@@ -331,14 +331,14 @@ class ModelMeta(BaseModel):
     description: str = 'N/A'
     ontology: list[str] = []
     hash: str = ''  # TODO - implement
-    # TODO - implement
     last_saved: datetime = Field(default_factory=datetime.now)
     unsup_trained: list[TrainingDescriptor] = []  # TODO - implement
     sup_trained: list[TrainingDescriptor] = []  # TODO - implement
-    saved_environ: Environment = get_environment_info()  # TODO - implement
+    saved_environ: Environment = get_environment_info()
 
     def mark_saved_now(self):
         self.last_saved = datetime.now()
+        self.saved_environ = get_environment_info()
 
 
 class Config(BaseModel):
