@@ -322,9 +322,11 @@ class Components(BaseModel):
 
 
 class TrainingDescriptor(BaseModel):
-    train_time: datetime = Field(default_factory=datetime.now)
+    train_time_start: datetime
+    train_time_end: datetime
     project_name: Optional[str]
     num_docs: int
+    num_epochs: int = 1
 
 
 class ModelMeta(BaseModel):
@@ -339,6 +341,14 @@ class ModelMeta(BaseModel):
     def mark_saved_now(self):
         self.last_saved = datetime.now()
         self.saved_environ = get_environment_info()
+
+    # NOTE: this is expected to be called when training finished
+    def add_unsup_training(self, start_time: datetime, num_docs: int,
+                           num_epochs: int = 1, project_name: str = 'N/A'):
+        self.unsup_trained.append(TrainingDescriptor(
+            train_time_start=start_time, train_time_end=datetime.now(),
+            project_name=project_name, num_docs=num_docs,
+            num_epochs=num_epochs))
 
 
 class Config(BaseModel):
