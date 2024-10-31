@@ -3,7 +3,6 @@ import logging
 from itertools import chain, repeat, islice
 from tqdm import trange
 from contextlib import nullcontext
-from datetime import datetime
 
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
                                        MutableToken)
@@ -11,7 +10,6 @@ from medcat2.cdb import CDB
 from medcat2.config.config import LinkingFilters
 from medcat2.utils.config_utils import temp_changed_config
 from medcat2.utils.data_utils import make_mc_train_test, get_false_positives
-from medcat2.utils.iterutils import callback_iterator
 from medcat2.data.mctexport import (MedCATTrainerExport,
                                     MedCATTrainerExportProject)
 
