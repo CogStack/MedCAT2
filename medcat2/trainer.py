@@ -75,29 +75,13 @@ class Trainer:
                 If True resume the previous training; If False, start a fresh
                 new training.
         """
-        train_start = datetime.now()
-        _names: list[str] = []
-        # NOTE: leaving a default just in case somethign goes wrong
-        _counts: list[int] = [0]
-
-        def iter_callback(name: str, count: int) -> None:
-            _names.append(name)
-            _counts.append(count)
-        wrapped_iter: Iterable[str] = callback_iterator(
-            f"TRAIN: {id(data_iterator)}", data_iterator, iter_callback)
-        try:
+        with self.config.meta.prepare_and_report_training(
+            data_iterator, nepochs, False
+        ) as wrapped_iter:
             with temp_changed_config(self.config.components.linking,
                                      'train', True):
                 self._train_unsupervised(wrapped_iter, nepochs, fine_tune,
                                          progress_print)
-        finally:
-            # even if something fails during training
-            self.config.meta.add_unsup_training(train_start, _counts[-1],
-                                                nepochs)
-            if len(_names) != 1:
-                logger.warning(
-                    "Something went wrong druing unsupervised training. The "
-                    "number of documents trained was unable to be obtained!")
 
     def _train_unsupervised(self,
                             data_iterator: Iterable,

@@ -1,11 +1,13 @@
-from typing import Optional
+from typing import Optional, Union, Iterable
 import logging
 from datetime import datetime
+from contextlib import contextmanager
 
 from pydantic import BaseModel, Field
 
 from medcat2.utils.defaults import workers
 from medcat2.utils.envsnapshot import Environment, get_environment_info
+from medcat2.utils.iterutils import callback_iterator
 
 
 logger = logging.getLogger(__name__)
@@ -349,6 +351,39 @@ class ModelMeta(BaseModel):
             train_time_start=start_time, train_time_end=datetime.now(),
             project_name=project_name, num_docs=num_docs,
             num_epochs=num_epochs))
+
+    @contextmanager
+    def prepare_and_report_training(self,
+                                    data_iterator: Iterable[Union[str, dict]],
+                                    num_epochs: int,
+                                    supervised: bool = False,
+                                    project_name: str = 'N/A'):
+        _names, _counts = [], [0]  # NOTE: 0 count for fallback
+
+        def callback(name: str, count: int) -> None:
+            _names.append(name)
+            _counts.append(count)
+        wrapped = callback_iterator(f"TRAIN-{id(data_iterator)}",
+                                    data_iterator, callback)
+        start_time = datetime.now()
+        try:
+            yield wrapped
+        finally:
+            # even if something fails, log the count
+            if supervised:
+                pass  # TODO
+            else:
+                self.add_unsup_training(start_time=start_time,
+                                        num_docs=_counts[-1],
+                                        num_epochs=num_epochs,
+                                        project_name=project_name)
+                if len(_names) != 1:
+                    logger.warning(
+                        "Something went wrong druing %ssupervised training. "
+                        "The number of documents trained was unable to be "
+                        "clearly obtained. Counted %d names (%s) at %s",
+                        'un' if not supervised else '', len(_names), _names,
+                        _counts)
 
 
 class Config(BaseModel):
