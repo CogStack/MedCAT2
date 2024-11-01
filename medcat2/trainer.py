@@ -11,7 +11,8 @@ from medcat2.config.config import LinkingFilters
 from medcat2.utils.config_utils import temp_changed_config
 from medcat2.utils.data_utils import make_mc_train_test, get_false_positives
 from medcat2.data.mctexport import (MedCATTrainerExport,
-                                    MedCATTrainerExportProject)
+                                    MedCATTrainerExportProject,
+                                    MedCATTrainerExportDocument)
 
 
 logger = logging.getLogger(__name__)
@@ -380,13 +381,25 @@ class Trainer:
                                       current_document: int,
                                       train_from_false_positives: bool,
                                       devalue_others: bool):
+        with self.config.meta.prepare_and_report_training(
+                project['documents'], 1, True, project_name=project['name']
+                ) as docs:
+            self._train_supervised_for_project2(
+                docs, current_document, train_from_false_positives,
+                devalue_others)
+
+    def _train_supervised_for_project2(self,
+                                       docs: list[MedCATTrainerExportDocument],
+                                       current_document: int,
+                                       train_from_false_positives: bool,
+                                       devalue_others: bool):
         cnf_linking = self.config.components.linking
         for idx_doc in trange(current_document,
-                              len(project['documents']),
+                              len(docs),
                               initial=current_document,
-                              total=len(project['documents']),
+                              total=len(docs),
                               desc='Document', leave=False):
-            doc = project['documents'][idx_doc]
+            doc = docs[idx_doc]
             mut_doc = self.caller(doc['text'])  # type: ignore
 
             # Compatibility with old output where annotations are a list
