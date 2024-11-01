@@ -1,4 +1,4 @@
-from typing import Optional, Union, Iterable
+from typing import Optional, Iterator, Iterable, TypeVar, cast
 import logging
 from datetime import datetime
 from contextlib import contextmanager
@@ -331,6 +331,10 @@ class TrainingDescriptor(BaseModel):
     num_epochs: int = 1
 
 
+T = TypeVar('T')
+C = TypeVar('C', bound=Iterable)
+
+
 class ModelMeta(BaseModel):
     description: str = 'N/A'
     ontology: list[str] = []
@@ -361,10 +365,11 @@ class ModelMeta(BaseModel):
 
     @contextmanager
     def prepare_and_report_training(self,
-                                    data_iterator: Iterable[Union[str, dict]],
+                                    data_iterator: C,
                                     num_epochs: int,
                                     supervised: bool = False,
-                                    project_name: str = 'N/A'):
+                                    project_name: str = 'N/A'
+                                    ) -> Iterator[C]:
         _names, _counts = [], [0]  # NOTE: 0 count for fallback
 
         def callback(name: str, count: int) -> None:
@@ -374,7 +379,7 @@ class ModelMeta(BaseModel):
                                     data_iterator, callback)
         start_time = datetime.now()
         try:
-            yield wrapped
+            yield cast(C, wrapped)
         finally:
             # even if something fails, log the count
             num_docs = _counts[1]
