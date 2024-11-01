@@ -24,7 +24,8 @@ CONFIG_MOVE = {
 }
 MOVE_WITH_REMOVES = {
     'general': {'checkpoint',  # TODO: Start supporitn checkpoints again
-                'spacy_model', 'spacy_disabled_components', 'usage_monitor'}
+                'spacy_model', 'spacy_disabled_components', 'usage_monitor'},
+    'annotation_output': {'doc_extended_info'},
 }
 
 
