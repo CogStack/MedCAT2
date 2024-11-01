@@ -52,7 +52,29 @@ class ValAndModelGetterTests(unittest.TestCase):
 
 class ConfigConverstionTests(unittest.TestCase):
     FILE_PATH = os.path.join(TESTS_PATH, "resources", "mct_v1_cnf.json")
+    FAKE_DESCRIPTION = "FAKE MODEL"
+    EXP_TEXT_IN_OUTPUT = True
+    EXP_MAX_DOC_LEN = 5
+    EXP_WORDS_TO_SKIP = {'nos'}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.cnf = convert_config.get_config_from_old(cls.FILE_PATH)
 
     def test_can_convert(self):
-        cnf = convert_config.get_config_from_old(self.FILE_PATH)
-        self.assertIsInstance(cnf, Config)
+        self.assertIsInstance(self.cnf, Config)
+
+    def test_migrates_correct_description(self):
+        self.assertEqual(self.cnf.meta.description, self.FAKE_DESCRIPTION)
+
+    def test_migrates_simple(self):
+        self.assertEqual(self.cnf.preprocessing.max_document_length,
+                         self.EXP_MAX_DOC_LEN)
+
+    def test_migrates_partial(self):
+        self.assertEqual(self.cnf.annotation_output.include_text_in_output,
+                         self.EXP_TEXT_IN_OUTPUT)
+
+    def test_preprocesses_sets(self):
+        self.assertEqual(self.cnf.preprocessing.words_to_skip,
+                         self.EXP_WORDS_TO_SKIP)
