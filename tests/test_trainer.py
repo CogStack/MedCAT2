@@ -56,18 +56,22 @@ class TrainerTestsBase(unittest.TestCase):
 
 class TrainerUnsupervisedTests(TrainerTestsBase):
     NEPOCHS = 1
+    UNSUP = True
 
     def test_training_gets_remembered_list(self):
         self.trainer.train_unsupervised(self.TRAIN_DATA, nepochs=self.NEPOCHS)
-        self.assert_remembers_training_data(len(self.TRAIN_DATA), self.NEPOCHS)
+        self.assert_remembers_training_data(len(self.TRAIN_DATA), self.NEPOCHS,
+                                            unsup=self.UNSUP)
 
     def test_training_gets_remembered_gen(self):
         self.trainer.train_unsupervised(self.DATA_GEN, nepochs=self.NEPOCHS)
-        self.assert_remembers_training_data(self.DATA_CNT, self.NEPOCHS)
+        self.assert_remembers_training_data(self.DATA_CNT, self.NEPOCHS,
+                                            unsup=self.UNSUP)
 
     def test_training_gets_remembered_multi(self, repeats: int = 3):
         for _ in range(repeats):
             self.trainer.train_unsupervised(self.TRAIN_DATA,
                                             nepochs=self.NEPOCHS)
         self.assert_remembers_training_data(len(self.TRAIN_DATA), self.NEPOCHS,
-                                            exp_total=repeats)
+                                            exp_total=repeats,
+                                            unsup=self.UNSUP)
