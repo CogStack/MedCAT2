@@ -49,7 +49,7 @@ class Trainer:
         self.adder = adder
 
     def train_unsupervised(self,
-                           data_iterator: Iterable,
+                           data_iterator: Iterable[str],
                            nepochs: int = 1,
                            fine_tune: bool = True,
                            progress_print: int = 1000,
