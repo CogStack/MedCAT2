@@ -10,6 +10,7 @@ from medcat2.config import Config
 logger = logging.getLogger(__name__)
 
 
+SET_IDENTIFIER = "==SET=="
 CONFIG_KEEP_IDENTICAL = {
     'cdb_maker', 'preprocessing'
 }
@@ -100,7 +101,20 @@ def _relocate(cnf: Config, old_data: dict) -> Config:
     return cnf
 
 
+def _sanitise_sets(old_data: dict) -> dict:
+    for k in list(old_data):
+        v = old_data[k]
+        if isinstance(v, dict) and len(v) == 1 and SET_IDENTIFIER in v:
+            logger.info("Moving ")
+            old_data[k] = set(v[SET_IDENTIFIER])
+        elif isinstance(v, dict):
+            # in place anyway
+            _sanitise_sets(v)
+    return old_data
+
+
 def _make_changes(cnf: Config, old_data: dict) -> Config:
+    old_data = _sanitise_sets(old_data)
     cnf = _move_identicals(cnf, old_data)
     cnf = _move_partials(cnf, old_data)
     cnf = _relocate(cnf, old_data)
