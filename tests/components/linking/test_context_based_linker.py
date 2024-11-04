@@ -3,6 +3,7 @@ from medcat2.components import types
 from medcat2.config import Config
 from medcat2.vocab import Vocab
 from medcat2.cdb.concepts import CUIInfo, NameInfo
+from medcat2.components.types import TrainableComponent
 
 import unittest
 
@@ -48,3 +49,11 @@ class LinkingInitTests(ComponentInitTests, unittest.TestCase):
     def set_def_args(cls):
         context_based_linker.set_def_args_kwargs(
             cls.cnf, cls.cdb, cls.vocab)
+
+
+class TrainableLinkerTests(unittest.TestCase):
+    cnf = Config()
+    linker = context_based_linker.Linker(FakeCDB(cnf), None, cnf)
+
+    def test_linker_is_trainable(self):
+        self.assertIsInstance(self.linker, TrainableComponent)
