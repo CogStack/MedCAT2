@@ -1,4 +1,4 @@
-from medcat2.tokenizing.tokenizers import MutableDocument
+from medcat2.tokenizing.tokenizers import MutableDocument, MutableEntity
 
 
 # NOTE: the following used (in medcat v1) check tuis
@@ -13,7 +13,7 @@ def create_main_ann(doc: MutableDocument) -> None:
     """
     doc.all_ents.sort(key=lambda x: len(x.base.text), reverse=True)
     tkns_in = set()
-    main_anns = []
+    main_anns: list[MutableEntity] = []
     for ent in doc.all_ents:
         to_add = True
         for tkn in ent:
