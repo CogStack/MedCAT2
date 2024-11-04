@@ -85,6 +85,14 @@ class BaseEntity(Protocol):
         pass
 
     @property
+    def start_char_index(self) -> int:
+        pass
+
+    @property
+    def end_char_index(self) -> int:
+        pass
+
+    @property
     def label(self) -> int:
         pass
 

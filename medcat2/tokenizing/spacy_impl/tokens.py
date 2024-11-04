@@ -103,6 +103,14 @@ class Entity:
     def end_index(self) -> int:
         return self._delegate[-1].i
 
+    @property
+    def start_char_index(self) -> int:
+        return self._delegate.start_char
+
+    @property
+    def end_char_index(self) -> int:
+        return self._delegate.end_char
+
     def __iter__(self) -> Iterator[MutableToken]:
         for tkn in self._delegate:
             yield Token(tkn)
@@ -116,23 +124,11 @@ class Document:
     def __init__(self, delegate: SpacyDoc) -> None:
         self._delegate = delegate
         self.all_ents: list[MutableEntity] = []
+        self.final_ents: list[MutableEntity] = []
 
     @property
     def base(self) -> BaseDocument:
         return cast(BaseDocument, self)
-
-    @property
-    def final_ents(self) -> list[MutableEntity]:
-        return [Entity(span) for span in self._delegate.ents]
-
-    @final_ents.setter
-    def final_ents(self, value: list[MutableEntity]) -> None:
-        self._delegate.ents = [entity._delegate for entity in value
-                               if isinstance(entity, Entity)]
-        # if some of the mare not Entity (i.e not Spacy-based)
-        if len(self._delegate.ents) != len(value):
-            raise ValueError("All entities were expected to be Spacy-based. "
-                             f"Got: {value}")
 
     @property
     def text(self) -> str:
