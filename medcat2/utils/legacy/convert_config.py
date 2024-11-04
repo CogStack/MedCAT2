@@ -54,8 +54,10 @@ def get_val_and_parent_model(old_data: Optional[dict],
 def _safe_setattr(target_model: BaseModel, fname: str, val: Any) -> None:
     mval = getattr(target_model, fname)
     if isinstance(mval, BaseModel) and isinstance(val, dict):
-        for k, v in val.items():
-            setattr(mval, k, v)
+        for sname, sval in val.items():
+            _safe_setattr(mval, sname, sval)
+        # for k, v in val.items():
+        #     setattr(mval, k, v)
     else:
         setattr(target_model, fname, val)
 
