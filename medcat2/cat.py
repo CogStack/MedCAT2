@@ -90,8 +90,8 @@ class CAT:
             'detected_name': str(ent.detected_name),
             'acc': ent.context_similarity,
             'context_similarity': ent.context_similarity,
-            'start': ent.base.start_index,
-            'end': ent.base.end_index,
+            'start': ent.base.start_char_index,
+            'end': ent.base.end_char_index,
             # TODO: add additional info (i.e mappings)
             # for addl in addl_info:
             #     tmp = self.cdb.addl_info.get(addl, {}).get(cui, [])
