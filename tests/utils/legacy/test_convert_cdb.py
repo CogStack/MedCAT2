@@ -37,24 +37,3 @@ class CDBConversionTest(unittest.TestCase):
             for cui in nameinfo.cuis:
                 with self.subTest(f"{name}: {cui}"):
                     self.assertIn(cui, self.cdb.cui2info)
-
-
-# print("GO!")
-# from medcat2.utils.legacy.convert_vocab import get_vocab_from_old
-# from medcat2.utils.legacy.convert_config import get_config_from_old
-# from medcat2.cat import CAT
-# TEMP_FILE = "tests/resources/mct_v1_cdb.dat"
-# cdb = get_cdb_from_old(TEMP_FILE)
-# VOCAB_PATH = "tests/resources/mct_v1_vocab.dat"
-# vocab = get_vocab_from_old(VOCAB_PATH)
-# CONFIG_PATH = "tests/resources/mct_v1_cnf.json"
-# config = get_config_from_old(CONFIG_PATH)
-# # FIX CONFIG
-# config.preprocessing.max_document_length = 1_000_000 # a million
-# cat = CAT(cdb, vocab, config)
-
-# TEXT = ("Man was diagnosed with severe kidney failure and acute diabetes "
-#         "and presented with a light fever")
-# print("FROM")
-# print(TEXT)
-# print("TO", cat.get_entities(TEXT))
