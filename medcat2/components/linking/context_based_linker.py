@@ -184,9 +184,12 @@ class Linker:
             linked_entities = self._train_on_doc(doc)
         else:
             linked_entities = self._inference(doc)
+        # evaluating generator here because the `all_ents` list gets
+        # cleared afterwards otherwise
+        le = list(linked_entities)
 
         doc.all_ents.clear()
-        doc.all_ents.extend(list(linked_entities))
+        doc.all_ents.extend(le)
         create_main_ann(doc)
 
         # TODO - reintroduce pretty labels? and apply here?
