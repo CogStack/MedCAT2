@@ -48,7 +48,7 @@ class CDB(AbstractSerialisable):
         cui_info = self.cui2info[cui]
         pref_name = cui_info.preferred_name
         names = cui_info.names
-        if cui in pref_name:
+        if pref_name:
             name = pref_name
         elif names:
             # longest name
