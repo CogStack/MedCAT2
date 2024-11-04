@@ -63,7 +63,7 @@ def maybe_annotate_name(tokenizer: BaseTokenizer, name: str,
                 (len(tkns) == 1 and tkns[0].base.is_upper)):
             # Everything is fine, mark name
             entity: MutableEntity = tokenizer.create_entity(
-                doc, tkns[0].base.index, tkns[-1].base.index, label=label)
+                doc, tkns[0].base.index, tkns[-1].base.index + 1, label=label)
             # Only set this property when using a vocab approach
             # and where this name fits a name in the cdb.
             # All standard name entity recognition models will not set this.
