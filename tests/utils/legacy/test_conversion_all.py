@@ -1,6 +1,6 @@
 import os
 
-from medcat2.utils.legacy import legacy_converter
+from medcat2.utils.legacy import conversion_all
 from medcat2.cat import CAT
 
 import shutil
@@ -18,7 +18,7 @@ class ConversionFromZIPTests(unittest.TestCase):
     def setUpClass(cls):
         cls._model_folder_no_zip = cls.MODEL_FOLDER.rsplit(".zip", 1)[0]
         cls._folder_existed = os.path.exists(cls._model_folder_no_zip)
-        cls.converter = legacy_converter.Converter(cls.MODEL_FOLDER, None)
+        cls.converter = conversion_all.Converter(cls.MODEL_FOLDER, None)
         cls.cat = cls.converter.convert()
 
     @classmethod
@@ -49,21 +49,21 @@ class ConversionFromFolderTests(ConversionFromZIPTests):
 
     @classmethod
     def setUpClass(cls):
-        cls._def_vocab_name = legacy_converter.Converter.vocab_name
-        cls._def_cdb_name = legacy_converter.Converter.cdb_name
-        cls._def_cnf_name = legacy_converter.Converter.config_name
-        legacy_converter.Converter.vocab_name = cls.VOCAB_NAME
-        legacy_converter.Converter.cdb_name = cls.CDB_NAME
-        legacy_converter.Converter.config_name = cls.CNF_NAME
+        cls._def_vocab_name = conversion_all.Converter.vocab_name
+        cls._def_cdb_name = conversion_all.Converter.cdb_name
+        cls._def_cnf_name = conversion_all.Converter.config_name
+        conversion_all.Converter.vocab_name = cls.VOCAB_NAME
+        conversion_all.Converter.cdb_name = cls.CDB_NAME
+        conversion_all.Converter.config_name = cls.CNF_NAME
         super().setUpClass()
         cls._fix_cnf()
 
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        legacy_converter.Converter.vocab_name = cls._def_vocab_name
-        legacy_converter.Converter.cdb_name = cls._def_cdb_name
-        legacy_converter.Converter.config_name = cls._def_cnf_name
+        conversion_all.Converter.vocab_name = cls._def_vocab_name
+        conversion_all.Converter.cdb_name = cls._def_cdb_name
+        conversion_all.Converter.config_name = cls._def_cnf_name
 
 
 class ConvertedFunctionalityTests(ConversionFromFolderTests):
