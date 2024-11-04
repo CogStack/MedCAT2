@@ -77,6 +77,10 @@ class CAT:
             right_context = doc_tokens[right_s:right_e]
             ent_s, ent_e = ent.base.start_index, ent.base.end_index
             center_context = doc_tokens[ent_s:ent_e]
+        else:
+            left_context = []
+            right_context = []
+            center_context = []
 
         return {
             'pretty_name': self.cdb.get_name(cui),
