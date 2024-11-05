@@ -108,7 +108,7 @@ class Trainer:
                     _ = self.caller(line)
                 except Exception as e:
                     logger.warning("LINE: '%s...' \t WAS SKIPPED", line[0:100])
-                    logger.warning("BECAUSE OF: %s", str(e))
+                    logger.warning("BECAUSE OF:", exc_info=e)
             else:
                 logger.warning("EMPTY LINE WAS DETECTED AND SKIPPED")
 
