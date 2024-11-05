@@ -1,11 +1,19 @@
+import os
+
 from medcat2.trainer import Trainer
 from medcat2.config import Config
 from medcat2.vocab import Vocab
 from medcat2.data.mctexport import MedCATTrainerExport
+from medcat2.cat import CAT
 
 import unittest
 
+import shutil
+import random
+import pandas as pd
+
 from .platform.test_platform import FakeCDB
+from .utils.legacy.test_convert_config import TESTS_PATH
 
 
 class TrainerTestsBase(unittest.TestCase):
@@ -119,3 +127,50 @@ class TrainerSupervisedTests(TrainerUnsupervisedTests):
 
     def test_training_gets_remembered_gen(self):
         pass  # NOTE: no generation for supervised training
+
+
+class FromSratchBase(unittest.TestCase):
+    TRAINED_MODEL_PATH = os.path.join(TESTS_PATH, 'resources',
+                                      'mct2_model_pack.zip')
+    RNG_SEED = 42
+
+    @classmethod
+    def setUpClass(cls):
+        cls._model_folder_no_zip = cls.TRAINED_MODEL_PATH.rsplit(".zip", 1)[0]
+        cls._folder_existed = os.path.exists(cls._model_folder_no_zip)
+        cls.model = CAT.load_model_pack(cls.TRAINED_MODEL_PATH)
+        if cls.model.config.components.linking.train:
+            print("TRAINING WAS ENABLE! NEED TO DISABLE")
+            cls.model.config.components.linking.train = False
+        cls.model.cdb.reset_training()
+        random.seed(cls.RNG_SEED)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.TRAINED_MODEL_PATH.endswith(".zip"):
+            folder = cls._model_folder_no_zip
+            if os.path.exists(folder) and not cls._folder_existed:
+                shutil.rmtree(folder)
+
+
+class TrainFromScratchTests(FromSratchBase):
+    UNSUP_DATA_PATH = os.path.join(
+        TESTS_PATH, "resources", "selfsupervised_data.txt")
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.all_words = list(cls.model.vocab.vocab.keys())
+        cls.all_concepts = [(cui, cls.model.cdb.get_name(cui))
+                            for cui in cls.model.cdb.cui2info]
+        cls.model.trainer.train_unsupervised(cls.get_data())
+
+    @classmethod
+    def get_data(cls) -> list[str]:
+        df = pd.read_csv(cls.UNSUP_DATA_PATH)
+        return df['text'].tolist()
+
+    def test_can_train_unsupervised(self):
+        for cui, _ in self.all_concepts:
+            with self.subTest(cui):
+                self.assertGreater(self.model.cdb.cui2info[cui].count_train, 0)
