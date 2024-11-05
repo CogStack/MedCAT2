@@ -76,9 +76,10 @@ class ContextModel:
 
     def _tokens2vecs(self, tokens: Sequence[Union[MutableToken, str]]
                      ) -> Iterable[np.ndarray]:
-        # return [
         for step, tkn in enumerate(tokens):
             lower = tkn.lower() if isinstance(tkn, str) else tkn.base.lower
+            if lower not in self.vocab:
+                continue
             vec = self.vocab.vec(lower)
             if vec is not None:
                 yield vec * self.weighted_average_function(step)
