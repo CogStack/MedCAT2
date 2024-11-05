@@ -122,11 +122,12 @@ class CDB(AbstractSerialisable):
                 else:
                     self.token_counts[token] = 1
 
-    def _add_full_build(self, cui: str, names: dict, ontologies: set[str],
-                        description: str, type_ids: set[str]) -> None:
+    def _add_full_build(self, cui: str, names: dict[str, NameDescriptor],
+                        ontologies: set[str], description: str,
+                        type_ids: set[str]) -> None:
         cui_info = self.cui2info[cui]
         # Use original_names as the base check because they must be added
-        orig_names: set[str] = set([v['raw_name'] for v in names.values()])
+        orig_names: set[str] = set([v.raw_name for v in names.values()])
         if cui_info.original_names is None:
             if ontologies:
                 cui_info.in_other_ontology['ontologies'] = ontologies
