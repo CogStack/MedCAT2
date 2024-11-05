@@ -1,4 +1,5 @@
 from typing import Optional
+import logging
 
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
 from medcat2.components.types import (CoreComponentType, create_core_component,
@@ -10,6 +11,9 @@ from medcat2.cdb import CDB
 from medcat2.config.config import CoreComponentConfig
 from medcat2.utils.default_args import (set_tokenizer_defaults,
                                         set_components_defaults)
+
+
+logger = logging.getLogger(__name__)
 
 
 class Platform:
@@ -65,6 +69,8 @@ class Platform:
     def get_doc(self, text: str) -> MutableDocument:
         doc = self._tokenizer(text)
         for comp in self._components:
+            logger.info("Running component %s for %d of text (%s)",
+                        comp.get_type().name, len(text), id(text))
             doc = comp(doc)
         return doc
 
