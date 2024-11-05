@@ -58,6 +58,7 @@ dependencies = [ # Optional
   "numpy>2.0",
   "dill",
   "spacy",
+  "pandas>=2.2,<3.0",
   # TODO - others
 ]
 
