@@ -7,9 +7,8 @@ def get_vocab_from_old(old_path: str) -> Vocab:
     with open(old_path, 'rb') as f:
         data = dill.load(f)
     v = Vocab()
-    v.vocab = {
-        k: {'vector': v['vec'], 'count': v['cnt'], 'index': v['ind']}
-        for k, v in data['vocab'].items()}
-    v.index2word = data['index2word']
+    for word, word_data in data['vocab'].items():
+        v.add_word(word, cnt=word_data['cnt'], vec=word_data['vec'],
+                   replace=True)
     v.make_unigram_table()
     return v
