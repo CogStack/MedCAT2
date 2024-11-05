@@ -117,7 +117,7 @@ class CDB(AbstractSerialisable):
 
             # Add tokens to token counts
             for token in in_name_info.tokens:
-                if token not in self.token_counts:
+                if token in self.token_counts:
                     self.token_counts[token] += 1
                 else:
                     self.token_counts[token] = 1
