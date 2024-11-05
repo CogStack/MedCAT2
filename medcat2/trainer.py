@@ -408,10 +408,9 @@ class Trainer:
                     cui = ann['cui']
                     start = ann['start']
                     end = ann['end']
-                    mut_entity = mut_doc[start: end]
+                    mut_entity = mut_doc.get_entity(start, end)
                     deleted = ann.get('deleted', False)
                     if cnf_linking.filters.check_filters(cui):
-                        # TODO: allow adding/training
                         self.adder(
                             cui=cui, name=ann['value'], mut_doc=mut_doc,
                             mut_entity=mut_entity, negative=deleted,
