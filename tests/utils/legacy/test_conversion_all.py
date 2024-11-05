@@ -78,15 +78,16 @@ class ConvertedFunctionalityTests(ConversionFromFolderTests):
             'start': 91, 'end': 96},
     ]
 
-    def assert_has_ent(self, ent: dict) -> None:
+    @classmethod
+    def assert_has_ent(cls, ent: dict) -> None:
         per_exp_bools = []
-        for exp_ent in self.EXPECTED_ENTS:
+        for exp_ent in cls.EXPECTED_ENTS:
             peb = [(k, v, ent.get(k, None)) for k, v in exp_ent.items()]
             if all(p[1] == p[2] for p in peb):
                 return
             per_exp_bools.append(peb)
         raise AssertionError(f"Entity {ent} not found in expected: "
-                             f"{self.EXPECTED_ENTS}. Per expected, "
+                             f"{cls.EXPECTED_ENTS}. Per expected, "
                              f"this is what we got: {per_exp_bools}")
 
     def test_can_recognise_entities(self):
