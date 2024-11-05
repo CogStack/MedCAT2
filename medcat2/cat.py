@@ -306,32 +306,33 @@ class CAT:
                                   description=description,
                                   full_build=full_build)
 
-        if mut_entity is not None and mut_doc is not None:
-            linker = self._platform.get_component(
-                CoreComponentType.linking)
-            if not isinstance(linker, TrainableComponent):
-                logger.warning(
-                    "Linker cannot be trained during add_and_train_concept"
-                    "because it has no train method: %s", linker)
-            else:
-                # Train Linking
-                if isinstance(mut_entity, list):
-                    mut_entity = self._platform.entity_from_tokens(mut_entity)
-                linker.train(cui=cui, entity=mut_entity, doc=mut_doc,
-                             negative=negative, names=names)
+        if mut_entity is None or mut_doc is None:
+            return
+        linker = self._platform.get_component(
+            CoreComponentType.linking)
+        if not isinstance(linker, TrainableComponent):
+            logger.warning(
+                "Linker cannot be trained during add_and_train_concept"
+                "because it has no train method: %s", linker)
+        else:
+            # Train Linking
+            if isinstance(mut_entity, list):
+                mut_entity = self._platform.entity_from_tokens(mut_entity)
+            linker.train(cui=cui, entity=mut_entity, doc=mut_doc,
+                         negative=negative, names=names)
 
-                if not negative and devalue_others:
-                    # Find all cuis
-                    cuis = set()
-                    for n in names:
-                        if n in self.cdb.name2info:
-                            info = self.cdb.name2info[n]
-                            cuis.update(info.cuis)
-                    # Remove the cui for which we just added positive training
-                    if cui in cuis:
-                        cuis.remove(cui)
-                    # Add negative training for all other CUIs that link to
-                    # these names
-                    for _cui in cuis:
-                        linker.train(cui=_cui, entity=mut_entity, doc=mut_doc,
-                                     negative=True)
+            if not negative and devalue_others:
+                # Find all cuis
+                cuis = set()
+                for n in names:
+                    if n in self.cdb.name2info:
+                        info = self.cdb.name2info[n]
+                        cuis.update(info.cuis)
+                # Remove the cui for which we just added positive training
+                if cui in cuis:
+                    cuis.remove(cui)
+                # Add negative training for all other CUIs that link to
+                # these names
+                for _cui in cuis:
+                    linker.train(cui=_cui, entity=mut_entity, doc=mut_doc,
+                                 negative=True)
