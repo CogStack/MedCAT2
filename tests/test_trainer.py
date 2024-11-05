@@ -17,6 +17,23 @@ from .platform.test_platform import FakeCDB
 from .utils.legacy.test_convert_config import TESTS_PATH
 
 
+class FakeMutEnt:
+
+    def __init__(self, doc, start_index, end_index):
+        self.doc = doc
+        self.start_index = start_index
+        self.end_index = end_index
+
+
+class FakeMutDoc:
+
+    def __init__(self, text):
+        self.text = text
+
+    def get_entity(self, start_index: int, end_index: int):
+        return FakeMutEnt(self, start_index, end_index)
+
+
 class TrainerTestsBase(unittest.TestCase):
     DATA_CNT = 14
     TRAIN_DATA = [
@@ -39,7 +56,7 @@ class TrainerTestsBase(unittest.TestCase):
 
     @classmethod
     def caller(cls, text: str):
-        return text
+        return FakeMutDoc(text)
 
     @classmethod
     def unlinker(cls, *args, **kwargs):
