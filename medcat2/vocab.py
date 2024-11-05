@@ -275,6 +275,4 @@ class Vocab(AbstractSerialisable):
     @classmethod
     def load(cls, path: str) -> "Vocab":
         with open(path, 'rb') as f:
-            vocab = cls()
-            vocab.__dict__ = dill.load(f)
-        return vocab
+            return dill.load(f)
