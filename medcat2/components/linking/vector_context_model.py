@@ -362,15 +362,14 @@ def get_lr_linking(config: Linking, cui_count: int) -> float:
 def get_similarity(cur_vectors: dict[str, np.ndarray],
                    other: dict[str, np.ndarray],
                    weights: dict[str, float]) -> float:
-    if (weights.keys() != cur_vectors.keys() or
-            cur_vectors.keys() != other.keys()):
-        # TODO - does this make sense?
-        raise ValueError("Incompatible weights and/or vectors (keys): "
-                         f"CUR: {cur_vectors.keys()}, "
-                         f"OTHER {other.keys()}, "
-                         f"WEIGHTS: {weights.keys()}")
     sim = 0
     for vec_type in weights:
+        if vec_type not in other:
+            # NOTE: sometimes the smaller context context types
+            #       are unable to capture tokens that are present
+            #       in our voab, which means they don't produce
+            #       a value to be used here.
+            continue
         w = weights[vec_type]
         v1 = cur_vectors[vec_type]
         v2 = other[vec_type]
