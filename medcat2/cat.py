@@ -10,6 +10,7 @@ from medcat2.config.config import Config, General, Preprocessing, CDBMaker
 from medcat2.trainer import Trainer
 from medcat2.components.types import CoreComponentType, TrainableComponent
 from medcat2.storage.serialisers import serialise, AvailableSerialisers
+from medcat2.storage.serialisers import deserialise
 from medcat2.utils.fileutils import ensure_folder_if_parent
 from medcat2.platform.platform import Platform
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
@@ -165,6 +166,25 @@ class CAT:
         serialise(serialiser_type, self, model_pack_path)
         # zip everything
         shutil.make_archive(model_pack_path, 'zip', root_dir=model_pack_path)
+
+    @classmethod
+    def load_model_pack(
+            cls, model_pack_path: str,
+            serialiser_type: Union[str, AvailableSerialisers] = 'dill'
+            ) -> 'CAT':
+        if model_pack_path.endswith(".zip"):
+            folder_path = model_pack_path.rsplit(".zip", 1)[0]
+            logger.info("Unpacking model pack from %s to %s",
+                        model_pack_path, folder_path)
+            shutil.unpack_archive(model_pack_path,
+                                  folder_path)
+            model_pack_path = folder_path
+        logger.info("Attempting to load model from file: %s",
+                    model_pack_path)
+        cat = deserialise(serialiser_type, model_pack_path)
+        if not isinstance(cat, CAT):
+            raise ValueError(f"Unable to load CAT. Got: {cat}")
+        return cat
 
     @property
     def _pn_configs(self) -> tuple[General, Preprocessing, CDBMaker]:
