@@ -149,6 +149,13 @@ class Document:
             return Token(delegated)
         return Entity(delegated)
 
+    def get_entity(self, start_index: int, end_index: int) -> MutableEntity:
+        for ent in self.all_ents:
+            if (ent.base.start_char_index == start_index and
+                    ent.base.end_char_index == end_index):
+                return ent
+        return self[start_index: end_index]
+
     def __iter__(self) -> Iterator[MutableToken]:
         for tkn in iter(self._delegate):
             yield Token(tkn)

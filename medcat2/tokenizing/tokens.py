@@ -213,3 +213,6 @@ class MutableDocument(Protocol):
     @overload
     def __getitem__(self, index: slice) -> MutableEntity:
         pass
+
+    def get_entity(self, start_index: int, end_index: int) -> MutableEntity:
+        pass
