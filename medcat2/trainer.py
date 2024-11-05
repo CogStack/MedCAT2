@@ -24,8 +24,8 @@ class AdderType(Protocol):
                  cui: str,
                  name: str,
                  mut_doc: Optional[MutableDocument] = None,
-                 mut_ent: Optional[Union[list[MutableToken],
-                                         MutableEntity]] = None,
+                 mut_entity: Optional[Union[list[MutableToken],
+                                            MutableEntity]] = None,
                  ontologies: set[str] = set(),
                  name_status: str = 'A',
                  type_ids: set[str] = set(),
@@ -414,7 +414,7 @@ class Trainer:
                         # TODO: allow adding/training
                         self.adder(
                             cui=cui, name=ann['value'], mut_doc=mut_doc,
-                            mut_ent=mut_entity, negative=deleted,
+                            mut_entity=mut_entity, negative=deleted,
                             devalue_others=devalue_others)
             if train_from_false_positives:
                 fps: list[MutableEntity] = get_false_positives(doc, mut_doc)
