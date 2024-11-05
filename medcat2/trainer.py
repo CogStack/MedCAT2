@@ -423,7 +423,7 @@ class Trainer:
                     fp_: MutableEntity = fp  # type: ignore
                     # TODO: allow adding/training
                     self.adder(cui=fp_.cui, name=fp_.base.text,
-                               mut_doc=mut_doc, mut_ent=fp_,
+                               mut_doc=mut_doc, mut_entity=fp_,
                                negative=True, do_add_concept=False)
 
             # latest_trained_step += 1
