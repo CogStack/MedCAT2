@@ -1,4 +1,5 @@
 import os
+import json
 
 from medcat2.trainer import Trainer
 from medcat2.config import Config
@@ -174,3 +175,31 @@ class TrainFromScratchTests(FromSratchBase):
         for cui, _ in self.all_concepts:
             with self.subTest(cui):
                 self.assertGreater(self.model.cdb.cui2info[cui].count_train, 0)
+
+
+class TrainFromScratchSupervisedTests(TrainFromScratchTests):
+    SUP_DATA_PATH = os.path.join(
+        TESTS_PATH, "resources", "supervised_mct_export.json"
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.cnts_before = {
+            cui: info.count_train
+            for cui, info in cls.model.cdb.cui2info.items()
+        }
+        cls.model.trainer.train_supervised_raw(
+            cls.get_sup_data()
+        )
+
+    @classmethod
+    def get_sup_data(cls) -> MedCATTrainerExport:
+        with open(cls.SUP_DATA_PATH) as f:
+            return json.load(f)
+
+    def test_has_trained_all(self):
+        for cui, prev_count in self.cnts_before.items():
+            with self.subTest(cui):
+                info = self.model.cdb.cui2info[cui]
+                self.assertGreater(info.count_train, prev_count)
