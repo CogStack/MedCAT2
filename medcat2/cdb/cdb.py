@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Any
 
 from medcat2.storage.serialisables import AbstractSerialisable
 from medcat2.cdb.concepts import CUIInfo, NameInfo, TypeInfo
@@ -22,6 +22,7 @@ class CDB(AbstractSerialisable):
         self.name2info: dict[str, NameInfo] = {}
         self.type_id2info: dict[str, TypeInfo] = {}
         self.token_counts: dict[str, int] = {}
+        self.addl_info: dict[str, Any] = {}
 
     # NOTE: this is instead of .snames
     def has_subname(self, name: str) -> bool:
