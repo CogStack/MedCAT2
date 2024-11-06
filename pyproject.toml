@@ -60,6 +60,7 @@ dependencies = [ # Optional
   "spacy",
   "pandas>=2.2,<3.0",
   "tqdm>=4.64,<5.0",
+  "xxhash>=3.5.0,<4.0",
   # TODO - others
 ]
 
