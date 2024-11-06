@@ -82,6 +82,7 @@ def _add_cui_info(cdb: CDB, data: dict) -> CDB:
             context_vectors=vecs, average_confidence=av_conf,
         )
         cdb.cui2info[cui] = info
+    cdb.addl_info.update(data['addl_info'])
     return cdb
 
 
