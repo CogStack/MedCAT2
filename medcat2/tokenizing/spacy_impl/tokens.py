@@ -32,7 +32,7 @@ class Token:
 
     @property
     def text_versions(self) -> list[str]:
-        return [self.text, self.norm]
+        return [self.norm, self.lower]
 
     @property
     def lower(self) -> str:
