@@ -23,14 +23,24 @@ class CDB(AbstractSerialisable):
         self.type_id2info: dict[str, TypeInfo] = {}
         self.token_counts: dict[str, int] = {}
         self.addl_info: dict[str, Any] = {}
+        self._subnames: set[str] = set()
+        self.is_dirty = False
 
-    # NOTE: this is instead of .snames
+    def _undirty(self):
+        logger.info("Resetting subnames")
+        if not hasattr(self, '_subnames'):
+            # NOTE: only if/when loading a model without subnames set
+            self._subnames = set()
+        self._subnames.clear()
+        for info in self.cui2info.values():
+            self._subnames.update(info.subnames)
+        self.is_dirty = False
+
     def has_subname(self, name: str) -> bool:
-        # TODO -> optimise, e.g order the values per train count
-        for cui_info in self.cui2info.values():
-            if name in cui_info.subnames:
-                return True
-        return False
+        if (not hasattr(self, 'is_dirty') or self.is_dirty or
+                len(self._subnames) < len(self.name2info)):
+            self._undirty()
+        return name in self._subnames
 
     def get_name(self, cui: str) -> str:
         """Returns preferred name if it exists, otherwise it will return
