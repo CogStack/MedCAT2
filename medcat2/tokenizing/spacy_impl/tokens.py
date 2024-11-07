@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 # set extensions as soon as this is loaded
 SpacyToken.set_extension('norm', default=None, force=True)
+SpacyToken.set_extension('skip', default=False, force=True)
+SpacyToken.set_extension('is_punctuation', default=False, force=True)
 
 
 class Token:
@@ -22,11 +24,25 @@ class Token:
     def __init__(self, delegate: SpacyToken) -> None:
         self._delegate = delegate
         # defaults
-        self.to_skip = False
-        self.is_punctuation = self._delegate.is_punct
         if self.norm is None:
             # force spacy to init ''
             self.norm = ''
+
+    @property
+    def is_punctuation(self) -> bool:
+        return self._delegate._.is_punctuation
+
+    @is_punctuation.setter
+    def is_punctuation(self, new_val: bool) -> None:
+        self._delegate._.is_punctuation = new_val
+
+    @property
+    def to_skip(self) -> bool:
+        return self._delegate._.skip
+
+    @to_skip.setter
+    def to_skip(self, new_val: bool) -> None:
+        self._delegate._.skip = new_val
 
     @property
     def norm(self) -> str:
