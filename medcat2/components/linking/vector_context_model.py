@@ -203,8 +203,10 @@ class ContextModel:
             pref_freq = self.config.prefer_frequent_concepts
             scales = [np.log10(cnt/m) * pref_freq if cnt > 10 else 0
                       for cnt in cnts]
-            similarities = [min(0.99, sim + sim*scale)
-                            for sim, scale in zip(similarities, scales)]
+            old_sims = list(similarities)
+            similarities.clear()
+            similarities += [min(0.99, sim + sim*scale)
+                             for sim, scale in zip(old_sims, scales)]
 
     def disambiguate(self, cuis: list[str], entity: MutableEntity, name: str,
                      doc: MutableDocument) -> tuple[Optional[str], float]:
