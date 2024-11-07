@@ -172,7 +172,7 @@ class Linker:
 
     def _inference(self, doc: MutableDocument) -> Iterator[MutableEntity]:
         for entity in doc.all_ents:
-            logger.debug("Linker started with entity: %s", entity)
+            logger.debug("Linker started with entity: %s", entity.base.text)
             yield from self._process_entity_inference(doc, entity)
 
     def __call__(self, doc: MutableDocument) -> MutableDocument:
