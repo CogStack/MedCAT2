@@ -13,14 +13,28 @@ from medcat2.tokenizing.tokens import (BaseToken, MutableToken,
 logger = logging.getLogger(__name__)
 
 
+# set extensions as soon as this is loaded
+SpacyToken.set_extension('norm', default=None, force=True)
+
+
 class Token:
 
     def __init__(self, delegate: SpacyToken) -> None:
         self._delegate = delegate
         # defaults
-        self.norm = ''
         self.to_skip = False
         self.is_punctuation = self._delegate.is_punct
+        if self.norm is None:
+            # force spacy to init ''
+            self.norm = ''
+
+    @property
+    def norm(self) -> str:
+        return self._delegate._.norm
+
+    @norm.setter
+    def norm(self, new_val: str) -> None:
+        self._delegate._.norm = new_val
 
     @property
     def base(self) -> BaseToken:
