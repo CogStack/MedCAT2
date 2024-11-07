@@ -159,7 +159,7 @@ class Linker:
         else:
             # No name detected, just disambiguate
             cui, context_similarity = self.context_model.disambiguate(
-                entity.link_candidates, entity, 'unk-unk', doc)
+                cuis, entity, 'unk-unk', doc)
 
         # Add the annotation if it exists and if above threshold and in filters
         cnf_l = self.config.components.linking
