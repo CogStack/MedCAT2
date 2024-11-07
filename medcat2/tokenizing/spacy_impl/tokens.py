@@ -100,6 +100,12 @@ class Token:
         return (not self.to_skip and not self.is_stop and
                 not self.is_digit and not self.is_punctuation)
 
+    def __str__(self):
+        return "M2W[T]:" + str(self._delegate)
+
+    def __repr__(self):
+        return repr(self)
+
     def __hash__(self) -> int:
         return hash(self._delegate)
 
@@ -156,6 +162,12 @@ class Entity:
     def __len__(self) -> int:
         return len(self._delegate)
 
+    def __str__(self):
+        return "M2W[T]:" + str(self._delegate)
+
+    def __repr__(self):
+        return repr(self)
+
 
 class Document:
 
@@ -200,3 +212,9 @@ class Document:
 
     def isupper(self) -> bool:
         return self._delegate.text.isupper()
+
+    def __str__(self):
+        return "M2W[T]:" + str(self._delegate)
+
+    def __repr__(self):
+        return repr(self)
