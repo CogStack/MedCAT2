@@ -100,6 +100,14 @@ class Token:
         return (not self.to_skip and not self.is_stop and
                 not self.is_digit and not self.is_punctuation)
 
+    def __hash__(self) -> int:
+        return hash(self._delegate)
+
+    def __eq__(self, value) -> bool:
+        if not isinstance(value, Token):
+            return False
+        return self._delegate == value._delegate
+
 
 class Entity:
 
