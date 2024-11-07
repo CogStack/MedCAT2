@@ -174,7 +174,8 @@ class ContextModel:
         train_threshold = self.config.train_count_threshold
         if cui_vectors and cui_info.count_train >= train_threshold:
             return get_similarity(cui_vectors, vectors,
-                                  self.config.context_vector_weights)
+                                  self.config.context_vector_weights,
+                                  cui, self.cui2info)
         else:
             return -1
 
@@ -361,7 +362,8 @@ def get_lr_linking(config: Linking, cui_count: int) -> float:
 
 def get_similarity(cur_vectors: dict[str, np.ndarray],
                    other: dict[str, np.ndarray],
-                   weights: dict[str, float]) -> float:
+                   weights: dict[str, float], cui: str,
+                   cui2info: dict[str, CUIInfo]) -> float:
     sim = 0
     for vec_type in weights:
         if vec_type not in other:
@@ -373,7 +375,11 @@ def get_similarity(cur_vectors: dict[str, np.ndarray],
         w = weights[vec_type]
         v1 = cur_vectors[vec_type]
         v2 = other[vec_type]
-        sim += w * np.dot(unitvec(v1), unitvec(v2))
+        s = np.dot(unitvec(v1), unitvec(v2))
+        sim += w * s
+        logger.debug("Similarity for CUI: %s, Count: %s, Context Type: %.10s, "
+                     "Weight: %s.2f, Similarity: %s.3f, S*W: %s.3f",
+                     cui, cui2info[cui].count_train, vec_type, w, s, s*w)
     return sim
 
 
