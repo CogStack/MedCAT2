@@ -55,9 +55,11 @@ def _safe_setattr(target_model: BaseModel, fname: str, val: Any) -> None:
     mval = getattr(target_model, fname)
     if isinstance(mval, BaseModel) and isinstance(val, dict):
         for sname, sval in val.items():
+            if not hasattr(mval, sname):
+                logger.warning("Trying to set '%s' for '%s' but no such "
+                               "attribute", sname, type(mval).__name__)
+                continue
             _safe_setattr(mval, sname, sval)
-        # for k, v in val.items():
-        #     setattr(mval, k, v)
     else:
         setattr(target_model, fname, val)
 
@@ -81,7 +83,8 @@ def _move_partials(cnf: Config, old_data: dict) -> Config:
         target_model = cast(BaseModel, target_model)
         val = cast(dict, val).copy()
         for remove in to_remove:
-            del val[remove]
+            if remove in val:
+                del val[remove]
         fname = path.split(".")[-1]
         logger.info("Setting %s while removing %d", path, len(to_remove))
         _safe_setattr(target_model, fname, val)
