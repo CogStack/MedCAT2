@@ -123,8 +123,12 @@ def _make_changes(cnf: Config, old_data: dict) -> Config:
     return cnf
 
 
-def get_config_from_old(path: str) -> Config:
+def get_config_from_nested_dict(old_data: dict) -> Config:
     cnf = Config()
+    return _make_changes(cnf, old_data)
+
+
+def get_config_from_old(path: str) -> Config:
     with open(path) as f:
         old_cnf_data = json.load(f)
-    return _make_changes(cnf, old_cnf_data)
+    return get_config_from_nested_dict(old_cnf_data)
