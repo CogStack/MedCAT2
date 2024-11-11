@@ -4,6 +4,7 @@ import logging
 from medcat2.cdb import CDB
 from medcat2.config import Config
 from medcat2.cdb.concepts import NameInfo, CUIInfo
+from medcat2.utils.legacy.convert_config import get_config_from_nested_dict
 
 
 logger = logging.getLogger(__name__)
@@ -118,6 +119,9 @@ def convert_data(all_data: dict) -> CDB:
     cdb = CDB(Config())
     cdb = _add_cui_info(cdb, data)
     cdb = _add_name_info(cdb, data)
+    if 'config' in all_data:
+        logger.info("Loading old style CDB with config included.")
+        cdb.config = get_config_from_nested_dict(all_data['config'])
     return cdb
 
 
