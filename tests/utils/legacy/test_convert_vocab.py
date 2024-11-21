@@ -26,4 +26,4 @@ class VocabConvertTests(unittest.TestCase):
                 self.assertIn(word, self.vocab.vocab)
 
     def test_has_unigram_table(self):
-        self.assertNotEqual(self.vocab.unigram_table.size, 0)
+        self.assertNotEqual(self.vocab.cum_probs.size, 0)
