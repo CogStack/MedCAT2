@@ -1,8 +1,67 @@
-from typing import Any, Union, Protocol, runtime_checkable
+from typing import Any, Union, Protocol, runtime_checkable, Iterable
+from enum import Enum, auto
+
+
+class SerialisingStrategy(Enum):
+    SERIALISABLE_ONLY = auto()
+    """Only serialise attributes that are of Serialisable type"""
+    SERIALISABLES_AND_DICT = auto()
+    """Serialise attributes that are Serialisable as well as
+    the rest of .__dict__"""
+    DICT_ONLY = auto()
+    """Only include the object's .__dict__"""
+
+    def _is_suitable_in_dict(self, attr: Any) -> bool:
+        if self == SerialisingStrategy.SERIALISABLE_ONLY:
+            return False
+        elif self == SerialisingStrategy.DICT_ONLY:
+            return True
+        elif self == SerialisingStrategy.SERIALISABLES_AND_DICT:
+            return not isinstance(attr, Serialisable)
+        else:
+            raise ValueError(f"Unknown instance: {self}")
+
+    def _is_suitable_part(self, part: Any) -> bool:
+        if not isinstance(part, Serialisable):
+            return False
+        if self == SerialisingStrategy.SERIALISABLE_ONLY:
+            return True
+        elif self == SerialisingStrategy.DICT_ONLY:
+            return False
+        return True
+
+    def _iter_obj_items(self, obj: 'Serialisable'
+                        ) -> Iterable[tuple[str, Any]]:
+        for attr_name, attr in obj.__dict__.items():
+            if attr_name.startswith("__"):
+                # ignore privates
+                continue
+            yield attr_name, attr
+
+    def _iter_obj_values(self, obj: 'Serialisable') -> Iterable[Any]:
+        for _, val in self._iter_obj_items(obj):
+            yield val
+
+    def get_dict(self, obj: 'Serialisable') -> dict[str, Any]:
+        return {
+            attr_name: attr for attr_name, attr in self._iter_obj_items(obj)
+            if self._is_suitable_in_dict(attr)
+        }
+
+    def get_parts(self, obj: 'Serialisable'
+                  ) -> list[tuple['Serialisable', str]]:
+        out_list: list[tuple[Serialisable, str]] = [
+            (attr, attr_name) for attr_name, attr in self._iter_obj_items(obj)
+            if self._is_suitable_part(attr)
+        ]
+        return out_list
 
 
 @runtime_checkable
 class Serialisable(Protocol):
+
+    def get_strategy(self) -> SerialisingStrategy:
+        pass
 
     def get_save_name(self, name: str) -> str:
         pass
@@ -10,7 +69,10 @@ class Serialisable(Protocol):
 
 class AbstractSerialisable:
 
-    def __init__(self, name_format: str = "{0}.dat") -> None:
+    def get_strategy(self) -> SerialisingStrategy:
+        return SerialisingStrategy.SERIALISABLES_AND_DICT
+
+    def __init__(self, name_format: str = "{0}") -> None:
         self._name_format = name_format
 
     def get_save_name(self, name: str) -> str:
@@ -70,8 +132,9 @@ def name_all_serialisable_elements(target_list: Union[list, tuple],
     return out_parts
 
 
-def get_all_serialisable_members(object: Any
-                                 ) -> list[tuple[Serialisable, str]]:
+def get_all_serialisable_members(object: Serialisable
+                                 ) -> tuple[list[tuple[Serialisable, str]],
+                                            dict[str, Any]]:
     """Gets all serialisable members of an object.
 
     This looks for public and protected members, but not private ones.
@@ -82,17 +145,8 @@ def get_all_serialisable_members(object: Any
         object (Any): The target object.
 
     Returns:
-        list[tuple[Serialisable, str]]:
+        tuple[list[tuple[Serialisable, str]], dict[str, Any]]:
             list of serialisable objects along with their names
     """
-    serialisable_parts: list[tuple[Serialisable, str]] = []
-    for name, obj in object.__dict__.items():
-        if name.startswith("__"):
-            # ignore private members
-            continue
-        if isinstance(obj, Serialisable):
-            serialisable_parts.append((obj, name))
-        elif isinstance(obj, list) or isinstance(obj, tuple):
-            cur_parts = name_all_serialisable_elements(obj, name_start=name)
-            serialisable_parts.extend(cur_parts)
-    return serialisable_parts
+    strat = object.get_strategy()
+    return strat.get_parts(object), strat.get_dict(object)
