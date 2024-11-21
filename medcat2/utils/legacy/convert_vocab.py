@@ -10,5 +10,5 @@ def get_vocab_from_old(old_path: str) -> Vocab:
     for word, word_data in data['vocab'].items():
         v.add_word(word, cnt=word_data['cnt'], vec=word_data['vec'],
                    replace=True)
-    v.make_unigram_table()
+    v.init_cumsums()
     return v
