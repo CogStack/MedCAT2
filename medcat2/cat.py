@@ -174,10 +174,11 @@ class CAT:
             ) -> 'CAT':
         if model_pack_path.endswith(".zip"):
             folder_path = model_pack_path.rsplit(".zip", 1)[0]
-            logger.info("Unpacking model pack from %s to %s",
-                        model_pack_path, folder_path)
-            shutil.unpack_archive(model_pack_path,
-                                  folder_path)
+            if not os.path.exists(folder_path):
+                logger.info("Unpacking model pack from %s to %s",
+                            model_pack_path, folder_path)
+                shutil.unpack_archive(model_pack_path,
+                                      folder_path)
             model_pack_path = folder_path
         logger.info("Attempting to load model from file: %s",
                     model_pack_path)
