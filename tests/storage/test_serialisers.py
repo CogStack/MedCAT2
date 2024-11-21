@@ -8,7 +8,7 @@ import unittest
 import tempfile
 
 
-class DummyClassWithDefValues:
+class DummyClassWithDefValues(AbstractSerialisable):
 
     def __init__(self,
                  attr1: Optional[Serialisable] = None,
