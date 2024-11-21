@@ -11,6 +11,7 @@ from medcat2.trainer import Trainer
 from medcat2.components.types import CoreComponentType, TrainableComponent
 from medcat2.storage.serialisers import serialise, AvailableSerialisers
 from medcat2.storage.serialisers import deserialise
+from medcat2.storage.serialisables import AbstractSerialisable
 from medcat2.utils.fileutils import ensure_folder_if_parent
 from medcat2.platform.platform import Platform
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_PACK_NAME = "medcat2_model_pack"
 
 
-class CAT:
+class CAT(AbstractSerialisable):
     """This is a collection of serialisable model parts.
     """
 
