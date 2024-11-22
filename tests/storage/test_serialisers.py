@@ -16,6 +16,7 @@ class DummyClassWithDefValues(AbstractSerialisable):
                  attr3: Optional[str] = None,
                  attr4: Optional[Serialisable] = None,
                  ):
+        super().__init__()
         self.attr1 = attr1
         self.attr2 = attr2
         self.attr3 = attr3
