@@ -8,12 +8,23 @@ from pydantic import BaseModel, Field
 from medcat2.utils.defaults import workers
 from medcat2.utils.envsnapshot import Environment, get_environment_info
 from medcat2.utils.iterutils import callback_iterator
+from medcat2.storage.serialisables import SerialisingStrategy
 
 
 logger = logging.getLogger(__name__)
 
 
-class CoreComponentConfig(BaseModel):
+class SerialisableBaseModel(BaseModel):
+    _name_format = "{0}"
+
+    def get_strategy(self) -> SerialisingStrategy:
+        return SerialisingStrategy.SERIALISABLES_AND_DICT
+
+    def get_save_name(self, name: str) -> str:
+        return self._name_format.format(name)
+
+
+class CoreComponentConfig(SerialisableBaseModel):
     comp_name: str = 'default'
     """The name of the component.
 
@@ -36,7 +47,7 @@ class CoreComponentConfig(BaseModel):
     """
 
 
-class NLPConfig(BaseModel):
+class NLPConfig(SerialisableBaseModel):
     disabled_components: list = ['ner', 'parser', 'vectors', 'textcat',
                                  'entity_linker', 'sentencizer',
                                  'entity_ruler', 'merge_noun_chunks',
@@ -77,7 +88,7 @@ class NLPConfig(BaseModel):
         validate_assignment = True
 
 
-class General(BaseModel):
+class General(SerialisableBaseModel):
     """The general part of the config"""
     nlp: NLPConfig = NLPConfig()
     # checkpoint: CheckPoint = CheckPoint()
@@ -129,7 +140,7 @@ class General(BaseModel):
     reliable due to not taking into account all the details of the changes."""
 
 
-class LinkingFilters(BaseModel):
+class LinkingFilters(SerialisableBaseModel):
     """These describe the linking filters used alongside the model.
 
     When no CUIs nor exlcuded CUIs are specified (the sets are empty),
@@ -236,7 +247,7 @@ class Linking(CoreComponentConfig):
     the words making that concept are not taken into accout"""
 
 
-class Preprocessing(BaseModel):
+class Preprocessing(SerialisableBaseModel):
     """The preprocessing part of the config"""
     words_to_skip: set = {'nos'}
     """This words will be completly ignored from concepts and from the text
@@ -267,7 +278,7 @@ class Preprocessing(BaseModel):
     """
 
 
-class CDBMaker(BaseModel):
+class CDBMaker(SerialisableBaseModel):
     """The Context Database (CDB) making part of the config"""
     name_versions: list = ['LOWER', 'CLEAN']
     """Name versions to be generated."""
@@ -304,7 +315,7 @@ class Ner(CoreComponentConfig):
     e.g. heart disease -> disease heart"""
 
 
-class AnnotationOutput(BaseModel):
+class AnnotationOutput(SerialisableBaseModel):
     """The annotation output part of the config"""
     context_left: int = -1
     context_right: int = -1
@@ -314,7 +325,7 @@ class AnnotationOutput(BaseModel):
 
 # NOTE: this class should have an attribute for each
 #       medcat2.components.types.CoreComponentType
-class Components(BaseModel):
+class Components(SerialisableBaseModel):
     tagging: CoreComponentConfig = CoreComponentConfig()
     token_normalizing: CoreComponentConfig = CoreComponentConfig()
     ner: Ner = Ner()
@@ -323,7 +334,7 @@ class Components(BaseModel):
                              'ner', 'linking']
 
 
-class TrainingDescriptor(BaseModel):
+class TrainingDescriptor(SerialisableBaseModel):
     train_time_start: datetime
     train_time_end: datetime
     project_name: Optional[str]
@@ -401,7 +412,7 @@ class ModelMeta(BaseModel):
                         _counts)
 
 
-class Config(BaseModel):
+class Config(SerialisableBaseModel):
     general: General = General()
     components: Components = Components()
     # linking: Linking = Linking()
