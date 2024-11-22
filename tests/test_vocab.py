@@ -115,3 +115,23 @@ class VocabSaveTests(unittest.TestCase):
         for word in self.all_words:
             with self.subTest(word):
                 self.assertIn(word["word"], vocab)
+
+
+class VocabTests(unittest.TestCase):
+    serialiser = get_serialiser('dill')
+    all_words = VocabCreationTests.all_words
+
+    @classmethod
+    def setUpClass(cls):
+        cls.vocab = Vocab()
+        for word in cls.all_words:
+            cls.vocab.add_word(**word)
+        cls.vocab.init_cumsums()
+
+    def test_neg_sampling_gets_list_of_ints(self, num_to_get: int = 10):
+        neg_samples = self.vocab.get_negative_samples(num_to_get)
+        self.assertIsInstance(neg_samples, list)
+        self.assertEqual(len(neg_samples), num_to_get)
+        for inum, index in enumerate(neg_samples):
+            with self.subTest(f"INDEX: {index} @ {inum}"):
+                self.assertIsInstance(index, int)

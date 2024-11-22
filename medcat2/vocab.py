@@ -232,14 +232,14 @@ class Vocab(AbstractSerialisable):
         if len(self.cum_probs) == 0:
             self.init_cumsums()
         random_vals = np.random.rand(n)
-        inds: np.ndarray = np.searchsorted(self.cum_probs,
-                                           random_vals).tolist()
+        inds: list[int] = np.searchsorted(self.cum_probs,
+                                          random_vals).tolist()
 
         if ignore_punct_and_num:
             # Do not return anything that does not have letters in it
             return [ind for ind in inds
                     if self.index2word[ind].upper().isupper()]
-        return inds.tolist()
+        return inds
 
     def get_vectors(self, indices: list[int]) -> list[np.ndarray]:
         return [self.vec(self.index2word[ind])  # type: ignore
