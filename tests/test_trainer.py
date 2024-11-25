@@ -13,25 +13,62 @@ import shutil
 import random
 import pandas as pd
 
-from .platform.test_platform import FakeCDB
+from .platform.test_platform import FakeCDB as BFakeCDB
 from .utils.legacy.test_convert_config import TESTS_PATH
+
+
+class FakeCDB(BFakeCDB):
+
+    def __init__(self, config):
+        super().__init__(config)
+
+    def _add_concept(self, *args, **kwargs) -> None:
+        pass
 
 
 class FakeMutEnt:
 
-    def __init__(self, doc, start_index, end_index):
+    def __init__(self, doc: 'FakeMutDoc',
+                 start_index: int, end_index: int):
         self.doc = doc
         self.start_index = start_index
         self.end_index = end_index
+        self.to_skip = False
+        self.base = self
+        self.text = doc.text
+
+    @property
+    def lower(self) -> str:
+        return self.text.lower()
 
 
 class FakeMutDoc:
 
-    def __init__(self, text):
+    def __init__(self, text: str):
         self.text = text
+        self.base = self
+
+    def isupper(self) -> bool:
+        return self.text.isupper()
 
     def get_entity(self, start_index: int, end_index: int):
         return FakeMutEnt(self, start_index, end_index)
+
+    def __iter__(self):
+        yield self.get_entity(0, 1)
+
+
+class FakeComponent:
+    pass
+
+
+class FakePlatform:
+
+    def tokenizer(self, text: str) -> FakeMutDoc:
+        return FakeMutDoc(text)
+
+    def get_component(self, comp_type):
+        return FakeComponent
 
 
 class TrainerTestsBase(unittest.TestCase):
@@ -47,7 +84,7 @@ class TrainerTestsBase(unittest.TestCase):
         cls.cdb = FakeCDB(cls.cnf)
         cls.vocab = Vocab()
         cls.trainer = Trainer(cls.cdb,
-                              cls.caller, cls.unlinker, cls.adder)
+                              cls.caller, FakePlatform())
 
     def setUp(self):
         self.cnf = Config()
