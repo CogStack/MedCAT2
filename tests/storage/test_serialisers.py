@@ -38,7 +38,7 @@ class DummyClassWithDefValues(AbstractSerialisable):
     def __repr__(self):
         return f"{{{self}}}"
 
-    def __eq__(self, other: 'DummyClassWithDefValues') -> bool:
+    def __eq__(self, other) -> bool:
         if not isinstance(other, DummyClassWithDefValues):
             return False
         # NOTE: only the serialisable bits can eb checked since
@@ -55,6 +55,10 @@ class DummyClassWithMissingDefValues(DummyClassWithDefValues):
                  attr4: Optional[Serialisable] = None):
         super().__init__(attr1, attr2, attr3, attr4)
         self.attr5 = attr5
+
+    @classmethod
+    def get_init_attrs(cls):
+        return ['attr5']
 
     @classmethod
     def get_default(cls, extra: bool = True
@@ -80,6 +84,9 @@ class SerialiserWorksTests(unittest.TestCase):
                               self.SERIALISABLE_INSTANCE,
                               self.temp_folder)
 
+    def deserialise(self):
+        return serialisers.deserialise(self.SERIALISER_TYPE, self.temp_folder)
+
     def tearDown(self):
         self._temp_folder.cleanup()
 
@@ -90,13 +97,73 @@ class SerialiserWorksTests(unittest.TestCase):
         self.assert_has_files_in_folder()
 
     def test_can_deserialise_from_file(self):
-        got = serialisers.deserialise(self.SERIALISER_TYPE, self.temp_folder)
+        got = self.deserialise()
         self.assertIsInstance(got, self.TARGET_CLASS)
 
     def test_deserialised_instance_same(self):
-        got = serialisers.deserialise(self.SERIALISER_TYPE, self.temp_folder)
+        got = self.deserialise()
         self.assertEqual(got, self.SERIALISABLE_INSTANCE)
 
 
 class SerialiserFailsTests(SerialiserWorksTests):
-    NON_SERIALISABLE_INSTANCE = DummyClassWithMissingDefValues.get_default()
+    SERIALISABLE_INSTANCE = DummyClassWithMissingDefValues.get_default()
+    TARGET_CLASS = DummyClassWithMissingDefValues
+
+
+class MyDummyConfig(AbstractSerialisable):
+
+    def __init__(self, arg1: str = 'DEF ARG', arg2: int = -1):
+        self.arg1 = arg1
+        self.arg2 = arg2
+
+
+class MyDummyParentSerialisableWithConfig(AbstractSerialisable):
+
+    def __init__(self, config: MyDummyConfig,
+                 smth_else: int = 10):
+        self.config = config
+        self.smth_else = smth_else
+
+    @classmethod
+    def get_init_attrs(cls):
+        return ['config']
+
+    @classmethod
+    def get_default(cls) -> 'MyDummyParentSerialisableWithConfig':
+        return cls(
+            config=MyDummyConfig()
+        )
+
+
+class MyDummyParentSerialisableWithNestedSameInstance(AbstractSerialisable):
+
+    def __init__(self, obj_w_config: MyDummyParentSerialisableWithConfig):
+        self.obj_w_config = obj_w_config
+        self.config = obj_w_config.config
+
+    @classmethod
+    def get_init_attrs(cls):
+        return ['obj_w_config']
+
+    @classmethod
+    def ignore_attrs(cls):
+        return ['config']
+
+    @classmethod
+    def get_default(cls) -> 'MyDummyParentSerialisableWithNestedSameInstance':
+        return cls(
+            obj_w_config=MyDummyParentSerialisableWithConfig.get_default()
+        )
+
+
+class NestedSameInstanceSerialisableTests(SerialiserWorksTests):
+    SERIALISABLE_INSTANCE = (
+        MyDummyParentSerialisableWithNestedSameInstance.get_default())
+    TARGET_CLASS = MyDummyParentSerialisableWithNestedSameInstance
+
+    def deserialise(self) -> MyDummyParentSerialisableWithNestedSameInstance:
+        return super().deserialise()
+
+    def test_has_same_config(self):
+        got = self.deserialise()
+        self.assertIs(got.config, got.obj_w_config.config)

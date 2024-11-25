@@ -51,6 +51,18 @@ class CAT(AbstractSerialisable):
         self._trainer: Optional[Trainer] = None
         self._platform = Platform(self.cdb, self.vocab)
 
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return ['cdb', 'vocab']
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return [
+            '_trainer',  # recreate if nededed
+            '_platform',  # need to recreate regardless
+            'config',  # will be loaded along with CDB
+        ]
+
     def __call__(self, text: str) -> Optional[MutableDocument]:
         return self._platform.get_doc(text)
 

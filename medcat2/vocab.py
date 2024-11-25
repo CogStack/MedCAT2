@@ -1,7 +1,7 @@
 from typing import Optional
 from typing_extensions import TypedDict
 
-import dill
+# import dill
 import numpy as np
 
 from medcat2.storage.serialisables import AbstractSerialisable
@@ -263,13 +263,13 @@ class Vocab(AbstractSerialisable):
 
         return False
 
-    @classmethod
-    def load(cls, path: str) -> "Vocab":
-        with open(path, 'rb') as f:
-            vocab: Vocab = dill.load(f)
-        if not hasattr(vocab, 'cum_probs'):
-            # NOTE: this is not too expensive, only around 0.05s
-            vocab.init_cumsums()
-        if hasattr(vocab, 'unigram_table'):
-            del vocab.unigram_table
-        return vocab
+    # @classmethod
+    # def load(cls, path: str) -> "Vocab":
+    #     with open(path, 'rb') as f:
+    #         vocab: Vocab = dill.load(f)
+    #     if not hasattr(vocab, 'cum_probs'):
+    #         # NOTE: this is not too expensive, only around 0.05s
+    #         vocab.init_cumsums()
+    #     if hasattr(vocab, 'unigram_table'):
+    #         del vocab.unigram_table
+    #     return vocab

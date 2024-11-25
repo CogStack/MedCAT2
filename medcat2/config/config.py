@@ -15,13 +15,17 @@ logger = logging.getLogger(__name__)
 
 
 class SerialisableBaseModel(BaseModel):
-    _name_format = "{0}"
 
     def get_strategy(self) -> SerialisingStrategy:
         return SerialisingStrategy.SERIALISABLES_AND_DICT
 
-    def get_save_name(self, name: str) -> str:
-        return self._name_format.format(name)
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return []
 
 
 class CoreComponentConfig(SerialisableBaseModel):

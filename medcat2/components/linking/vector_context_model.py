@@ -12,12 +12,13 @@ from medcat2.tokenizing.tokens import (MutableToken, MutableEntity,
                                        MutableDocument)
 from medcat2.utils.defaults import StatusTypes as ST
 from medcat2.utils.matutils import unitvec
+from medcat2.storage.serialisables import AbstractSerialisable
 
 
 logger = logging.getLogger(__name__)
 
 
-class ContextModel:
+class ContextModel(AbstractSerialisable):
     """Used to learn embeddings for concepts and calculate similarities
     in new documents.
 
@@ -278,7 +279,6 @@ class ContextModel:
 
             if self.config.calculate_dynamic_threshold:
                 # Update average confidence for this CUI
-                cui_info = self.cui2info[cui]
                 sim = self.similarity(cui, entity, doc)
                 new_conf = get_updated_average_confidence(
                     cui_info.average_confidence, cui_info.count_train, sim)

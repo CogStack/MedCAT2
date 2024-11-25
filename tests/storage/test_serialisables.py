@@ -12,6 +12,17 @@ class MyDummyTestClass1:
     attr3: int
     attr4: str
 
+    def get_strategy(self) -> serialisables.SerialisingStrategy:
+        return serialisables.SerialisingStrategy.SERIALISABLES_AND_DICT
+
+    @classmethod
+    def get_init_attrs(self) -> list[str]:
+        return ['']
+
+    @classmethod
+    def ignore_attrs(self) -> list[str]:
+        return ['']
+
     @classmethod
     def get_def_correct_inst(cls) -> tuple['MyDummyTestClass1', set[str]]:
         return cls(
@@ -74,10 +85,11 @@ class SerialisableTests(unittest.TestCase):
         self.assert_did_not_capture_incorrect_members(members, exp_names)
 
     def test_finds_all_serialisable_members_correct(self):
-        members = serialisables.get_all_serialisable_members(self.correct_inst)
+        members, _ = serialisables.get_all_serialisable_members(
+            self.correct_inst)
         self.assert_correctly_captured(members, self.names4correct)
 
     def test_finds_all_serialisable_members_incorrect(self):
-        members = serialisables.get_all_serialisable_members(
+        members, _ = serialisables.get_all_serialisable_members(
             self.incorrect_inst)
         self.assert_correctly_captured(members, self.names4incorrect)

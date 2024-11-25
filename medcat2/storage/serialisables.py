@@ -11,7 +11,10 @@ class SerialisingStrategy(Enum):
     DICT_ONLY = auto()
     """Only include the object's .__dict__"""
 
-    def _is_suitable_in_dict(self, attr: Any) -> bool:
+    def _is_suitable_in_dict(self, attr_name: str,
+                             attr: Any, obj: 'Serialisable') -> bool:
+        if attr_name in obj.ignore_attrs():
+            return False
         if self == SerialisingStrategy.SERIALISABLE_ONLY:
             return False
         elif self == SerialisingStrategy.DICT_ONLY:
@@ -21,7 +24,10 @@ class SerialisingStrategy(Enum):
         else:
             raise ValueError(f"Unknown instance: {self}")
 
-    def _is_suitable_part(self, part: Any) -> bool:
+    def _is_suitable_part(self, attr_name: str, part: Any, obj: 'Serialisable'
+                          ) -> bool:
+        if attr_name in obj.ignore_attrs():
+            return False
         if not isinstance(part, Serialisable):
             return False
         if self == SerialisingStrategy.SERIALISABLE_ONLY:
@@ -45,14 +51,14 @@ class SerialisingStrategy(Enum):
     def get_dict(self, obj: 'Serialisable') -> dict[str, Any]:
         return {
             attr_name: attr for attr_name, attr in self._iter_obj_items(obj)
-            if self._is_suitable_in_dict(attr)
+            if self._is_suitable_in_dict(attr_name, attr, obj)
         }
 
     def get_parts(self, obj: 'Serialisable'
                   ) -> list[tuple['Serialisable', str]]:
         out_list: list[tuple[Serialisable, str]] = [
             (attr, attr_name) for attr_name, attr in self._iter_obj_items(obj)
-            if self._is_suitable_part(attr)
+            if self._is_suitable_part(attr_name, attr, obj)
         ]
         return out_list
 
@@ -63,7 +69,12 @@ class Serialisable(Protocol):
     def get_strategy(self) -> SerialisingStrategy:
         pass
 
-    def get_save_name(self, name: str) -> str:
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        pass
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
         pass
 
 
@@ -72,11 +83,13 @@ class AbstractSerialisable:
     def get_strategy(self) -> SerialisingStrategy:
         return SerialisingStrategy.SERIALISABLES_AND_DICT
 
-    def __init__(self, name_format: str = "{0}") -> None:
-        self._name_format = name_format
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return []
 
-    def get_save_name(self, name: str) -> str:
-        return self._name_format.format(name)
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return []
 
     def __eq__(self, other: Any) -> bool:
         if type(self) is not type(other):

@@ -13,10 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class CDB(AbstractSerialisable):
-    NAME_FORMAT = "cdb_{0}.dat"
 
     def __init__(self, config: Config) -> None:
-        super().__init__(self.NAME_FORMAT)
         self.config = config
         self.cui2info: dict[str, CUIInfo] = {}
         self.name2info: dict[str, NameInfo] = {}
@@ -25,6 +23,10 @@ class CDB(AbstractSerialisable):
         self.addl_info: dict[str, Any] = {}
         self._subnames: set[str] = set()
         self.is_dirty = False
+
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return ['config']
 
     def _undirty(self):
         logger.info("Resetting subnames")

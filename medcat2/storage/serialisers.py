@@ -24,33 +24,30 @@ class Serialiser(ABC):
         pass
 
     def serialise_all(self, obj: Serialisable, target_folder: str) -> None:
-        # attr2file_and_cls: dict[str, tuple[str, str]] = {}
         ser_parts, raw_parts = get_all_serialisable_members(obj)
         for part, name in ser_parts:
-            basename = part.get_save_name(name)
+            basename = name
             part_folder = os.path.join(target_folder, basename)
             if os.path.exists(part_folder):
                 raise IllegalSchemaException(
                     f"File already exists: {part_folder}. Unable to overwrite")
             os.mkdir(part_folder)
-            # if name in attr2file_and_cls:
-            #     raise IllegalSchemaException(f"Multiple values for {name}")
             # recursive
             self.serialise_all(part, part_folder)
-            # attr2file_and_cls[name] = (basename, _cls2path(type(part)))
         if raw_parts:
             raw_file = os.path.join(target_folder, self.RAW_FILE)
             self.serialise(raw_parts, raw_file)
         schema_path = os.path.join(target_folder, DEFAULT_SCHEMA_FILE)
-        save_schema(schema_path, obj.__class__)
+        save_schema(schema_path, obj.__class__, obj.get_init_attrs())
 
     def deserialise_all(self, folder_path: str) -> Serialisable:
         schema_path = os.path.join(folder_path, DEFAULT_SCHEMA_FILE)
-        cls_path = load_schema(schema_path)
+        cls_path, init_attrs = load_schema(schema_path)
         module_path, cls_name = cls_path.rsplit('.', 1)
         module = import_module(module_path)
         cls: Type = getattr(module, cls_name)
         init_kwargs: dict[str, Serialisable] = {}
+        non_init_sers: dict[str, Serialisable] = {}
         for part_name in os.listdir(folder_path):
             if part_name == DEFAULT_SCHEMA_FILE or part_name == self.RAW_FILE:
                 continue
@@ -58,11 +55,23 @@ class Serialiser(ABC):
             if not os.path.isdir(part_path):
                 continue
             part = self.deserialise_all(part_path)
-            init_kwargs[part_name] = part
-        obj = cls(**init_kwargs)
+            if part_name in init_attrs:
+                init_kwargs[part_name] = part
+            else:
+                non_init_sers[part_name] = part
         raw_file = os.path.join(folder_path, self.RAW_FILE)
-        raw_parts = self.deserialise(raw_file)
-        for attr_name, attr in raw_parts.items():
+        raw_parts: dict[str, Any]
+        if os.path.exists(raw_file):
+            raw_parts = self.deserialise(raw_file)
+        else:
+            raw_parts = {}
+        missing = set(set(init_attrs) - set(init_kwargs))
+        if init_attrs and missing:
+            for missed in missing:
+                init_kwargs[missed] = raw_parts.pop(missed)
+        obj = cls(**init_kwargs)
+        all_items = list(raw_parts.items()) + list(non_init_sers.items())
+        for attr_name, attr in all_items:
             setattr(obj, attr_name, attr)
         return obj
 
