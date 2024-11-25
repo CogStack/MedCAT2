@@ -50,6 +50,10 @@ class CoreComponentConfig(SerialisableBaseModel):
     custom component is used, these would need to be set manually.
     """
 
+    @classmethod
+    def ignore_attrs(cls):
+        return ["init_args", "init_kwargs"]
+
 
 class NLPConfig(SerialisableBaseModel):
     disabled_components: list = ['ner', 'parser', 'vectors', 'textcat',
