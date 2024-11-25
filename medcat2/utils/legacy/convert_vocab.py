@@ -8,12 +8,7 @@ def get_vocab_from_old(old_path: str) -> Vocab:
         data = dill.load(f)
     v = Vocab()
     for word, word_data in data['vocab'].items():
-        vec = word_data['vec']
-        if len(vec) != 7:
-            print("WORD HAS WRONG VEC:", word, "len of vec", len(vec))
-            print("Fixing just now!")
-            vec = vec[:7]
-        v.add_word(word, cnt=word_data['cnt'], vec=vec,
+        v.add_word(word, cnt=word_data['cnt'], vec=word_data['vec'],
                    replace=True)
     v.init_cumsums()
     return v
