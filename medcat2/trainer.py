@@ -2,15 +2,14 @@ from typing import Iterable, Callable, Optional, Union
 import logging
 from itertools import chain, repeat, islice
 from tqdm import trange
-from contextlib import nullcontext
 
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
                                        MutableToken)
 from medcat2.cdb import CDB
-from medcat2.config.config import (LinkingFilters, General, Preprocessing,
-                                   CDBMaker)
+from medcat2.config.config import General, Preprocessing, CDBMaker
 from medcat2.utils.config_utils import temp_changed_config
 from medcat2.utils.data_utils import make_mc_train_test, get_false_positives
+from medcat2.utils.filters import project_filters
 from medcat2.data.mctexport import (MedCATTrainerExport,
                                     MedCATTrainerExportProject,
                                     MedCATTrainerExportDocument)
@@ -326,7 +325,7 @@ class Trainer:
                                   desc='Project', leave=False,
                                   disable=disable_progress):
             project = train_set['projects'][idx_project]
-            with self._project_filters(
+            with project_filters(
                     self.config.components.linking.filters, project,
                     extra_cui_filter, use_filters):
                 self._train_supervised_for_project(
@@ -344,19 +343,6 @@ class Trainer:
                         for ann in doc['annotations']):
                 if ann.get('killed', False):
                     self.unlink_concept_name(ann['cui'], ann['value'], False)
-
-    def _project_filters(self, filters: LinkingFilters,
-                         project: MedCATTrainerExportProject,
-                         extra_cui_filter: Optional[set[str]],
-                         use_project_filters: bool):
-        if extra_cui_filter is not None and not use_project_filters:
-            return temp_changed_config(filters, 'cuis', extra_cui_filter)
-        if use_project_filters:
-            cuis = project.get('cuis', None)
-            if cuis is None or not cuis:
-                return nullcontext()
-            return temp_changed_config(filters, 'cuis', cuis)
-        return temp_changed_config(filters, 'cuis', set())
 
     def _train_supervised_for_project(self,
                                       project: MedCATTrainerExportProject,
