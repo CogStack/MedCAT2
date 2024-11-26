@@ -10,7 +10,7 @@ from .utils.legacy.test_convert_config import TESTS_PATH
 from .utils.legacy.test_conversion_all import ConvertedFunctionalityTests
 
 
-class InferenceFromLoadedTests(unittest.TestCase):
+class TrainedModelTests(unittest.TestCase):
     TRAINED_MODEL_PATH = os.path.join(TESTS_PATH, 'resources',
                                       'mct2_model_pack.zip')
 
@@ -22,6 +22,9 @@ class InferenceFromLoadedTests(unittest.TestCase):
         if cls.model.config.components.linking.train:
             print("TRAINING WAS ENABLE! NEED TO DISABLE")
             cls.model.config.components.linking.train = False
+
+
+class InferenceFromLoadedTests(TrainedModelTests):
 
     @classmethod
     def tearDownClass(cls):
