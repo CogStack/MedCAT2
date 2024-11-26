@@ -81,7 +81,6 @@ class StatsBuilder:
 
         mut_doc: MutableDocument = self.doc_getter(
             doc['text'])  # type: ignore
-        print("MUT DOC WITH ENTS", [str(e) for e in mut_doc.final_ents])
 
         p_anns = mut_doc.final_ents  # or all ents?
 
@@ -104,7 +103,6 @@ class StatsBuilder:
                 self.fn += 1
                 self.fn_docs.add(doc.get('name', 'unk'))
 
-                print("===ADD FALSE negative for", cui)
                 self.fns[cui] = self.fns.get(cui, 0) + 1
                 examples = self.examples['fn'].get(cui, [])
                 self.examples['fn'][cui] = examples + [anns_examples[iann]]
