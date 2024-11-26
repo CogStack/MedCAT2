@@ -374,6 +374,12 @@ def get_similarity(cur_vectors: dict[str, np.ndarray],
             #       in our voab, which means they don't produce
             #       a value to be used here.
             continue
+        if vec_type not in cur_vectors:
+            # NOTE: this means that the saved vector doesn't have
+            #       context at this vector type. This should be a
+            #       rare occurance, but is definitely present in
+            #       models converted from v1
+            continue
         w = weights[vec_type]
         v1 = cur_vectors[vec_type]
         v2 = other[vec_type]
