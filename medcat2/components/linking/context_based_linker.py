@@ -149,7 +149,7 @@ class Linker:
                                   ) -> Iterator[MutableEntity]:
         # Check does it have a detected concepts
         cuis = entity.link_candidates
-        if cuis is None:
+        if not cuis:
             return
         # Check does it have a detected name
         name = entity.detected_name
