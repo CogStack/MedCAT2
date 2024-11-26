@@ -1,12 +1,14 @@
 import os
 
 from medcat2.vocab import Vocab
-from medcat2.storage.serialisers import get_serialiser
+from medcat2.storage.serialisers import get_serialiser, deserialise
 
 import numpy as np
 
 import unittest
 import tempfile
+
+from . import UNPACKED_EXAMPLE_MODEL_PACK_PATH
 
 
 class VocabCreationTests(unittest.TestCase):
@@ -135,3 +137,21 @@ class VocabTests(unittest.TestCase):
         for inum, index in enumerate(neg_samples):
             with self.subTest(f"INDEX: {index} @ {inum}"):
                 self.assertIsInstance(index, int)
+
+
+class DefaultVocabTests(unittest.TestCase):
+    VOCAB_PATH = os.path.join(UNPACKED_EXAMPLE_MODEL_PACK_PATH, 'vocab')
+    EXP_SHAPE = (7,)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.vocab: Vocab = deserialise('dill', cls.VOCAB_PATH)
+
+    # NOTE: the MCTv1 vocab has a vector (for 'chronic')
+    #       that is longer than the rest (the reast are 7 length,
+    #       this one is 8 length). So we want to make sure everything
+    #       is in order here.
+    def test_has_correct_vectors(self):
+        for w, info in self.vocab.vocab.items():
+            with self.subTest(w):
+                self.assertEqual(info['vector'].shape, self.EXP_SHAPE)
