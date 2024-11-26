@@ -6,7 +6,8 @@ import traceback
 from medcat2.cat import CAT
 from medcat2.utils.filters import project_filters
 from medcat2.data.mctexport import (
-    MedCATTrainerExport, MedCATTrainerExportProject)
+    MedCATTrainerExport, MedCATTrainerExportProject,
+    MedCATTrainerExportDocument, MedCATTrainerExportAnnotation)
 # from medcat2.utils.matutils import intersect_nonempty_set
 from medcat2.config.config import LinkingFilters
 from medcat2.cdb.concepts import CUIInfo
@@ -66,7 +67,8 @@ class StatsBuilder:
         ):
             self.process_document(project_name, project_id, doc)
 
-    def process_document(self, project_name: str, project_id: str, doc: dict
+    def process_document(self, project_name: str, project_id: str,
+                         doc: MedCATTrainerExportDocument
                          ) -> None:
         anns = doc['annotations']
 
@@ -95,7 +97,8 @@ class StatsBuilder:
                                 p_anns_norm, p_anns_examples)
         self._process_anns_norm(doc, anns_norm, p_anns_norm, anns_examples)
 
-    def _process_anns_norm(self, doc: dict, anns_norm: list[tuple[int, str]],
+    def _process_anns_norm(self, doc: MedCATTrainerExportDocument,
+                           anns_norm: list[tuple[int, str]],
                            p_anns_norm: list[tuple[int, str]],
                            anns_examples: list[dict]) -> None:
         for iann, ann in enumerate(anns_norm):
@@ -108,7 +111,8 @@ class StatsBuilder:
                 examples = self.examples['fn'].get(cui, [])
                 self.examples['fn'][cui] = examples + [anns_examples[iann]]
 
-    def _process_p_anns(self, project_name: str, project_id: str, doc: dict,
+    def _process_p_anns(self, project_name: str, project_id: str,
+                        doc: MedCATTrainerExportDocument,
                         p_anns: list[MutableEntity]
                         ) -> tuple[list[tuple[int, str]], list[dict]]:
         p_anns_norm: list[tuple[int, str]] = []
@@ -121,7 +125,7 @@ class StatsBuilder:
                 project_name, project_id, cui, doc, ann))
         return p_anns_norm, p_anns_examples
 
-    def _count_p_anns_norm(self, doc: dict,
+    def _count_p_anns_norm(self, doc: MedCATTrainerExportDocument,
                            anns_norm: list[tuple[int, str]],
                            anns_norm_neg: list[tuple[int, str]],
                            p_anns_norm: list[tuple[int, str]],
@@ -151,7 +155,8 @@ class StatsBuilder:
                 self.examples['fp'][cui] = examples + [example]
 
     def _create_annotation(self, project_name: str, project_id: str, cui: str,
-                           doc: dict, ann: dict) -> dict:
+                           doc: MedCATTrainerExportDocument,
+                           ann: MedCATTrainerExportAnnotation) -> dict:
         return {"text": doc['text'][max(0, ann['start']-60):ann['end']+60],
                 "cui": cui,
                 "start": ann['start'],
@@ -164,7 +169,8 @@ class StatsBuilder:
                 "document id": doc.get('id')}
 
     def _create_annotation_2(self, project_name: str, project_id: str,
-                             cui: str, doc: dict, ann: MutableEntity) -> dict:
+                             cui: str, doc: MedCATTrainerExportDocument,
+                             ann: MutableEntity) -> dict:
         start = max(0, ann.base.start_char_index - 60)
         end = ann.base.end_char_index + 60
         return {"text": doc['text'][start:end],
@@ -179,7 +185,8 @@ class StatsBuilder:
                 "document id": doc.get('id')}
 
     def _preprocess_annotations(self, project_name: str, project_id: str,
-                                doc: dict, anns: list[dict]
+                                doc: MedCATTrainerExportDocument,
+                                anns: list[MedCATTrainerExportAnnotation]
                                 ) -> tuple[list[tuple[int, str]],
                                            list[tuple[int, str]],
                                            list[dict],
