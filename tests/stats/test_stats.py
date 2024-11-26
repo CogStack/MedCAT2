@@ -5,34 +5,6 @@ from medcat2.stats import stats
 from medcat2.data.mctexport import MedCATTrainerExport
 
 from ..test_cat import TrainedModelTests
-import logging
-
-
-sh = logging.StreamHandler()
-
-
-def _setup_logging(logger: logging.Logger):
-    if not logger.handlers or not any(
-        isinstance(h, logging.StreamHandler) for h in logger.handlers
-    ):
-        logger.addHandler(sh)
-    logger.setLevel(logging.DEBUG)
-
-
-from medcat2.components.linking.context_based_linker import ( # noqa
-    logger as cbl_l)
-from medcat2.components.linking.vector_context_model import ( # noqa
-    logger as vcm_l)
-from medcat2.components.ner.vocab_based_annotator import ( # noqa
-    logger as vba_l)
-from medcat2.components.ner.vocab_based_ner import ( # noqa
-    logger as vbn_l)
-# from medcat2.stats.stats import logger as stl
-loggers = [
-    cbl_l, vcm_l, vba_l, vbn_l
-]
-for logger in loggers:
-    _setup_logging(logger)
 
 
 RESOURCES_PATH = os.path.abspath(
