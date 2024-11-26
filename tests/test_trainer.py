@@ -5,16 +5,15 @@ from medcat2.trainer import Trainer
 from medcat2.config import Config
 from medcat2.vocab import Vocab
 from medcat2.data.mctexport import MedCATTrainerExport
-from medcat2.cat import CAT
 
 import unittest
 
-import shutil
 import random
 import pandas as pd
 
 from .platform.test_platform import FakeCDB as BFakeCDB
 from .utils.legacy.test_convert_config import TESTS_PATH
+from .test_cat import TrainedModelTests
 
 
 class FakeCDB(BFakeCDB):
@@ -184,28 +183,14 @@ class TrainerSupervisedTests(TrainerUnsupervisedTests):
         pass  # NOTE: no generation for supervised training
 
 
-class FromSratchBase(unittest.TestCase):
-    TRAINED_MODEL_PATH = os.path.join(TESTS_PATH, 'resources',
-                                      'mct2_model_pack.zip')
+class FromSratchBase(TrainedModelTests):
     RNG_SEED = 42
 
     @classmethod
     def setUpClass(cls):
-        cls._model_folder_no_zip = cls.TRAINED_MODEL_PATH.rsplit(".zip", 1)[0]
-        cls._folder_existed = os.path.exists(cls._model_folder_no_zip)
-        cls.model = CAT.load_model_pack(cls.TRAINED_MODEL_PATH)
-        if cls.model.config.components.linking.train:
-            print("TRAINING WAS ENABLE! NEED TO DISABLE")
-            cls.model.config.components.linking.train = False
+        super().setUpClass()
         cls.model.cdb.reset_training()
         random.seed(cls.RNG_SEED)
-
-    @classmethod
-    def tearDownClass(cls):
-        if cls.TRAINED_MODEL_PATH.endswith(".zip"):
-            folder = cls._model_folder_no_zip
-            if os.path.exists(folder) and not cls._folder_existed:
-                shutil.rmtree(folder)
 
 
 class TrainFromScratchTests(FromSratchBase):
