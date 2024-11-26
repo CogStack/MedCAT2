@@ -5,7 +5,8 @@ import traceback
 
 from medcat2.cat import CAT
 from medcat2.utils.filters import project_filters
-from medcat2.data.mctexport import MedCATTrainerExport
+from medcat2.data.mctexport import (
+    MedCATTrainerExport, MedCATTrainerExportProject)
 # from medcat2.utils.matutils import intersect_nonempty_set
 from medcat2.config.config import LinkingFilters
 from medcat2.cdb.concepts import CUIInfo
@@ -50,7 +51,7 @@ class StatsBuilder:
         self.fp_docs: set = set()
         self.fn_docs: set = set()
 
-    def process_project(self, project: dict) -> None:
+    def process_project(self, project: MedCATTrainerExportProject) -> None:
         self.filters.cuis = set()
 
         project_name = cast(str, project.get('name'))
