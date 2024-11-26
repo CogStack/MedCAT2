@@ -34,7 +34,7 @@ def calc_matrix(vocab: Vocab, target_size: int) -> np.ndarray:
     cov_matrix = np.cov(all_vecs_meaned, rowvar=False)
     eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
     sorted_idx = np.argsort(eigenvalues)[::-1]
-    logger.debug("The sorted eigenvalues are as follows:",
+    logger.debug("The sorted eigenvalues are as follows: %s",
                  [f"{v:5.2f}" for v in eigenvalues[sorted_idx]])
     sorted_eigenvectors = eigenvectors[:, sorted_idx]
     transformation_matrix = sorted_eigenvectors[:, :target_size]
