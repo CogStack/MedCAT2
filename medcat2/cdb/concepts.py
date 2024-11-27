@@ -30,6 +30,25 @@ class CUIInfo:
         self.count_train = 0
         self.average_confidence = 0
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, CUIInfo):
+            return False
+        for ann_key in self.__annotations__:
+            v1, v2 = getattr(self, ann_key), getattr(other, ann_key)
+            if ann_key != 'context_vectors':
+                if v1 != v2:
+                    return False
+                continue
+            if v1 is None and v2 is None:
+                continue
+            if v1.keys() != v2.keys():
+                return False
+            for k in v1:
+                sv1, sv2 = v1[k], v2[k]
+                if not np.all(sv1 == sv2):
+                    return False
+        return True
+
 
 @dataclass
 class NameInfo:
