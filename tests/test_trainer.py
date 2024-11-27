@@ -218,7 +218,7 @@ class TrainFromScratchTests(FromSratchBase):
 
 class TrainFromScratchSupervisedTests(TrainFromScratchTests):
     SUP_DATA_PATH = os.path.join(
-        TESTS_PATH, "resources", "supervised_mct_export.json"
+        TESTS_PATH, "resources", "mct_export_for_test_exp_perfect.json"
     )
 
     @classmethod

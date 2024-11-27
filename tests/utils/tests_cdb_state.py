@@ -114,7 +114,7 @@ class StateSavedOnDiskTests(StateSavedTests):
 class StateWithTrainingTests(StateTests):
     SUPERVISED_TRAINING_JSON = os.path.join(
         os.path.dirname(__file__), "..", "resources",
-        "supervised_mct_export.json")
+        "mct_export_for_test_exp_perfect.json")
 
     @classmethod
     def setUpClass(cls) -> None:
