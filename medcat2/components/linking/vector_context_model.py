@@ -275,7 +275,8 @@ class ContextModel(AbstractSerialisable):
 
         if not negative:
             # Update the name count, if possible
-            self.name2info[entity.detected_name].count_train += 1
+            if entity.detected_name:
+                self.name2info[entity.detected_name].count_train += 1
 
             if self.config.calculate_dynamic_threshold:
                 # Update average confidence for this CUI
