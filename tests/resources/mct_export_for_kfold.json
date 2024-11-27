@@ -1,0 +1,144 @@
+{
+    "projects": [
+        {
+            "cuis": "",
+            "documents": [
+                {
+                    "annotations": [
+                        {
+                            "cui": "C04",
+                            "start": 20,
+                            "end": 27,
+                            "value": "seizure"
+                        },
+                        {
+                            "cui": "C04",
+                            "start": 81,
+                            "end": 88,
+                            "value": "fittest"
+                        }
+                    ],
+                    "id": "ID-1",
+                    "last_modified": "2024-08-21",
+                    "name": "Doc#1",
+                    "text": "Patient had a acute seizure during visit with GP. This is the first time a minor fittest was observed for this patient. "
+                },
+                {
+                    "annotations": [
+                        {
+                            "cui": "C05",
+                            "start": 26,
+                            "end": 33,
+                            "value": "healthy"
+                        },
+                        {
+                            "cui": "C05",
+                            "start": 84,
+                            "end": 91,
+                            "value": "fittest"
+                        }
+                    ],
+                    "id": "ID-2",
+                    "last_modified": "2024-08-21",
+                    "name": "Doc#2",
+                    "text": "The patient is considered healthy as per tests run. The patient would be considered fittest according to any standard known."
+                },
+                {
+                    "annotations": [
+                        {
+                            "cui": "C04",
+                            "start": 24,
+                            "end": 31,
+                            "value": "seizure"
+                        },
+                        {
+                            "cui": "C04",
+                            "start": 65,
+                            "end": 72,
+                            "value": "fittest"
+                        }
+                    ],
+                    "id": "ID-3",
+                    "last_modified": "2024-08-21",
+                    "name": "Doc#3",
+                    "text": "The patient has a minor seizure every day. The presence of daily fittest is extremely problematic."
+                },
+                {
+                    "annotations": [
+                        {
+                            "cui": "C05",
+                            "start": 16,
+                            "end": 23,
+                            "value": "healthy"
+                        },
+                        {
+                            "cui": "C05",
+                            "start": 111,
+                            "end": 118,
+                            "value": "fittest"
+                        }
+                    ],
+                    "id": "ID-4",
+                    "last_modified": "2024-08-21",
+                    "name": "Doc#4",
+                    "text": "The RHS male is healthy as considered by all available tests. There are no indications that the patient is not fittest."
+                },
+                {
+                    "annotations": [
+                        {
+                            "cui": "C05",
+                            "start": 26,
+                            "end": 33,
+                            "value": "fittest"
+                        },
+                        {
+                            "cui": "C01",
+                            "start": 52,
+                            "end": 75,
+                            "value": "loss of kidney function"
+                        },
+                        {
+                            "cui": "C02",
+                            "start": 98,
+                            "end": 106,
+                            "value": "diabetes"
+                        }
+                    ],
+                    "id": "ID-5-LC-1",
+                    "last_modified": "2024-08-21",
+                    "name": "Doc#5-LC-1",
+                    "text": "Low Quality document with fittest amount of bs. The loss of kidney function could not have caused diabetes."
+                },
+                {
+                    "annotations": [
+                        {
+                            "cui": "C04",
+                            "start": 26,
+                            "end": 33,
+                            "value": "fittest"
+                        },
+                        {
+                            "cui": "C01",
+                            "start": 52,
+                            "end": 75,
+                            "value": "loss of kidney function"
+                        },
+                        {
+                            "cui": "C02",
+                            "start": 98,
+                            "end": 106,
+                            "value": "diabetes"
+                        }
+                    ],
+                    "id": "ID-5-LC-2",
+                    "last_modified": "2024-08-21",
+                    "name": "Doc#5-LC-2",
+                    "text": "Low Quality document with fittest amount of bs. The loss of kidney function could not have caused diabetes."
+                }
+            ],
+            "id": "Project#0",
+            "name": "Project-0",
+            "tuis": ""
+        }
+    ]
+}
