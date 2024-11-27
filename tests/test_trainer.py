@@ -50,11 +50,11 @@ class FakeMutDoc:
     def isupper(self) -> bool:
         return self.text.isupper()
 
-    def get_entity(self, start_index: int, end_index: int):
+    def get_tokens(self, start_index: int, end_index: int):
         return FakeMutEnt(self, start_index, end_index)
 
     def __iter__(self):
-        yield self.get_entity(0, 1)
+        yield self.get_tokens(0, 1)
 
 
 class FakeComponent:

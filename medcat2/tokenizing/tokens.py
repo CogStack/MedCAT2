@@ -1,4 +1,4 @@
-from typing import Protocol, Optional, Iterator, overload
+from typing import Protocol, Optional, Iterator, overload, Union
 
 
 class BaseToken(Protocol):
@@ -21,6 +21,10 @@ class BaseToken(Protocol):
 
     @property
     def is_stop(self) -> bool:
+        pass
+
+    @property
+    def char_index(self) -> int:
         pass
 
     @property
@@ -214,5 +218,6 @@ class MutableDocument(Protocol):
     def __getitem__(self, index: slice) -> MutableEntity:
         pass
 
-    def get_entity(self, start_index: int, end_index: int) -> MutableEntity:
+    def get_tokens(self, start_index: int, end_index: int
+                   ) -> Union[MutableEntity, list[MutableToken]]:
         pass

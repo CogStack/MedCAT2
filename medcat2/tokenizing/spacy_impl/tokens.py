@@ -93,6 +93,10 @@ class Token:
         return self._delegate.text_with_ws
 
     @property
+    def char_index(self) -> int:
+        return self._delegate.idx
+
+    @property
     def index(self) -> int:
         return self._delegate.i
 
@@ -104,7 +108,7 @@ class Token:
         return "M2W[T]:" + str(self._delegate)
 
     def __repr__(self):
-        return repr(self)
+        return repr(str(self))
 
     def __hash__(self) -> int:
         return hash(self._delegate)
@@ -166,7 +170,7 @@ class Entity:
         return "M2W[T]:" + str(self._delegate)
 
     def __repr__(self):
-        return repr(self)
+        return repr(str(self))
 
 
 class Document:
@@ -199,12 +203,18 @@ class Document:
             return Token(delegated)
         return Entity(delegated)
 
-    def get_entity(self, start_index: int, end_index: int) -> MutableEntity:
+    def get_tokens(self, start_index: int, end_index: int
+                   ) -> Union[MutableEntity, list[MutableToken]]:
         for ent in self.all_ents:
-            if (ent.base.start_char_index == start_index and
-                    ent.base.end_char_index == end_index):
+            if (ent.base.start_index == start_index and
+                    ent.base.end_index == end_index):
                 return ent
-        return self[start_index: end_index]
+        tkns = []
+        for tkn in self:
+            if (tkn.base.char_index >= start_index and
+                    tkn.base.char_index <= end_index):
+                tkns.append(tkn)
+        return tkns
 
     def __iter__(self) -> Iterator[MutableToken]:
         for tkn in iter(self._delegate):
@@ -217,4 +227,4 @@ class Document:
         return "M2W[T]:" + str(self._delegate)
 
     def __repr__(self):
-        return repr(self)
+        return repr(str(self))

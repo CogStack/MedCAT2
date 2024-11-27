@@ -65,7 +65,7 @@ class SpacyTokenizer(BaseTokenizer):
             raise ValueError("Need at least one token for an entity")
         spacy_tokens = cast(list[Token], tokens)
         span = Span(spacy_tokens[0]._delegate.doc, spacy_tokens[0].index,
-                    spacy_tokens[-1].index)
+                    spacy_tokens[-1].index + 1)
         return Entity(span)
 
     def __call__(self, text: str) -> MutableDocument:

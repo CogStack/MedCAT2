@@ -376,7 +376,7 @@ class Trainer:
                     cui = ann['cui']
                     start = ann['start']
                     end = ann['end']
-                    mut_entity = mut_doc.get_entity(start, end)
+                    mut_entity = mut_doc.get_tokens(start, end)
                     deleted = bool(ann.get('deleted', False))
                     if cnf_linking.filters.check_filters(cui):
                         self.add_and_train_concept(
