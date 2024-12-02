@@ -354,7 +354,7 @@ T = TypeVar('T')
 C = TypeVar('C', bound=Iterable)
 
 
-class ModelMeta(BaseModel):
+class ModelMeta(SerialisableBaseModel):
     description: str = 'N/A'
     ontology: list[str] = []
     hash: str = ''  # TODO - implement
