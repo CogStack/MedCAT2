@@ -5,6 +5,8 @@ import importlib.metadata
 
 from pydantic import BaseModel
 
+from medcat2.storage.serialisables import AbstractSerialisable
+
 
 logger = logging.getLogger(__name__)
 
@@ -75,12 +77,16 @@ def get_installed_packages() -> dict[str, str]:
     return installed_packages
 
 
-class Environment(BaseModel):
+class Environment(BaseModel, AbstractSerialisable):
     dependencies: dict[str, str]
     transitive_deps: dict[str, str]
     os: str
     cpu_arcitecture: str
     python_version: str
+
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return list(cls.model_fields)
 
 
 def get_environment_info(include_transitive_deps: bool = True) -> Environment:
