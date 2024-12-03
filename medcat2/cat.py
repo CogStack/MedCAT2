@@ -193,4 +193,8 @@ class CAT(AbstractSerialisable):
         cat = deserialise(serialiser_type, model_pack_path)
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
+        # NOTE: this should only be `True` during training
+        #       but some models (especially converted ones)
+        #       are saved with it set to True accidentally
+        cat.config.components.linking.train = False
         return cat
