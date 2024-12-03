@@ -64,12 +64,9 @@ class FoldCreator(ABC):
     def _find_or_add_doc(self, project: MedCATTrainerExportProject,
                          orig_doc: MedCATTrainerExportDocument
                          ) -> MedCATTrainerExportDocument:
-        # print("FIND OR ADD DOC", orig_doc['name'])
         for existing_doc in project['documents']:
             if existing_doc['name'] == orig_doc['name']:
-                # print("GOT EXISTING")
                 return existing_doc
-        # print("ADD NEW")
         new_doc: MedCATTrainerExportDocument = deepcopy(orig_doc)
         new_doc['annotations'].clear()
         project['documents'].append(new_doc)
@@ -197,8 +194,6 @@ class PerAnnsFoldCreator(SimpleFoldCreator):
     def _create_fold(self, fold_nr: int) -> MedCATTrainerExport:
         per_fold = self.per_fold[fold_nr]
         already_done = sum(self.per_fold[fn] for fn in range(fold_nr))
-        # print("CREATING FOLD num", fold_nr, 'with', per_fold,
-        #       'annotations and', already_done, 'already taken')
         cur_fold: MedCATTrainerExport = {
             'projects': []
         }
