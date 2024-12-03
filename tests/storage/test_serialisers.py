@@ -4,6 +4,10 @@ from datetime import datetime
 
 from medcat2.storage.serialisables import Serialisable, AbstractSerialisable
 from medcat2.storage import serialisers
+from medcat2.cat import CAT
+from medcat2.cdb import CDB
+from medcat2.vocab import Vocab
+from medcat2.config import Config
 
 import unittest
 import tempfile
@@ -168,3 +172,11 @@ class NestedSameInstanceSerialisableTests(SerialiserWorksTests):
     def test_has_same_config(self):
         got = self.deserialise()
         self.assertIs(got.config, got.obj_w_config.config)
+
+
+class CanSerialiseCAT(SerialiserWorksTests):
+    CONFIG = Config()
+    CDB = CDB(CONFIG)
+    VOCAB = Vocab()
+    SERIALISABLE_INSTANCE = CAT(CDB, VOCAB, CONFIG)
+    TARGET_CLASS = CAT
