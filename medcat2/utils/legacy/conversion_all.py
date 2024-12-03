@@ -8,6 +8,7 @@ from medcat2.cat import CAT
 from medcat2.utils.legacy.convert_cdb import get_cdb_from_old
 from medcat2.utils.legacy.convert_config import get_config_from_old
 from medcat2.utils.legacy.convert_vocab import get_vocab_from_old
+from medcat2.storage.serialisers import AvailableSerialisers
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,8 @@ class Converter:
     config_name = 'config.dat'
 
     def __init__(self, medcat1_model_pack_path: str,
-                 new_model_pack_path: Optional[str]):
+                 new_model_pack_path: Optional[str],
+                 ser_type: AvailableSerialisers = AvailableSerialisers.dill):
         if medcat1_model_pack_path.endswith(".zip"):
             folder_path = medcat1_model_pack_path[:-4]
             unpack(medcat1_model_pack_path, folder_path)
@@ -30,6 +32,7 @@ class Converter:
                 f"{medcat1_model_pack_path}")
         self.old_model_folder = medcat1_model_pack_path
         self.new_model_folder = new_model_pack_path
+        self.ser_type = ser_type
         self._validate()
 
     @property
@@ -57,7 +60,8 @@ class Converter:
         if self.new_model_folder:
             logger.info("Saving converted model to '%s'",
                         self.new_model_folder)
-            cat.save_model_pack(self.new_model_folder)
+            cat.save_model_pack(self.new_model_folder,
+                                serialiser_type=self.ser_type)
         return cat
 
 
