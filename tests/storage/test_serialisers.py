@@ -1,5 +1,6 @@
 from typing import Optional
 import os
+from datetime import datetime
 
 from medcat2.storage.serialisables import Serialisable, AbstractSerialisable
 from medcat2.storage import serialisers
@@ -13,7 +14,7 @@ class DummyClassWithDefValues(AbstractSerialisable):
     def __init__(self,
                  attr1: Optional[Serialisable] = None,
                  attr2: Optional[int] = None,
-                 attr3: Optional[str] = None,
+                 attr3: Optional[datetime] = None,
                  attr4: Optional[Serialisable] = None,
                  ):
         super().__init__()
@@ -27,7 +28,7 @@ class DummyClassWithDefValues(AbstractSerialisable):
         return cls(
             attr1=AbstractSerialisable(),
             attr2=-1,
-            attr3='some string',
+            attr3=datetime.now(),
             attr4=AbstractSerialisable(),
         )
 
