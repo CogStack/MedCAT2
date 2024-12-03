@@ -8,7 +8,9 @@ from medcat2.cat import CAT
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
 from medcat2.config import Config
+from medcat2.preprocessors.cleaners import NameDescriptor
 
+import numpy as np
 import unittest
 import tempfile
 
@@ -174,9 +176,28 @@ class NestedSameInstanceSerialisableTests(SerialiserWorksTests):
         self.assertIs(got.config, got.obj_w_config.config)
 
 
-class CanSerialiseCAT(SerialiserWorksTests):
+class CanSerialiseCATSimple(SerialiserWorksTests):
     CONFIG = Config()
     CDB = CDB(CONFIG)
     VOCAB = Vocab()
     SERIALISABLE_INSTANCE = CAT(CDB, VOCAB, CONFIG)
+    TARGET_CLASS = CAT
+
+
+def get_slightly_complex_cat() -> CAT:
+    cnf = Config()
+    cdb = CDB(cnf)
+    vocab = Vocab()
+    # aff a few words to vocab
+    vocab.add_word("Word#1", -1)
+    vocab.add_word("Word#2", 10, np.arange(4))
+    # add a concept to CDB
+    cdb.add_names("CUI#1", {"CUI#1NAME": NameDescriptor(
+        tokens=["CUI#1", "NAME"], snames=["CUI#1", "NAME"],
+        raw_name="CUI#1NAME", is_upper=True)})
+    return CAT(cdb, vocab, cnf)
+
+
+class CanSerialiseCATSlightlyComplex(SerialiserWorksTests):
+    SERIALISABLE_INSTANCE = get_slightly_complex_cat()
     TARGET_CLASS = CAT
