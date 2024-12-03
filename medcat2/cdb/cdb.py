@@ -290,3 +290,16 @@ class CDB(AbstractSerialisable):
                         elif cuis2status[_cui] == 'P':
                             cuis2status[_cui] = 'PD'
         self.is_dirty = True
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, CDB):
+            return False
+        # NOTE: Using config.model_dump since
+        #       some parts of the config should not be considered.
+        #       This refers to (mostly) the init args stored within there
+        #       for various components
+        return (self.config.model_dump() == other.config.model_dump() and
+                self.cui2info == other.cui2info and
+                self.name2info == other.name2info and
+                self.type_id2info == other.type_id2info and
+                self.token_counts == other.token_counts)

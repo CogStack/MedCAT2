@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, Any
 import os
 
 import shutil
@@ -198,3 +198,10 @@ class CAT(AbstractSerialisable):
         #       are saved with it set to True accidentally
         cat.config.components.linking.train = False
         return cat
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, CAT):
+            return False
+        return (self.cdb == other.cdb and
+                ((self.vocab is None and other.vocab is None)
+                 or self.vocab == other.vocab))

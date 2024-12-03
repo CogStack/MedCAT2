@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 from typing_extensions import TypedDict
 
 # import dill
@@ -262,3 +262,17 @@ class Vocab(AbstractSerialisable):
             return True
 
         return False
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Vocab):
+            return False
+        return (self.vocab.keys() == other.vocab.keys() and
+                all(v1.keys() == v2.keys()
+                    and all(
+                        np.all(sv1 == sv2) if isinstance(sv1, np.ndarray)
+                        else sv1 == sv2
+                        for sv1, sv2 in zip(v1.values(), v2.values()))
+                    for v1, v2
+                    in zip(self.vocab.values(), other.vocab.values())) and
+                self.index2word == other.index2word and
+                self.vec_index2word == other.vec_index2word)
