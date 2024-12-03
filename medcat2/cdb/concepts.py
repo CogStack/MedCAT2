@@ -5,6 +5,7 @@ from collections import defaultdict
 import numpy as np
 
 from medcat2.utils.defaults import StatusTypes as ST
+from medcat2.storage.serialisables import SerialisingStrategy
 
 
 @dataclass
@@ -49,6 +50,20 @@ class CUIInfo:
                     return False
         return True
 
+    # Serialisable
+
+    def get_strategy(self) -> SerialisingStrategy:
+        # NOTE: has no serialisable
+        return SerialisingStrategy.DICT_ONLY
+
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return list(__annotations__.keys())
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return []
+
 
 @dataclass
 class NameInfo:
@@ -59,6 +74,20 @@ class NameInfo:
     is_upper: bool = False
     # stuff related to training starts here
     count_train: int = 0
+
+    # Serialisable
+
+    def get_strategy(self) -> SerialisingStrategy:
+        # NOTE: has no serialisable
+        return SerialisingStrategy.DICT_ONLY
+
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return list(__annotations__.keys())
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return []
 
 
 @dataclass
