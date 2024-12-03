@@ -68,7 +68,7 @@ class TestWithTMAndCDBBase(TestWithTransformationMatrixBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.cdb: CDB = deserialise('dill', cls.CDB_PATH)
+        cls.cdb: CDB = deserialise(cls.CDB_PATH)
         cls.assertIsInstance(cls, cls.cdb, CDB)
         cls.add_fake_context_vectors()
 

@@ -176,10 +176,7 @@ class CAT(AbstractSerialisable):
         shutil.make_archive(model_pack_path, 'zip', root_dir=model_pack_path)
 
     @classmethod
-    def load_model_pack(
-            cls, model_pack_path: str,
-            serialiser_type: Union[str, AvailableSerialisers] = 'dill'
-            ) -> 'CAT':
+    def load_model_pack(cls, model_pack_path: str) -> 'CAT':
         if model_pack_path.endswith(".zip"):
             folder_path = model_pack_path.rsplit(".zip", 1)[0]
             if not os.path.exists(folder_path):
@@ -190,7 +187,7 @@ class CAT(AbstractSerialisable):
             model_pack_path = folder_path
         logger.info("Attempting to load model from file: %s",
                     model_pack_path)
-        cat = deserialise(serialiser_type, model_pack_path)
+        cat = deserialise(model_pack_path)
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         # NOTE: this should only be `True` during training

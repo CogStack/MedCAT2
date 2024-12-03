@@ -92,7 +92,7 @@ class SerialiserWorksTests(unittest.TestCase):
                               self.temp_folder)
 
     def deserialise(self):
-        return serialisers.deserialise(self.SERIALISER_TYPE, self.temp_folder)
+        return serialisers.deserialise(self.temp_folder)
 
     def tearDown(self):
         self._temp_folder.cleanup()
@@ -110,6 +110,11 @@ class SerialiserWorksTests(unittest.TestCase):
     def test_deserialised_instance_same(self):
         got = self.deserialise()
         self.assertEqual(got, self.SERIALISABLE_INSTANCE)
+
+    def test_used_correct_ser(self):
+        ser_file = os.path.join(self.temp_folder, serialisers.SER_TYPE_FILE)
+        got = serialisers.AvailableSerialisers.from_file(ser_file)
+        self.assertIs(got, self.SERIALISER_TYPE)
 
 
 class SerialiserFailsTests(SerialiserWorksTests):

@@ -3,6 +3,7 @@ from typing import Union, Type, Any
 import os
 from abc import ABC, abstractmethod
 from importlib import import_module
+import logging
 
 import dill as _dill
 
@@ -12,8 +13,19 @@ from medcat2.storage.schema import load_schema, save_schema
 from medcat2.storage.schema import DEFAULT_SCHEMA_FILE, IllegalSchemaException
 
 
+logger = logging.getLogger(__name__)
+
+
+SER_TYPE_FILE = '.serialised_by'
+
+
 class Serialiser(ABC):
     RAW_FILE = 'raw_dict.dat'
+
+    @property
+    @abstractmethod
+    def ser_type(self) -> 'AvailableSerialisers':
+        pass
 
     @abstractmethod
     def serialise(self, raw_parts: dict[str, Any], target_file: str) -> None:
@@ -22,6 +34,17 @@ class Serialiser(ABC):
     @abstractmethod
     def deserialise(self, target_file: str) -> dict[str, Any]:
         pass
+
+    def save_ser_type_file(self, folder: str) -> None:
+        file_path = os.path.join(folder, SER_TYPE_FILE)
+        self.ser_type.write_to(file_path)
+
+    def check_ser_type(self, folder: str) -> None:
+        file_path = os.path.join(folder, SER_TYPE_FILE)
+        in_folder = AvailableSerialisers.from_file(file_path)
+        if in_folder != self.ser_type:
+            raise TypeError(
+                "Expected nested bits to be serialised by the same serialiser")
 
     def serialise_all(self, obj: Serialisable, target_folder: str) -> None:
         ser_parts, raw_parts = get_all_serialisable_members(obj)
@@ -39,8 +62,10 @@ class Serialiser(ABC):
             self.serialise(raw_parts, raw_file)
         schema_path = os.path.join(target_folder, DEFAULT_SCHEMA_FILE)
         save_schema(schema_path, obj.__class__, obj.get_init_attrs())
+        self.save_ser_type_file(target_folder)
 
     def deserialise_all(self, folder_path: str) -> Serialisable:
+        self.check_ser_type(folder_path)
         schema_path = os.path.join(folder_path, DEFAULT_SCHEMA_FILE)
         cls_path, init_attrs = load_schema(schema_path)
         module_path, cls_name = cls_path.rsplit('.', 1)
@@ -76,7 +101,21 @@ class Serialiser(ABC):
         return obj
 
 
+class AvailableSerialisers(Enum):
+    dill = auto()
+
+    def write_to(self, file_path: str) -> None:
+        with open(file_path, 'w') as f:
+            f.write(self.name)
+
+    @classmethod
+    def from_file(cls, file_path: str) -> 'AvailableSerialisers':
+        with open(file_path, 'r') as f:
+            return cls[f.read().strip()]
+
+
 class DillSerialiser(Serialiser):
+    ser_type = AvailableSerialisers.dill
 
     def serialise(self, raw_parts: dict[str, Any], target_file: str) -> None:
         with open(target_file, 'wb') as f:
@@ -87,18 +126,30 @@ class DillSerialiser(Serialiser):
             return _dill.load(f)
 
 
-class AvailableSerialisers(Enum):
-    dill = auto()
+_DEF_SER = AvailableSerialisers.dill
 
 
-def get_serialiser(serialiser_type: Union[str, AvailableSerialisers]
+def get_serialiser(
+        serialiser_type: Union[str, AvailableSerialisers] = _DEF_SER
                    ) -> Serialiser:
     if isinstance(serialiser_type, str):
         serialiser_type = AvailableSerialisers[serialiser_type.lower()]
-    if serialiser_type == AvailableSerialisers.dill:
+    if serialiser_type is AvailableSerialisers.dill:
         return DillSerialiser()
     raise ValueError("Unknown or unimplemented serialsier type: "
                      f"{serialiser_type}")
+
+
+def get_serialiser_type_from_folder(folder_path: str) -> AvailableSerialisers:
+    file_path = os.path.join(folder_path, SER_TYPE_FILE)
+    return AvailableSerialisers.from_file(file_path)
+
+
+def get_serialiser_from_folder(folder_path: str) -> Serialiser:
+    ser_type = get_serialiser_type_from_folder(folder_path)
+    logger.info("Determined serialised of type %s off disk",
+                ser_type.name)
+    return get_serialiser(ser_type)
 
 
 def serialise(serialiser_type: Union[str, AvailableSerialisers],
@@ -107,7 +158,6 @@ def serialise(serialiser_type: Union[str, AvailableSerialisers],
     ser.serialise_all(obj, target_folder)
 
 
-def deserialise(serialiser_type: Union[str, AvailableSerialisers],
-                folder_path: str) -> Serialisable:
-    ser = get_serialiser(serialiser_type)
+def deserialise(folder_path: str) -> Serialisable:
+    ser = get_serialiser_from_folder(folder_path)
     return ser.deserialise_all(folder_path)

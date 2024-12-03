@@ -145,7 +145,7 @@ class DefaultVocabTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.vocab: Vocab = deserialise('dill', cls.VOCAB_PATH)
+        cls.vocab: Vocab = deserialise(cls.VOCAB_PATH)
 
     # NOTE: the MCTv1 vocab has a vector (for 'chronic')
     #       that is longer than the rest (the reast are 7 length,

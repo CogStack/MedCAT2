@@ -16,11 +16,11 @@ from .. import UNPACKED_EXAMPLE_MODEL_PACK_PATH
 
 
 def load_cdb(path: str) -> CDB:
-    return deserialise('dill', path)
+    return deserialise(path)
 
 
 def load_vocab(path: str) -> Vocab:
-    return deserialise('dill', path)
+    return deserialise(path)
 
 
 class StateTests(unittest.TestCase):
