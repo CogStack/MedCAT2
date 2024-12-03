@@ -195,6 +195,7 @@ def get_slightly_complex_cat() -> CAT:
     cdb.add_names("CUI#1", {"CUI#1NAME": NameDescriptor(
         tokens=["CUI#1", "NAME"], snames=["CUI#1", "NAME"],
         raw_name="CUI#1NAME", is_upper=True)})
+    cnf.meta.mark_saved_now()
     return CAT(cdb, vocab, cnf)
 
 
