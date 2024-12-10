@@ -78,6 +78,7 @@ dependencies = [ # Optional
 dev = [
   "ruff~=0.1.7",
   "mypy",
+  "flake8",
 ]
 test = []  # TODO - list
 
