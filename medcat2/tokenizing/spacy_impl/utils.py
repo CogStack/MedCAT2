@@ -35,10 +35,4 @@ def ensure_spacy_model(model_name: str) -> None:
     cmd = f"{sys.executable} -m spacy download {model_name}"
     logger.info("Installing the spacy model %s using the CLI command "
                 "'%s'", model_name, cmd)
-    print("RUN/cmd[START]")
-    try:
-        subprocess.run(cmd.split(" "), check=True,
-                       stdout=sys.stdout, stderr=sys.stderr)
-    except subprocess.CalledProcessError as e:
-        print("RUN/cmd[END] w", str(e), '\nrepr', repr(e))
-        raise e
+    subprocess.run(cmd.split(" "), check=True)
