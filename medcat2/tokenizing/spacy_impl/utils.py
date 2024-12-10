@@ -37,6 +37,8 @@ def ensure_spacy_model(model_name: str) -> None:
                 "'%s'", model_name, cmd)
     print("RUN/cmd[START]")
     try:
-        subprocess.run(cmd.split(" "), check=True)
+        subprocess.run(cmd.split(" "), check=True,
+                       stdout=sys.stdout, stderr=sys.stderr)
     except subprocess.CalledProcessError as e:
         print("RUN/cmd[END] w", str(e), '\nrepr', repr(e))
+        raise e
