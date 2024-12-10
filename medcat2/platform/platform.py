@@ -16,6 +16,29 @@ from medcat2.utils.default_args import (set_tokenizer_defaults,
 logger = logging.getLogger(__name__)
 
 
+class DelegatingTokenizer(BaseTokenizer):
+
+    def __init__(self, tokenizer: BaseTokenizer,
+                 components: list[BaseComponent]):
+        self.tokenizer = tokenizer
+        self.components = components
+
+    def create_entity(self, doc: MutableDocument,
+                      token_start_index: int, token_end_index: int,
+                      label: str) -> MutableEntity:
+        return self.tokenizer.create_entity(
+            doc, token_start_index, token_end_index, label)
+
+    def entity_from_tokens(self, tokens: list[MutableToken]) -> MutableEntity:
+        return self.tokenizer.entity_from_tokens(tokens)
+
+    def __call__(self, text: str) -> MutableDocument:
+        doc = self.tokenizer(text)
+        for comp in self.components:
+            doc = comp(doc)
+        return doc
+
+
 class Platform:
 
     def __init__(self, cdb: CDB, vocab: Optional[Vocab]):
@@ -34,6 +57,11 @@ class Platform:
     @property
     def tokenizer(self) -> BaseTokenizer:
         return self._tokenizer
+
+    @property
+    def tokenizer_with_tag(self) -> BaseTokenizer:
+        tag_comp = self.get_component(CoreComponentType.tagging)
+        return DelegatingTokenizer(self.tokenizer, [tag_comp])
 
     def _init_tokenizer(self) -> BaseTokenizer:
         nlp_cnf = self.config.general.nlp
