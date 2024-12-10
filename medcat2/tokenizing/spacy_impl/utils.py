@@ -36,5 +36,7 @@ def ensure_spacy_model(model_name: str) -> None:
     logger.info("Installing the spacy model %s using the CLI command "
                 "'%s'", model_name, cmd)
     print("RUN/cmd[START]")
-    subprocess.run(cmd.split(" "), check=True)
-    print("RUN/cmd[END]")
+    try:
+        subprocess.run(cmd.split(" "), check=True)
+    except subprocess.CalledProcessError as e:
+        print("RUN/cmd[END] w", str(e), '\nrepr', repr(e))
