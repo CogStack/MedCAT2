@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any,cast
 from typing_extensions import TypedDict
 
 # import dill
@@ -232,8 +232,8 @@ class Vocab(AbstractSerialisable):
         if len(self.cum_probs) == 0:
             self.init_cumsums()
         random_vals = np.random.rand(n)
-        inds: list[int] = np.searchsorted(self.cum_probs,
-                                          random_vals).tolist()
+        inds: list[int] = cast(
+            list[int], np.searchsorted(self.cum_probs, random_vals).tolist())
 
         if ignore_punct_and_num:
             # Do not return anything that does not have letters in it
