@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, cast
 import numpy as np
 
 from medcat2.cdb import CDB
@@ -52,8 +52,10 @@ class TestTrainSplitter:
         test_set: MedCATTrainerExport = {'projects': []}
         train_set: MedCATTrainerExport = {'projects': []}
 
-        perm_arr: list[int] = np.random.permutation(range(
-            len(self.data['projects']))).tolist()
+        perm_arr: list[int] = cast(
+            list[int],
+            np.random.permutation(range(
+                len(self.data['projects']))).tolist())
 
         for i_project in perm_arr:
             project = self.data['projects'][i_project]
