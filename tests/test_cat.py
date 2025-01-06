@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import json
+from typing import Optional
 
 from medcat2 import cat
 from medcat2.vocab import Vocab
@@ -73,7 +74,7 @@ class CATCReationTests(unittest.TestCase):
         cls.cat = CAT(cls.cdb, vocab)
 
     @classmethod
-    def get_cui2ct(cls, cat: CAT | None = None):
+    def get_cui2ct(cls, cat: Optional[CAT] = None):
         if cat is None:
             cat = cls.cat
         return {
