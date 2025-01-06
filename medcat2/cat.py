@@ -164,7 +164,7 @@ class CAT(AbstractSerialisable):
     def save_model_pack(
             self, target_folder: str, pack_name: str = DEFAULT_PACK_NAME,
             serialiser_type: Union[str, AvailableSerialisers] = 'dill'
-            ) -> None:
+            ) -> str:
         self.config.meta.mark_saved_now()
         # figure out the location/folder of the saved files
         model_pack_path = os.path.join(target_folder, pack_name)
@@ -174,6 +174,7 @@ class CAT(AbstractSerialisable):
         serialise(serialiser_type, self, model_pack_path)
         # zip everything
         shutil.make_archive(model_pack_path, 'zip', root_dir=model_pack_path)
+        return model_pack_path
 
     @classmethod
     def load_model_pack(cls, model_pack_path: str) -> 'CAT':
