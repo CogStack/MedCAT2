@@ -13,7 +13,6 @@ import unittest
 class DefaultTokenizerInitTests(unittest.TestCase):
     default_provider = 'spacy'
     default_cls = SpacyTokenizer
-    choose_def_tokenizer = 0
     exp_num_def_tokenizers = 2
     set_def_args_kwargs = sda_spacy
 
@@ -25,7 +24,8 @@ class DefaultTokenizerInitTests(unittest.TestCase):
     def test_has_default(self):
         avail_tokenizers = tokenizers.list_available_tokenizers()
         self.assertEqual(len(avail_tokenizers), self.exp_num_def_tokenizers)
-        name, cls_name = avail_tokenizers[self.choose_def_tokenizer]
+        name, cls_name = [(t_name, t_cls) for t_name, t_cls in avail_tokenizers
+                          if t_name == self.default_provider][0]
         self.assertEqual(name, self.default_provider)
         self.assertIs(cls_name, self.default_cls.__name__)
 
@@ -41,5 +41,4 @@ class DefaultTokenizerInitTests(unittest.TestCase):
 class DefaultTokenizerInitTests2(DefaultTokenizerInitTests):
     default_provider = 'regex'
     default_cls = RegexTokenizer
-    choose_def_tokenizer = 1
     set_def_args_kwargs = sda_regex
