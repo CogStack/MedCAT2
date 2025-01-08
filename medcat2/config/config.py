@@ -64,10 +64,10 @@ class NLPConfig(SerialisableBaseModel):
 
     NB! For these changes to take effect, the pipe would need to be recreated.
     """
-    provider: str = 'spacy'
+    provider: str = 'regex'
     """The NLP provider.
 
-    Currently only spacy is natively supported.
+    Currently only regex and spacy are natively supported.
 
     NB! For these changes to take effect, the pipe would need to be recreated.
     """
