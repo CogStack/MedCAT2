@@ -20,8 +20,15 @@ def set_tokenizer_defaults(config: Config) -> None:
     nlp_cnf = config.general.nlp
     if nlp_cnf.provider == 'spacy':
         logging.debug("Setting default arguments for spacy constructor")
-        from medcat2.tokenizing.spacy_impl.tokenizers import (
-            set_def_args_kwargs)
+        try:
+            from medcat2.tokenizing.spacy_impl.tokenizers import (
+                set_def_args_kwargs)
+        except ModuleNotFoundError as err:
+            raise OptionalPartNotInstalledException(
+                "spacy-specific parts of the library are optional. "
+                "You need to specify to install these optional extras "
+                "explicitly (i.e `pip install medcat2[spacy]`)."
+            ) from err
         set_def_args_kwargs(config)
     elif nlp_cnf.provider == 'regex':
         logging.debug("Setting default arguments for regex constructor")
@@ -62,3 +69,9 @@ def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],
         if comp_name == 'linking':
             from medcat2.components.linking import context_based_linker
             context_based_linker.set_def_args_kwargs(cdb.config, cdb, vocab)
+
+
+class OptionalPartNotInstalledException(ValueError):
+
+    def __init__(self, *args):
+        super().__init__(*args)
