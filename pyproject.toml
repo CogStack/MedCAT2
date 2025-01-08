@@ -58,7 +58,6 @@ classifiers = [
 dependencies = [ # Optional
   "numpy>2.0",
   "dill",
-  "spacy",
   "pandas>=2.2,<3.0",
   "tqdm>=4.64,<5.0",
   "xxhash>=3.5.0,<4.0",
@@ -81,6 +80,9 @@ dev = [
   "flake8",
 ]
 test = []  # TODO - list
+spacy = [
+  "spacy",
+]
 
 [project.urls]
 "Homepage" = "https://cogstack.org/"
