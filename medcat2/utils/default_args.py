@@ -23,6 +23,17 @@ def set_tokenizer_defaults(config: Config) -> None:
         from medcat2.tokenizing.spacy_impl.tokenizers import (
             set_def_args_kwargs)
         set_def_args_kwargs(config)
+    elif nlp_cnf.provider == 'regex':
+        logging.debug("Setting default arguments for regex constructor")
+        from medcat2.tokenizing.regex_impl.tokenizer import (
+            set_def_args_kwargs)
+        set_def_args_kwargs(config)
+    else:
+        logger.warning("Could not set default tokenizer arguments for "
+                       "toknizer '%s'. It must be a custom tokenizer. "
+                       "You may need to specify the default arguments "
+                       "at `config.general.nlp.init_args` and "
+                       "`config.general.nlp.init_kwargs` manually.",)
 
 
 # NOTE: this method does dynamic imports so that
