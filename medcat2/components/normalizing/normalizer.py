@@ -5,7 +5,7 @@ from medcat2.tokenizing.tokens import MutableDocument
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.config.config import Config
 from medcat2.vocab import Vocab
-from medcat2.components.types import CoreComponentType
+from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 
 
 CONTAINS_NUMBER = re.compile('[0-9]+')
@@ -137,7 +137,7 @@ class BasicSpellChecker:
         raise ValueError("No implementation")
 
 
-class TokenNormalizer:
+class TokenNormalizer(AbstractCoreComponent):
     """Will normalize all tokens in a spacy document.    """
     name = 'token_normalizer'
 

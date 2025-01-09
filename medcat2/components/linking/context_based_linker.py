@@ -2,7 +2,7 @@ import random
 import logging
 from typing import Iterator, Optional, Union
 
-from medcat2.components.types import CoreComponentType
+from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.tokenizing.tokens import MutableEntity, MutableDocument
 from medcat2.components.linking.vector_context_model import ContextModel
 from medcat2.cdb import CDB
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 # class Linker(PipeRunner):
-class Linker:
+class Linker(AbstractCoreComponent):
     """Link to a biomedical database.
 
     Args:

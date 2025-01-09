@@ -1,11 +1,11 @@
 import re
 
 from medcat2.config.config import Preprocessing, Config
-from medcat2.components.types import CoreComponentType
+from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.tokenizing.tokens import MutableDocument
 
 
-class TagAndSkipTagger:
+class TagAndSkipTagger(AbstractCoreComponent):
     name = 'tag-and-skip-tagger'
 
     def __init__(self, preprocessing: Preprocessing) -> None:
