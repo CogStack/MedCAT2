@@ -24,6 +24,7 @@ class BaseTokenizer(Protocol):
 
 
 _DEFAULT_TOKENIZING: dict[str, tuple[str, str]] = {
+    "regex": ("medcat2.tokenizing.regex_impl.tokenizer", "RegexTokenizer"),
     "spacy": ("medcat2.tokenizing.spacy_impl.tokenizers", "SpacyTokenizer")
 }
 
