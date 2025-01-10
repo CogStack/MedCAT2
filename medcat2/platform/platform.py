@@ -12,7 +12,8 @@ from medcat2.cdb import CDB
 from medcat2.config import Config
 from medcat2.config.config import ComponentConfig
 from medcat2.utils.default_args import (set_tokenizer_defaults,
-                                        set_components_defaults)
+                                        set_components_defaults,
+                                        set_addon_defaults)
 
 
 logger = logging.getLogger(__name__)
@@ -61,6 +62,7 @@ class Platform:
         self._components: list[CoreComponent] = []
         self._addons: list[AddonComponent] = []
         set_components_defaults(cdb, vocab, self._tokenizer)
+        set_addon_defaults(cdb, vocab, self._tokenizer)
         # NOTE: this only sets the default arguments if the
         #       a specific default component is used
         self._init_components()
