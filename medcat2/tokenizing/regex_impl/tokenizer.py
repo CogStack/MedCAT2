@@ -1,5 +1,5 @@
 import re
-from typing import cast, Optional, Iterator, overload, Union
+from typing import cast, Optional, Iterator, overload, Union, Any
 
 from medcat2.tokenizing.tokens import (
     BaseToken, BaseEntity, BaseDocument,
@@ -318,7 +318,10 @@ class RegexTokenizer(BaseTokenizer):
                                      False, False))
         return doc
 
+    @classmethod
+    def get_init_args(cls, config: Config) -> list[Any]:
+        return []
 
-def set_def_args_kwargs(config: Config) -> None:
-    config.general.nlp.init_args = []
-    config.general.nlp.init_kwargs = {}
+    @classmethod
+    def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
+        return {}

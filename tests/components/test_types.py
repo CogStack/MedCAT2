@@ -6,7 +6,8 @@ from medcat2.utils.registry import MedCATRegistryException
 import unittest
 
 
-class FakeBaseComponent:
+class FakeCoreComponent(types.AbstractCoreComponent):
+    name = None
 
     def __init__(self, comp_type: types.CoreComponentType,
                  name: str = "test-fake-component"):
@@ -27,7 +28,7 @@ class TypesRegistrationTests(unittest.TestCase):
     COMP_TYPE = types.CoreComponentType.linking
     WRONG_TYPE = types.CoreComponentType.ner
     COMP_NAME = "test-linker"
-    BCC = FakeBaseComponent
+    BCC = FakeCoreComponent
 
     def setUp(self):
         types.register_core_component(self.COMP_TYPE, self.COMP_NAME, self.BCC)
@@ -51,11 +52,11 @@ class TypesRegistrationTests(unittest.TestCase):
         ]:
             registry._lazy_defaults.update(def_lazy)
 
-    def test_registered_is_base_component(self):
-        self.assertIsInstance(self.registered, types.BaseComponent)
+    def test_registered_is_core_component(self):
+        self.assertIsInstance(self.registered, types.CoreComponent)
 
     def test_registered_is_fake_component(self):
-        self.assertIsInstance(self.registered, FakeBaseComponent)
+        self.assertIsInstance(self.registered, FakeCoreComponent)
 
     def test_does_not_get_incorrect_type(self):
         with self.assertRaises(MedCATRegistryException):

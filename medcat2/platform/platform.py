@@ -1,13 +1,14 @@
-from typing import Optional
+from typing import Optional, Any
 import logging
 
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
 from medcat2.components.types import (CoreComponentType, create_core_component,
-                                      BaseComponent)
+                                      BaseComponent, CoreComponent)
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
                                        MutableToken)
 from medcat2.vocab import Vocab
 from medcat2.cdb import CDB
+from medcat2.config import Config
 from medcat2.config.config import CoreComponentConfig
 from medcat2.utils.default_args import (set_tokenizer_defaults,
                                         set_components_defaults)
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 class DelegatingTokenizer(BaseTokenizer):
 
     def __init__(self, tokenizer: BaseTokenizer,
-                 components: list[BaseComponent]):
+                 components: list[CoreComponent]):
         self.tokenizer = tokenizer
         self.components = components
 
@@ -37,6 +38,14 @@ class DelegatingTokenizer(BaseTokenizer):
         for comp in self.components:
             doc = comp(doc)
         return doc
+
+    @classmethod
+    def get_init_args(cls, config: Config) -> list[Any]:
+        return []
+
+    @classmethod
+    def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
+        return {}
 
 
 class Platform:
@@ -74,7 +83,7 @@ class Platform:
             raise IncorrectArgumentsForTokenizer(
                 nlp_cnf.provider) from type_error
 
-    def _init_component(self, comp_type: CoreComponentType) -> BaseComponent:
+    def _init_component(self, comp_type: CoreComponentType) -> CoreComponent:
         comp_config: CoreComponentConfig = getattr(self.config.components,
                                                    comp_type.name)
         comp_name = comp_config.comp_name
@@ -98,15 +107,17 @@ class Platform:
         doc = self._tokenizer(text)
         for comp in self._components:
             logger.info("Running component %s for %d of text (%s)",
-                        comp.get_type().name, len(text), id(text))
+                        comp.full_name, len(text), id(text))
             doc = comp(doc)
         return doc
 
     def entity_from_tokens(self, tokens: list[MutableToken]) -> MutableEntity:
         return self._tokenizer.entity_from_tokens(tokens)
 
-    def get_component(self, ctype: CoreComponentType) -> BaseComponent:
+    def get_component(self, ctype: CoreComponentType) -> CoreComponent:
         for comp in self._components:
+            if not comp.is_core() or not isinstance(comp, CoreComponent):
+                continue
             if comp.get_type() is ctype:
                 return comp
         raise ValueError(f"No component found of type {ctype}")

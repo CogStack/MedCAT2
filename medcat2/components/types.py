@@ -1,8 +1,11 @@
-from typing import Optional, Protocol, Callable, runtime_checkable, Union
+from typing import Optional, Protocol, Callable, runtime_checkable, Union, Any
 from enum import Enum, auto
 
 from medcat2.utils.registry import Registry
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
+from medcat2.tokenizing.tokenizers import BaseTokenizer
+from medcat2.cdb import CDB
+from medcat2.vocab import Vocab
 
 
 class CoreComponentType(Enum):
@@ -16,14 +19,46 @@ class CoreComponentType(Enum):
 class BaseComponent(Protocol):
 
     @property
+    def full_name(self) -> Optional[str]:
+        """Name with the component type (e.g ner, linking, meta)."""
+        pass
+
+    @property
     def name(self) -> Optional[str]:
         pass
 
-    def get_type(self) -> CoreComponentType:
+    def is_core(self) -> bool:
         pass
 
     def __call__(self, doc: MutableDocument) -> MutableDocument:
         pass
+
+    @classmethod
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                      ) -> list[Any]:
+        pass
+
+    @classmethod
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                        ) -> dict[str, Any]:
+        pass
+
+
+@runtime_checkable
+class CoreComponent(BaseComponent, Protocol):
+
+    def get_type(self) -> CoreComponentType:
+        pass
+
+
+class AbstractCoreComponent(CoreComponent):
+
+    @property
+    def full_name(self) -> str:
+        return self.get_type().name + ":" + str(self.name)
+
+    def is_core(self) -> bool:
+        return True
 
 
 @runtime_checkable
@@ -52,31 +87,36 @@ _DEFAULT_LINKING: dict[str, tuple[str, str]] = {
 }
 
 
-_CORE_REGISTRIES: dict[CoreComponentType, Registry[BaseComponent]] = {
+_CORE_REGISTRIES: dict[CoreComponentType, Registry[CoreComponent]] = {
     CoreComponentType.tagging: Registry(
-        BaseComponent, lazy_defaults=_DEFAULT_TAGGERS),  # type: ignore
+        CoreComponent, lazy_defaults=_DEFAULT_TAGGERS),  # type: ignore
     CoreComponentType.token_normalizing: Registry(
-        BaseComponent, lazy_defaults=_DEFAULT_NORMALIZERS),  # type: ignore
-    CoreComponentType.ner: Registry(BaseComponent,  # type: ignore
+        CoreComponent, lazy_defaults=_DEFAULT_NORMALIZERS),  # type: ignore
+    CoreComponentType.ner: Registry(CoreComponent,  # type: ignore
                                     lazy_defaults=_DEFAULT_NER),
-    CoreComponentType.linking: Registry(BaseComponent,  # type: ignore
+    CoreComponentType.linking: Registry(CoreComponent,  # type: ignore
                                         lazy_defaults=_DEFAULT_LINKING),
 }
 
 
 def register_core_component(comp_type: CoreComponentType,
                             comp_name: str,
-                            comp_clazz: Callable[..., BaseComponent]) -> None:
+                            comp_clazz: Callable[..., CoreComponent]) -> None:
     _CORE_REGISTRIES[comp_type].register(comp_name, comp_clazz)
 
 
-def get_core_registry(comp_type: CoreComponentType) -> Registry[BaseComponent]:
+def get_core_registry(comp_type: CoreComponentType) -> Registry[CoreComponent]:
     return _CORE_REGISTRIES[comp_type]
+
+
+def get_component_creator(comp_type: CoreComponentType,
+                          comp_name: str) -> Callable[..., CoreComponent]:
+    return get_core_registry(comp_type).get_component(comp_name)
 
 
 def create_core_component(comp_type: CoreComponentType,
                           comp_name: str,
-                          *args, **kwargs) -> BaseComponent:
+                          *args, **kwargs) -> CoreComponent:
     comp_getter = get_core_registry(comp_type).get_component(comp_name)
     return comp_getter(*args, **kwargs)
 

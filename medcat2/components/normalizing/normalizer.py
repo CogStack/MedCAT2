@@ -1,11 +1,12 @@
-from typing import Optional, Iterable, Iterator
+from typing import Optional, Iterable, Iterator, Any
 import re
 
 from medcat2.tokenizing.tokens import MutableDocument
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.config.config import Config
 from medcat2.vocab import Vocab
-from medcat2.components.types import CoreComponentType
+from medcat2.cdb import CDB
+from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 
 
 CONTAINS_NUMBER = re.compile('[0-9]+')
@@ -137,7 +138,7 @@ class BasicSpellChecker:
         raise ValueError("No implementation")
 
 
-class TokenNormalizer:
+class TokenNormalizer(AbstractCoreComponent):
     """Will normalize all tokens in a spacy document.    """
     name = 'token_normalizer'
 
@@ -187,10 +188,12 @@ class TokenNormalizer:
                             token.norm = tmp.lemma.lower()
         return doc
 
+    @classmethod
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                      ) -> list[Any]:
+        return [tokenizer, cdb.config, cdb.token_counts, vocab]
 
-def set_default_args(config: Config, tokenizer: BaseTokenizer,
-                     cdb_vocab: dict[str, int], vocab: Optional[Vocab]
-                     ) -> None:
-    config.components.token_normalizing.init_args = [
-        tokenizer, config, cdb_vocab, vocab
-    ]
+    @classmethod
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                        ) -> dict[str, Any]:
+        return {}

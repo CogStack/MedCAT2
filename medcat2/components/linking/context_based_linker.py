@@ -1,8 +1,8 @@
 import random
 import logging
-from typing import Iterator, Optional, Union
+from typing import Iterator, Optional, Union, Any
 
-from medcat2.components.types import CoreComponentType
+from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.tokenizing.tokens import MutableEntity, MutableDocument
 from medcat2.components.linking.vector_context_model import ContextModel
 from medcat2.cdb import CDB
@@ -10,13 +10,14 @@ from medcat2.vocab import Vocab
 from medcat2.config import Config
 from medcat2.utils.defaults import StatusTypes as ST
 from medcat2.utils.postprocessing import create_main_ann
+from medcat2.tokenizing.tokenizers import BaseTokenizer
 
 
 logger = logging.getLogger(__name__)
 
 
 # class Linker(PipeRunner):
-class Linker:
+class Linker(AbstractCoreComponent):
     """Link to a biomedical database.
 
     Args:
@@ -205,10 +206,12 @@ class Linker:
               names: Union[list[str], dict] = []) -> None:
         self.context_model.train(cui, entity, doc, negative, names)
 
+    @classmethod
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                      ) -> list[Any]:
+        return [cdb, vocab, cdb.config]
 
-def set_def_args_kwargs(config: Config, cdb: CDB, vocab: Optional[Vocab]):
-    # NOTE: if Vocab is None, a linker cannot be used.
-    config.components.linking.init_args = [
-        cdb, vocab, config,
-    ]
-    # no kwargs
+    @classmethod
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                        ) -> dict[str, Any]:
+        return {}

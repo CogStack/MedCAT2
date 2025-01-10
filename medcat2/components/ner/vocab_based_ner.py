@@ -1,16 +1,18 @@
+from typing import Any
+
 import logging
 from medcat2.tokenizing.tokens import MutableDocument
-from medcat2.components.types import CoreComponentType
+from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.components.ner.vocab_based_annotator import maybe_annotate_name
 from medcat2.tokenizing.tokenizers import BaseTokenizer
-from medcat2.config import Config
+from medcat2.vocab import Vocab
 from medcat2.cdb import CDB
 
 
 logger = logging.getLogger(__name__)
 
 
-class NER:
+class NER(AbstractCoreComponent):
     name = 'cat_ner'
 
     def __init__(self, tokenizer: BaseTokenizer,
@@ -101,8 +103,12 @@ class NER:
 
         return doc
 
+    @classmethod
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                      ) -> list[Any]:
+        return [tokenizer, cdb]
 
-def set_def_args_kwargs(config: Config, tokenizer: BaseTokenizer, cdb: CDB):
-    config.components.ner.init_args = [
-        tokenizer, cdb,
-    ]
+    @classmethod
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                        ) -> dict[str, Any]:
+        return {}
