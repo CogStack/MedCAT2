@@ -92,7 +92,7 @@ class AddonUsageTests(unittest.TestCase):
             full_path = self.cat.save_model_pack(ntd)
             cat = CAT.load_model_pack(full_path)
         self.assertIsInstance(cat, CAT)
-        cat.get_entities("Something")
+        self.assertEqual(len(self.cat._platform._addons), self.EXP_ADDONS)
 
 
 class AddonUsageWithInitTests(AddonUsageTests):
