@@ -9,10 +9,14 @@ from medcat2.config.config import Config, ComponentConfig
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 
 import unittest
+import tempfile
 
 
 class FakeAddonNoInit:
     name = 'fake_addon'
+
+    def __call__(self, doc):
+        return doc
 
 
 class FakeAddonWithInit:
@@ -21,6 +25,9 @@ class FakeAddonWithInit:
     def __init__(self, tokenizer: BaseTokenizer, cdb: CDB):
         self._token = tokenizer
         self._cdb = cdb
+
+    def __call__(self, doc):
+        return doc
 
     @classmethod
     def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
@@ -65,15 +72,27 @@ class AddonUsageTests(unittest.TestCase):
         cls.vocab = Vocab()
         cls.cnf.components.addons.append(ComponentConfig(
             comp_name=cls.addon_cls.name))
+        cls.cat = CAT(cls.cdb, cls.vocab)
 
     @classmethod
     def tearDownClass(cls):
         addons._ADDON_REGISTRY.unregister_all_components()
 
     def test_can_create_cat_with_addon(self):
-        cat = CAT(self.cdb, self.vocab)
+        self.assertIsInstance(self.cat, CAT)
+        self.assertEqual(len(self.cat._platform._addons), self.EXP_ADDONS)
+
+    def test_can_save_model(self):
+        with tempfile.TemporaryDirectory() as ntd:
+            full_path = self.cat.save_model_pack(ntd)
+        self.assertIsInstance(full_path, str)
+
+    def test_can_save_and_load(self):
+        with tempfile.TemporaryDirectory() as ntd:
+            full_path = self.cat.save_model_pack(ntd)
+            cat = CAT.load_model_pack(full_path)
         self.assertIsInstance(cat, CAT)
-        self.assertEqual(len(cat._platform._addons), self.EXP_ADDONS)
+        cat.get_entities("Something")
 
 
 class AddonUsageWithInitTests(AddonUsageTests):
