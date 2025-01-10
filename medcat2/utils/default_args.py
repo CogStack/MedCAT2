@@ -5,7 +5,7 @@ components creation.
 from typing import Optional
 
 from medcat2.components.types import get_component_creator, CoreComponentType
-from medcat2.tokenizing.tokenizers import BaseTokenizer
+from medcat2.tokenizing.tokenizers import BaseTokenizer, get_tokenizer_creator
 from medcat2.config.config import CoreComponentConfig
 from medcat2.config import Config
 from medcat2.cdb import CDB
@@ -19,29 +19,21 @@ logger = logging.getLogger(__name__)
 
 def set_tokenizer_defaults(config: Config) -> None:
     nlp_cnf = config.general.nlp
-    if nlp_cnf.provider == 'spacy':
-        logging.debug("Setting default arguments for spacy constructor")
-        try:
-            from medcat2.tokenizing.spacy_impl.tokenizers import (
-                set_def_args_kwargs)
-        except ModuleNotFoundError as err:
-            raise OptionalPartNotInstalledException(
-                "spacy-specific parts of the library are optional. "
-                "You need to specify to install these optional extras "
-                "explicitly (i.e `pip install medcat2[spacy]`)."
-            ) from err
-        set_def_args_kwargs(config)
-    elif nlp_cnf.provider == 'regex':
-        logging.debug("Setting default arguments for regex constructor")
-        from medcat2.tokenizing.regex_impl.tokenizer import (
-            set_def_args_kwargs)
-        set_def_args_kwargs(config)
+    tok_cls = get_tokenizer_creator(nlp_cnf.provider)
+    if hasattr(tok_cls, 'get_init_args'):
+        nlp_cnf.init_args = tok_cls.get_init_args(config)
     else:
-        logger.warning("Could not set default tokenizer arguments for "
-                       "toknizer '%s'. It must be a custom tokenizer. "
-                       "You may need to specify the default arguments "
-                       "at `config.general.nlp.init_args` and "
-                       "`config.general.nlp.init_kwargs` manually.",)
+        logger.warning(
+            "Could not set init arguments for tokenizer (%s). "
+            "You generally need to specify these with the class method "
+            "get_init_args(Config) -> list[Any].")
+    if hasattr(tok_cls, 'get_init_kwargs'):
+        nlp_cnf.init_kwargs = tok_cls.get_init_kwargs(config)
+    else:
+        logger.warning(
+            "Could not set init keyword arguments for tokenizer (%s). "
+            "You generally need to specify these with the class method "
+            "get_init_kwargs(Config) -> dict[str, Any].")
 
 
 def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],

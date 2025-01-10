@@ -1,6 +1,7 @@
-from typing import Protocol, Type
+from typing import Protocol, Type, Any, Callable
 import logging
 
+from medcat2.config import Config
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
                                        MutableToken)
 from medcat2.utils.registry import Registry
@@ -22,6 +23,14 @@ class BaseTokenizer(Protocol):
     def __call__(selt, text: str) -> MutableDocument:
         pass
 
+    @classmethod
+    def get_init_args(cls, config: Config) -> list[Any]:
+        pass
+
+    @classmethod
+    def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
+        pass
+
 
 _DEFAULT_TOKENIZING: dict[str, tuple[str, str]] = {
     "regex": ("medcat2.tokenizing.regex_impl.tokenizer", "RegexTokenizer"),
@@ -30,6 +39,10 @@ _DEFAULT_TOKENIZING: dict[str, tuple[str, str]] = {
 
 _TOKENIZERS_REGISTRY = Registry(BaseTokenizer,  # type: ignore
                                 lazy_defaults=_DEFAULT_TOKENIZING)
+
+
+def get_tokenizer_creator(tokenizer_name: str) -> Callable[..., BaseTokenizer]:
+    return _TOKENIZERS_REGISTRY.get_component(tokenizer_name)
 
 
 def create_tokenizer(tokenizer_name: str, *args, **kwargs) -> BaseTokenizer:

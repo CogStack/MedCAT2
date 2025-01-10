@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 import logging
 
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
@@ -8,6 +8,7 @@ from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
                                        MutableToken)
 from medcat2.vocab import Vocab
 from medcat2.cdb import CDB
+from medcat2.config import Config
 from medcat2.config.config import CoreComponentConfig
 from medcat2.utils.default_args import (set_tokenizer_defaults,
                                         set_components_defaults)
@@ -37,6 +38,14 @@ class DelegatingTokenizer(BaseTokenizer):
         for comp in self.components:
             doc = comp(doc)
         return doc
+
+    @classmethod
+    def get_init_args(cls, config: Config) -> list[Any]:
+        return []
+
+    @classmethod
+    def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
+        return {}
 
 
 class Platform:

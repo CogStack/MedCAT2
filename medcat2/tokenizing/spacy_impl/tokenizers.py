@@ -1,4 +1,4 @@
-from typing import Optional, Callable, cast
+from typing import Optional, Callable, cast, Any
 import re
 import os
 
@@ -71,15 +71,16 @@ class SpacyTokenizer(BaseTokenizer):
     def __call__(self, text: str) -> MutableDocument:
         return Document(self._nlp(text))
 
+    @classmethod
+    def get_init_args(cls, config: Config) -> list[Any]:
+        nlp_cnf = config.general.nlp
+        return [
+            nlp_cnf.modelname,
+            nlp_cnf.disabled_components,
+            config.general.diacritics,
+            config.preprocessing.max_document_length,
+        ]
 
-def set_def_args_kwargs(config: Config) -> None:
-    nlp_cnf = config.general.nlp
-    nlp_cnf.init_args = [
-        nlp_cnf.modelname,
-        nlp_cnf.disabled_components,
-        config.general.diacritics,
-        config.preprocessing.max_document_length,
-    ]
-    nlp_cnf.init_kwargs = {
-        "stopwords": config.preprocessing.stopwords
-    }
+    @classmethod
+    def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
+        return {"stopwords": config.preprocessing.stopwords}
