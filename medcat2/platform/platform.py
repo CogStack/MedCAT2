@@ -85,7 +85,7 @@ class Platform:
 
     def _init_component(self, comp_type: CoreComponentType) -> CoreComponent:
         comp_config: ComponentConfig = getattr(self.config.components,
-                                                   comp_type.name)
+                                               comp_type.name)
         comp_name = comp_config.comp_name
         try:
             comp = create_core_component(comp_type, comp_name,
