@@ -73,17 +73,19 @@ def set_addon_defaults(cdb: CDB, vocab: Optional[Vocab],
                 tokenizer, cdb, vocab)
         else:
             logger.warning(
-                "The addon  %s (%s) does not define init arguments. "
+                "The addon  '%s' does not define init arguments. "
                 "You generally need to specify these with the class method "
-                "get_init_args(BaseTokenizer, CDB, Vocab) -> list[Any]")
+                "get_init_args(BaseTokenizer, CDB, Vocab) -> list[Any]",
+                addon_cnf.comp_name)
         if hasattr(addon_cls, 'get_init_kwargs'):
             addon_cnf.init_kwargs = addon_cls.get_init_kwargs(
                 tokenizer, cdb, vocab)
         else:
             logger.warning(
-                "The component %s (%s) does not define init keyword arguments."
+                "The component '%s' does not define init keyword arguments."
                 " You generally need to specify these with the class method "
-                "get_init_kwargs(BaseTokenizer, CDB, Vocab) -> dict[str, Any]")
+                "get_init_kwargs(BaseTokenizer, CDB, Vocab) -> dict[str, Any]",
+                addon_cnf.comp_name)
 
 
 class OptionalPartNotInstalledException(ValueError):
