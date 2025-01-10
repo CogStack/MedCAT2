@@ -3,15 +3,17 @@ import logging
 
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
 from medcat2.components.types import (CoreComponentType, create_core_component,
-                                      BaseComponent, CoreComponent)
+                                      CoreComponent)
+from medcat2.components.addons.addons import AddonComponent, create_addon
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
                                        MutableToken)
 from medcat2.vocab import Vocab
 from medcat2.cdb import CDB
 from medcat2.config import Config
-from medcat2.config.config import CoreComponentConfig
+from medcat2.config.config import ComponentConfig
 from medcat2.utils.default_args import (set_tokenizer_defaults,
-                                        set_components_defaults)
+                                        set_components_defaults,
+                                        set_addon_defaults)
 
 
 logger = logging.getLogger(__name__)
@@ -57,8 +59,10 @@ class Platform:
         self.cdb = cdb
         self.config = self.cdb.config
         self._tokenizer = self._init_tokenizer()
-        self._components: list[BaseComponent] = []
+        self._components: list[CoreComponent] = []
+        self._addons: list[AddonComponent] = []
         set_components_defaults(cdb, vocab, self._tokenizer)
+        set_addon_defaults(cdb, vocab, self._tokenizer)
         # NOTE: this only sets the default arguments if the
         #       a specific default component is used
         self._init_components()
@@ -84,8 +88,8 @@ class Platform:
                 nlp_cnf.provider) from type_error
 
     def _init_component(self, comp_type: CoreComponentType) -> CoreComponent:
-        comp_config: CoreComponentConfig = getattr(self.config.components,
-                                                   comp_type.name)
+        comp_config: ComponentConfig = getattr(self.config.components,
+                                               comp_type.name)
         comp_name = comp_config.comp_name
         try:
             comp = create_core_component(comp_type, comp_name,
@@ -102,6 +106,12 @@ class Platform:
         for cct_name in self.config.components.comp_order:
             comp = self._init_component(CoreComponentType[cct_name])
             self._components.append(comp)
+        for addon_cnf in self.config.components.addons:
+            addon = self._init_addon(addon_cnf)
+            self._addons.append(addon)
+
+    def _init_addon(self, cnf: ComponentConfig):
+        return create_addon(cnf.comp_name, *cnf.init_args, **cnf.init_kwargs)
 
     def get_doc(self, text: str) -> MutableDocument:
         doc = self._tokenizer(text)
@@ -109,6 +119,8 @@ class Platform:
             logger.info("Running component %s for %d of text (%s)",
                         comp.full_name, len(text), id(text))
             doc = comp(doc)
+        for addon in self._addons:
+            doc = addon(doc)
         return doc
 
     def entity_from_tokens(self, tokens: list[MutableToken]) -> MutableEntity:

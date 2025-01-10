@@ -1,7 +1,7 @@
 from typing import Any
 
 from medcat2.components import types
-from medcat2.config.config import Config, CoreComponentConfig
+from medcat2.config.config import Config, ComponentConfig
 from medcat2.cdb.cdb import CDB
 from medcat2.vocab import Vocab
 from medcat2.cat import CAT
@@ -9,6 +9,7 @@ from medcat2.tokenizing.tokenizers import BaseTokenizer
 from .helper import FakeCDB, FVocab, FTokenizer
 
 import unittest
+import tempfile
 
 # NOTE:
 # The following 2 classes are (trivial!) examples of a component
@@ -22,6 +23,9 @@ class NoInitNER(types.AbstractCoreComponent):
 
     def __call__(self, doc):
         return doc
+
+    def get_type(self):
+        return types.CoreComponentType.ner
 
     @classmethod
     def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
@@ -45,6 +49,9 @@ class WithInitNER(types.AbstractCoreComponent):
 
     def __call__(self, doc):
         return doc
+
+    def get_type(self):
+        return types.CoreComponentType.ner
 
     @classmethod
     def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
@@ -107,14 +114,27 @@ class CoreCompNoInitCATTests(RegisteredCompBaseTests):
         cls.cdb = CDB(Config())
         cls.vocab = Vocab()
         # set name in component config
-        comp_cnf: CoreComponentConfig = getattr(cls.cdb.config.components,
-                                                cls.TYPE.name)
+        comp_cnf: ComponentConfig = getattr(cls.cdb.config.components,
+                                            cls.TYPE.name)
         comp_cnf.comp_name = cls.TO_REGISTR.name
         # NOTE: init arguments should be handled automatically
+        cls.cat = CAT(cdb=cls.cdb, vocab=cls.vocab)
 
     def test_can_be_used_in_config(self):
-        cat = CAT(cdb=self.cdb, vocab=self.vocab)
+        self.assertIsInstance(self.cat, CAT)
+
+    def test_can_save(self):
+        with tempfile.TemporaryDirectory() as folder:
+            full_path = self.cat.save_model_pack(folder)
+        self.assertIsInstance(full_path, str)
+
+    def test_can_save_and_load(self):
+        with tempfile.TemporaryDirectory() as folder:
+            full_path = self.cat.save_model_pack(folder)
+            cat = CAT.load_model_pack(full_path)
         self.assertIsInstance(cat, CAT)
+        comp = cat._platform.get_component(self.TYPE)
+        self.assertIsInstance(comp, self.TO_REGISTR)
 
 
 class CoreCompWithInitCATTests(CoreCompNoInitCATTests):

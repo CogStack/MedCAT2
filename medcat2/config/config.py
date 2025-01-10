@@ -28,7 +28,7 @@ class SerialisableBaseModel(BaseModel):
         return []
 
 
-class CoreComponentConfig(SerialisableBaseModel):
+class ComponentConfig(SerialisableBaseModel):
     comp_name: str = 'default'
     """The name of the component.
 
@@ -194,7 +194,7 @@ class LinkingFilters(SerialisableBaseModel):
             return False
 
 
-class Linking(CoreComponentConfig):
+class Linking(ComponentConfig):
     """The linking part of the config"""
     optim: dict = {'type': 'linear', 'base_lr': 1, 'min_lr': 0.00005}
     """Linear anneal"""
@@ -303,7 +303,7 @@ class CDBMaker(SerialisableBaseModel):
     for a concept"""
 
 
-class Ner(CoreComponentConfig):
+class Ner(ComponentConfig):
     """The NER part of the config"""
     min_name_len: int = 3
     """Do not detect names below this limit, skip them"""
@@ -334,12 +334,13 @@ class AnnotationOutput(SerialisableBaseModel):
 # NOTE: this class should have an attribute for each
 #       medcat2.components.types.CoreComponentType
 class Components(SerialisableBaseModel):
-    tagging: CoreComponentConfig = CoreComponentConfig()
-    token_normalizing: CoreComponentConfig = CoreComponentConfig()
+    tagging: ComponentConfig = ComponentConfig()
+    token_normalizing: ComponentConfig = ComponentConfig()
     ner: Ner = Ner()
     linking: Linking = Linking()
     comp_order: list[str] = ['tagging', 'token_normalizing',
                              'ner', 'linking']
+    addons: list[ComponentConfig] = []
 
 
 class TrainingDescriptor(SerialisableBaseModel):
