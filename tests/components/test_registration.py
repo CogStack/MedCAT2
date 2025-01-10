@@ -1,7 +1,7 @@
 from typing import Any
 
 from medcat2.components import types
-from medcat2.config.config import Config, CoreComponentConfig
+from medcat2.config.config import Config, ComponentConfig
 from medcat2.cdb.cdb import CDB
 from medcat2.vocab import Vocab
 from medcat2.cat import CAT
@@ -107,7 +107,7 @@ class CoreCompNoInitCATTests(RegisteredCompBaseTests):
         cls.cdb = CDB(Config())
         cls.vocab = Vocab()
         # set name in component config
-        comp_cnf: CoreComponentConfig = getattr(cls.cdb.config.components,
+        comp_cnf: ComponentConfig = getattr(cls.cdb.config.components,
                                                 cls.TYPE.name)
         comp_cnf.comp_name = cls.TO_REGISTR.name
         # NOTE: init arguments should be handled automatically

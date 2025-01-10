@@ -1,7 +1,7 @@
 from typing import runtime_checkable, Type
 
 from medcat2.components import types
-from medcat2.config.config import Config, CoreComponentConfig
+from medcat2.config.config import Config, ComponentConfig
 from medcat2.utils.default_args import set_components_defaults
 
 
@@ -42,7 +42,7 @@ class ComponentInitTests:
         cls.fvocab = FVocab()
         cls.vtokenizer = FTokenizer()
         cls.set_def_args(cls.fcdb, cls.fvocab, cls.vtokenizer)
-        cls.comp_cnf: CoreComponentConfig = getattr(
+        cls.comp_cnf: ComponentConfig = getattr(
             cls.cnf.components, cls.comp_type.name)
 
     def test_has_default(self):

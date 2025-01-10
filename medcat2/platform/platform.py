@@ -9,7 +9,7 @@ from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
 from medcat2.vocab import Vocab
 from medcat2.cdb import CDB
 from medcat2.config import Config
-from medcat2.config.config import CoreComponentConfig
+from medcat2.config.config import ComponentConfig
 from medcat2.utils.default_args import (set_tokenizer_defaults,
                                         set_components_defaults)
 
@@ -84,7 +84,7 @@ class Platform:
                 nlp_cnf.provider) from type_error
 
     def _init_component(self, comp_type: CoreComponentType) -> CoreComponent:
-        comp_config: CoreComponentConfig = getattr(self.config.components,
+        comp_config: ComponentConfig = getattr(self.config.components,
                                                    comp_type.name)
         comp_name = comp_config.comp_name
         try:

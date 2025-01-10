@@ -6,7 +6,7 @@ from typing import Optional
 
 from medcat2.components.types import get_component_creator, CoreComponentType
 from medcat2.tokenizing.tokenizers import BaseTokenizer, get_tokenizer_creator
-from medcat2.config.config import CoreComponentConfig
+from medcat2.config.config import ComponentConfig
 from medcat2.config import Config
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
@@ -39,7 +39,7 @@ def set_tokenizer_defaults(config: Config) -> None:
 def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],
                             tokenizer: BaseTokenizer):
     for comp_name, comp_cnf in cdb.config.components:
-        if not isinstance(comp_cnf, CoreComponentConfig):
+        if not isinstance(comp_cnf, ComponentConfig):
             # e.g ignore order
             continue
         comp_cls = get_component_creator(CoreComponentType[comp_name],
