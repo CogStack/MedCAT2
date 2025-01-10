@@ -340,6 +340,7 @@ class Components(SerialisableBaseModel):
     linking: Linking = Linking()
     comp_order: list[str] = ['tagging', 'token_normalizing',
                              'ner', 'linking']
+    addons: list[ComponentConfig] = []
 
 
 class TrainingDescriptor(SerialisableBaseModel):
