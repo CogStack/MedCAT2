@@ -36,8 +36,3 @@ class NerInitTests(ComponentInitTests, unittest.TestCase):
         cls.cdb_vocab = dict()
         cls.cdb = FakeCDB(Config())
         return super().setUpClass()
-
-    @classmethod
-    def set_def_args(cls):
-        vocab_based_ner.set_def_args_kwargs(cls.cnf, cls.tokenizer,
-                                            cls.cdb)

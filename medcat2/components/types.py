@@ -1,8 +1,11 @@
-from typing import Optional, Protocol, Callable, runtime_checkable, Union
+from typing import Optional, Protocol, Callable, runtime_checkable, Union, Any
 from enum import Enum, auto
 
 from medcat2.utils.registry import Registry
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
+from medcat2.tokenizing.tokenizers import BaseTokenizer
+from medcat2.cdb import CDB
+from medcat2.vocab import Vocab
 
 
 class CoreComponentType(Enum):
@@ -28,6 +31,16 @@ class BaseComponent(Protocol):
         pass
 
     def __call__(self, doc: MutableDocument) -> MutableDocument:
+        pass
+
+    @classmethod
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                      ) -> list[Any]:
+        pass
+
+    @classmethod
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
+                        ) -> dict[str, Any]:
         pass
 
 
@@ -94,6 +107,11 @@ def register_core_component(comp_type: CoreComponentType,
 
 def get_core_registry(comp_type: CoreComponentType) -> Registry[CoreComponent]:
     return _CORE_REGISTRIES[comp_type]
+
+
+def get_component_creator(comp_type: CoreComponentType,
+                          comp_name: str) -> Callable[..., CoreComponent]:
+    return get_core_registry(comp_type).get_component(comp_name)
 
 
 def create_core_component(comp_type: CoreComponentType,
