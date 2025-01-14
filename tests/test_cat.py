@@ -9,6 +9,7 @@ from medcat2.config import Config
 from medcat2.model_creation.cdb_maker import CDBMaker
 from medcat2.cdb import CDB
 from medcat2.cat import CAT
+from medcat2.tokenizing.tokens import UnregisteredDataPathException
 
 import unittest
 
@@ -44,7 +45,8 @@ class InferenceFromLoadedTests(TrainedModelTests):
                 ConvertedFunctionalityTests.assert_has_ent(ent)
 
 
-class CATCReationTests(unittest.TestCase):
+class CATIncludingTests(unittest.TestCase):
+    TOKENIZING_PROVIDER = 'regex'
     EXPECT_TRAIN = {}
 
     # paths
@@ -66,12 +68,18 @@ class CATCReationTests(unittest.TestCase):
         # CDB
         config = Config()
 
+        # tokenizer
+        config.general.nlp.provider = cls.TOKENIZING_PROVIDER
+
         maker = CDBMaker(config)
 
         cls.cdb: CDB = maker.prepare_csvs([cls.CDB_PREPROCESSED_PATH])
 
         # CAT
         cls.cat = CAT(cls.cdb, vocab)
+
+
+class CATCReationTests(CATIncludingTests):
 
     @classmethod
     def get_cui2ct(cls, cat: Optional[CAT] = None):
@@ -110,3 +118,90 @@ class CATSupTrainingTests(CATUnsupTrainingTests):
         with open(cls.SUPERVISED_DATA_PATH) as f:
             data = json.load(f)
         cls.cat.trainer.train_supervised_raw(data)
+
+
+class CATWithDocAddonTests(CATIncludingTests):
+    EXAMPLE_TEXT = "Example text to tokenize"
+    ADDON_PATH = 'SMTH'
+    EXAMPLE_VALUE = 'something else'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        doc = cls.cat(cls.EXAMPLE_TEXT)
+        cls.doc_cls = doc.__class__
+        cls.doc_cls.register_addon_path(cls.ADDON_PATH)
+
+    def setUp(self):
+        self.doc = self.cat(self.EXAMPLE_TEXT)
+
+    def test_can_set_value(self):
+        self.doc.set_addon_data(self.ADDON_PATH, self.EXAMPLE_VALUE)
+
+    def test_cannot_set_incorrect_value(self):
+        with self.assertRaises(UnregisteredDataPathException):
+            self.doc.set_addon_data(self.ADDON_PATH * 2 + "#",
+                                    self.EXAMPLE_TEXT)
+
+    def test_cannot_get_incorrect_value(self):
+        with self.assertRaises(UnregisteredDataPathException):
+            self.doc.get_addon_data(self.ADDON_PATH * 2 + "#")
+
+    def test_can_load_value(self):
+        self.doc.set_addon_data(self.ADDON_PATH, self.EXAMPLE_VALUE)
+        got = self.doc.get_addon_data(self.ADDON_PATH)
+        self.assertEqual(self.EXAMPLE_VALUE, got)
+
+
+class CATWithDocAddonSpacyTests(CATWithDocAddonTests):
+    TOKENIZING_PROVIDER = 'spacy'
+
+
+class CATWithEntityAddonTests(CATIncludingTests):
+    EXAMPLE_TEXT = "Example text to tokenize"
+    EXAMPLE_ENT_START = 0
+    EXAMPLE_ENT_END = 2
+    ADDON_PATH = 'SMTH'
+    EXAMPLE_VALUE = 'something else'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        doc = cls.cat(cls.EXAMPLE_TEXT)
+        doc.__getitem__
+        entity = doc[0:-1]
+        cls.entity_cls = entity.__class__
+        cls.entity_cls.register_addon_path(cls.ADDON_PATH)
+
+    def setUp(self):
+        self.doc = self.cat(self.EXAMPLE_TEXT)
+        self.entity = self.doc[self.EXAMPLE_ENT_START: self.EXAMPLE_ENT_END]
+
+    def test_can_add_data(self):
+        self.entity.set_addon_data(self.ADDON_PATH, self.EXAMPLE_VALUE)
+
+    def test_cannot_add_data_to_wrong_path(self):
+        with self.assertRaises(UnregisteredDataPathException):
+            self.entity.set_addon_data(self.ADDON_PATH * 2 + "£",
+                                       self.EXAMPLE_VALUE)
+
+    def test_cannot_get_data_to_wrong_path(self):
+        with self.assertRaises(UnregisteredDataPathException):
+            self.entity.get_addon_data(self.ADDON_PATH * 2 + "£")
+
+    def test_can_get_data(self):
+        self.entity.set_addon_data(self.ADDON_PATH, self.EXAMPLE_VALUE)
+        got = self.entity.get_addon_data(self.ADDON_PATH)
+        self.assertEqual(self.EXAMPLE_VALUE, got)
+
+    def test_data_is_persistent(self):
+        self.entity.set_addon_data(self.ADDON_PATH, self.EXAMPLE_VALUE)
+        ent = self.doc[self.EXAMPLE_ENT_START: self.EXAMPLE_ENT_END]
+        # new instance
+        self.assertFalse(ent is self.entity)
+        got = ent.get_addon_data(self.ADDON_PATH)
+        self.assertEqual(self.EXAMPLE_VALUE, got)
+
+
+class CATWithEntityAddonSpacyTests(CATWithEntityAddonTests):
+    TOKENIZING_PROVIDER = 'spacy'

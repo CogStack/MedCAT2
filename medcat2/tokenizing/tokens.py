@@ -1,4 +1,4 @@
-from typing import Protocol, Optional, Iterator, overload, Union
+from typing import Protocol, Optional, Iterator, overload, Union, Any, Type
 
 
 class BaseToken(Protocol):
@@ -125,6 +125,33 @@ class MutableEntity(Protocol):
     def detected_name(self, name: str) -> None:
         pass
 
+    def set_addon_data(self, path: str, val: Any) -> None:
+        """Used to add arbitray data to the entity.
+
+        This is generally used by addons to keep track of their data.
+
+        NB! The path used needs to be registered using the
+        `register_addon_path` class method.
+
+        Args:
+            path (str): The data ID / path.
+            val (Any): The value to be added.
+        """
+        pass
+
+    def get_addon_data(self, path: str) -> Any:
+        """Get data added to the entity.
+
+        See `add_data` for details.
+
+        Args:
+            path (str): The data ID / path.
+
+        Returns:
+            Any: The stored value.
+        """
+        pass
+
     @property
     def link_candidates(self) -> list[str]:
         pass
@@ -163,6 +190,26 @@ class MutableEntity(Protocol):
 
     @id.setter
     def id(self, value: int) -> None:
+        pass
+
+    @classmethod
+    def register_addon_path(cls, path: str, def_val: Any = None,
+                            force: bool = True) -> None:
+        """Register a custom/arbitrary data path.
+
+        This can be used to store arbitrary data along with the entity for
+        use in an addon (e.g MetaCAT).
+
+        PS: If using this, it is important to use paths namespaced to the
+        component you're using in order to avoid conflicts.
+
+        Args:
+            path (str): The path to be used. Should be prefixed by component
+                name (e.g `meta_cat_id` for an ID tied to the `meta_cat` addon)
+            def_val (Any): Default value. Defaults to `None`.
+            force (bool): Whether to forcefully add the value.
+                Defaults to True.
+        """
         pass
 
     def __iter__(self) -> Iterator[MutableToken]:
@@ -221,3 +268,59 @@ class MutableDocument(Protocol):
     def get_tokens(self, start_index: int, end_index: int
                    ) -> Union[MutableEntity, list[MutableToken]]:
         pass
+
+    def set_addon_data(self, path: str, val: Any) -> None:
+        """Used to add arbitray data to the entity.
+
+        This is generally used by addons to keep track of their data.
+
+        NB! The path used needs to be registered using the
+        `register_addon_path` class method.
+
+        Args:
+            path (str): The data ID / path.
+            val (Any): The value to be added.
+        """
+        pass
+
+    def get_addon_data(self, path: str) -> Any:
+        """Get data added to the entity.
+
+        See `add_data` for details.
+
+        Args:
+            path (str): The data ID / path.
+
+        Returns:
+            Any: The stored value.
+        """
+        pass
+
+    @classmethod
+    def register_addon_path(cls, path: str, def_val: Any = None,
+                            force: bool = True) -> None:
+        """Register a custom/arbitrary data path.
+
+        This can be used to store arbitrary data along with the entity for
+        use in an addon (e.g MetaCAT).
+
+        PS: If using this, it is important to use paths namespaced to the
+        component you're using in order to avoid conflicts.
+
+        Args:
+            path (str): The path to be used. Should be prefixed by component
+                name (e.g `meta_cat_id` for an ID tied to the `meta_cat` addon)
+            def_val (Any): Default value. Defaults to `None`.
+            force (bool): Whether to forcefully add the value.
+                Defaults to True.
+        """
+        pass
+
+
+class UnregisteredDataPathException(ValueError):
+
+    def __init__(self, cls: Type, path: str):
+        super().__init__(
+            f"Unregistered path {path} for class: {cls}")
+        self.cls = cls
+        self.path = path
