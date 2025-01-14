@@ -9,6 +9,7 @@ from medcat2.tokenizing.tokenizers import BaseTokenizer
 from .helper import FakeCDB, FVocab, FTokenizer
 
 import unittest
+import unittest.mock
 import tempfile
 
 # NOTE:
@@ -22,6 +23,7 @@ class NoInitNER(types.AbstractCoreComponent):
     name = 'no-init-ner'
 
     def __call__(self, doc):
+        print("CALL NO INIT")
         return doc
 
     def get_type(self):
@@ -48,6 +50,7 @@ class WithInitNER(types.AbstractCoreComponent):
         self.cdb = cdb
 
     def __call__(self, doc):
+        print("CALL W INIT")
         return doc
 
     def get_type(self):
@@ -122,6 +125,13 @@ class CoreCompNoInitCATTests(RegisteredCompBaseTests):
 
     def test_can_be_used_in_config(self):
         self.assertIsInstance(self.cat, CAT)
+
+    def test_comp_runs(self):
+        with unittest.mock.patch.object(self.TO_REGISTR, "__call__",
+                                        unittest.mock.MagicMock()
+                                        ) as mock_call:
+            self.cat.get_entities("Some text")
+            mock_call.assert_called_once()
 
     def test_can_save(self):
         with tempfile.TemporaryDirectory() as folder:

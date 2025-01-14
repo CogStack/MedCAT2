@@ -9,6 +9,7 @@ from medcat2.config.config import Config, ComponentConfig
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 
 import unittest
+import unittest.mock
 import tempfile
 
 
@@ -73,6 +74,18 @@ class AddonUsageTests(unittest.TestCase):
         cls.cnf.components.addons.append(ComponentConfig(
             comp_name=cls.addon_cls.name))
         cls.cat = CAT(cls.cdb, cls.vocab)
+
+    def test_has_addon(self):
+        self.assertTrue(self.cat._platform._addons)
+        addon = self.cat._platform._addons[0]
+        self.assertIsInstance(addon, self.addon_cls)
+
+    def test_addon_runs(self):
+        with unittest.mock.patch.object(self.addon_cls, "__call__",
+                                        unittest.mock.MagicMock()
+                                        ) as mock_call:
+            self.cat.get_entities("Some text")
+            mock_call.assert_called_once()
 
     @classmethod
     def tearDownClass(cls):
