@@ -138,12 +138,12 @@ class Entity:
 
     def set_addon_data(self, path: str, val: Any) -> None:
         if not self._delegate.has_extension(path):
-            raise UnregisteredDataPathException(path, self.__class__)
+            raise UnregisteredDataPathException(self.__class__, path)
         return setattr(self._delegate._, path, val)
 
     def get_addon_data(self, path: str) -> Any:
         if not self._delegate.has_extension(path):
-            raise UnregisteredDataPathException(path, self.__class__)
+            raise UnregisteredDataPathException(self.__class__, path)
         return getattr(self._delegate._, path)
 
     @classmethod
@@ -234,12 +234,12 @@ class Document:
 
     def set_addon_data(self, path: str, val: Any) -> None:
         if not self._delegate.has_extension(path):
-            raise UnregisteredDataPathException(path, self.__class__)
+            raise UnregisteredDataPathException(self.__class__, path)
         setattr(self._delegate._, path, val)
 
     def get_addon_data(self, path: str) -> Any:
         if not self._delegate.has_extension(path):
-            raise UnregisteredDataPathException(path, self.__class__)
+            raise UnregisteredDataPathException(self.__class__, path)
         return getattr(self._delegate._, path)
 
     @classmethod

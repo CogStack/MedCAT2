@@ -264,12 +264,12 @@ class Document:
 
     def set_addon_data(self, path: str, val: Any) -> None:
         if not hasattr(self.__class__, path):
-            raise UnregisteredDataPathException(path, self.__class__)
+            raise UnregisteredDataPathException(self.__class__, path)
         setattr(self, path, val)
 
     def get_addon_data(self, path: str) -> Any:
         if not hasattr(self.__class__, path):
-            raise UnregisteredDataPathException(path, self.__class__)
+            raise UnregisteredDataPathException(self.__class__, path)
         return getattr(self, path)
 
     @classmethod
