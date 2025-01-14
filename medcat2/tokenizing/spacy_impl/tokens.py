@@ -1,4 +1,4 @@
-from typing import Iterator, Union, Optional, overload, cast
+from typing import Iterator, Union, Optional, overload, cast, Any
 import logging
 
 from spacy.tokens import Token as SpacyToken
@@ -7,7 +7,8 @@ from spacy.tokens import Doc as SpacyDoc
 
 from medcat2.tokenizing.tokens import (BaseToken, MutableToken,
                                        BaseEntity, MutableEntity,
-                                       BaseDocument)
+                                       BaseDocument,
+                                       UnregisteredDataPathException)
 
 
 logger = logging.getLogger(__name__)
@@ -135,6 +136,21 @@ class Entity:
     def base(self) -> BaseEntity:
         return cast(BaseEntity, self)
 
+    def set_addon_data(self, path: str, val: Any) -> None:
+        if not self._delegate.has_extension(path):
+            raise UnregisteredDataPathException(self.__class__, path)
+        return setattr(self._delegate._, path, val)
+
+    def get_addon_data(self, path: str) -> Any:
+        if not self._delegate.has_extension(path):
+            raise UnregisteredDataPathException(self.__class__, path)
+        return getattr(self._delegate._, path)
+
+    @classmethod
+    def register_addon_path(cls, path: str, def_val: Any = None,
+                            force: bool = True) -> None:
+        SpacySpan.set_extension(path, default=def_val, force=force)
+
     @property
     def text(self) -> str:
         return self._delegate.text
@@ -215,6 +231,21 @@ class Document:
                     tkn.base.char_index <= end_index):
                 tkns.append(tkn)
         return tkns
+
+    def set_addon_data(self, path: str, val: Any) -> None:
+        if not self._delegate.has_extension(path):
+            raise UnregisteredDataPathException(self.__class__, path)
+        setattr(self._delegate._, path, val)
+
+    def get_addon_data(self, path: str) -> Any:
+        if not self._delegate.has_extension(path):
+            raise UnregisteredDataPathException(self.__class__, path)
+        return getattr(self._delegate._, path)
+
+    @classmethod
+    def register_addon_path(cls, path: str, def_val: Any = None,
+                            force: bool = True) -> None:
+        SpacyDoc.set_extension(path, default=def_val, force=force)
 
     def __iter__(self) -> Iterator[MutableToken]:
         for tkn in iter(self._delegate):

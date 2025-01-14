@@ -79,10 +79,11 @@ dev = [
   "mypy",
   "flake8",
 ]
-test = []  # TODO - list
 spacy = [
   "spacy",
+  "spacy<3.8.4; python_version == '3.9'"
 ]
+test = []  # TODO - list
 
 [project.urls]
 "Homepage" = "https://cogstack.org/"

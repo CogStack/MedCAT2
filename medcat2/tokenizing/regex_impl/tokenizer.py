@@ -1,9 +1,11 @@
 import re
 from typing import cast, Optional, Iterator, overload, Union, Any
+from collections import defaultdict
 
 from medcat2.tokenizing.tokens import (
     BaseToken, BaseEntity, BaseDocument,
-    MutableDocument, MutableEntity, MutableToken)
+    MutableDocument, MutableEntity, MutableToken,
+    UnregisteredDataPathException)
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.config import Config
 
@@ -121,6 +123,7 @@ class Token:
 
 
 class Entity:
+    ENTITY_INFO_PREFIX = "Entity:"
 
     def __init__(self, document: 'Document',
                  text: str, start_index: int, end_index: int,
@@ -168,6 +171,26 @@ class Entity:
     def end_char_index(self) -> int:
         return self._end_char_index
 
+    def set_addon_data(self, path: str, val: Any) -> None:
+        # NOTE: doc.get_addon_data will raise if not registered
+        doc_dict = self._doc.get_addon_data(f"{self.ENTITY_INFO_PREFIX}{path}")
+        doc_dict[(self.start_index, self.end_index)] = val
+
+    def get_addon_data(self, path: str) -> Any:
+        # NOTE: doc.get_addon_data will raise if not registered
+        doc_dict = self._doc.get_addon_data(f"{self.ENTITY_INFO_PREFIX}{path}")
+        return doc_dict[(self.start_index, self.end_index)]
+
+    @classmethod
+    def register_addon_path(cls, path: str, def_val: Any = None,
+                            force: bool = True) -> None:
+        # NOTE: registering for document since that should be constant
+        # whereas the entities may be created and recreated
+        # it'll map the entity start and end index to the value
+        def_val = defaultdict(def_val)
+        Document.register_addon_path(
+            f"{cls.ENTITY_INFO_PREFIX}{path}", def_val=def_val, force=force)
+
     def __iter__(self) -> Iterator[MutableToken]:
         for tkn in self._doc._tokens[self.start_index: self.end_index]:
             yield tkn
@@ -210,11 +233,7 @@ class Document:
 
     def __getitem__(self, index: Union[int, slice]
                     ) -> Union[MutableToken, MutableEntity]:
-        # print("GETTING", index, "out of", len(self._tokens),
-        #       'ending', repr(self.text[-10:]))
         tokens = self._tokens[index]
-        # if isinstance(index, slice) and index.stop > len(self._tokens):
-        #     print("Looked beyond delegate length. Got:", tokens)
         if isinstance(tokens, Token):
             return tokens
         elif isinstance(index, slice):
@@ -243,6 +262,21 @@ class Document:
     def isupper(self) -> bool:
         return self.text.isupper()
 
+    def set_addon_data(self, path: str, val: Any) -> None:
+        if not hasattr(self.__class__, path):
+            raise UnregisteredDataPathException(self.__class__, path)
+        setattr(self, path, val)
+
+    def get_addon_data(self, path: str) -> Any:
+        if not hasattr(self.__class__, path):
+            raise UnregisteredDataPathException(self.__class__, path)
+        return getattr(self, path)
+
+    @classmethod
+    def register_addon_path(cls, path: str, def_val: Any = None,
+                            force: bool = True) -> None:
+        setattr(cls, path, def_val)
+
     def __str__(self):
         return "RE[D]:" + self.text
 
@@ -263,9 +297,6 @@ def _entity_from_tokens(doc: Document, tokens: list[MutableToken],
         end_char = rtokens[-1].char_index + len(rtokens[-1].text)
         text = text[rtokens[0].char_index: end_char]
     elif doc._tokens:
-        # print("\n\nTrying token #", token_start, "..", token_end,
-        #       "out of", len(doc._tokens),
-        #       "or", len(rtokens), "local tokens\n\n")
         if token_start >= len(doc._tokens):
             start_char = len(doc.text)
         else:
@@ -275,10 +306,6 @@ def _entity_from_tokens(doc: Document, tokens: list[MutableToken],
     else:
         start_char = end_char = 0
         text = ''
-    # print("Ent from", len(tokens), 'tokens', token_start, "..", token_end,
-    #       'or', start_char, "..", end_char, "/", len(doc.text), ":",
-    #       repr(doc.text[start_char:end_char]
-    #            if start_char < len(doc.text) else ''))
     return Entity(doc, text, token_start, token_end, start_char, end_char)
 
 
