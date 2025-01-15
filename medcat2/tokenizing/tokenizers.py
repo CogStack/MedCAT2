@@ -31,6 +31,12 @@ class BaseTokenizer(Protocol):
     def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
         pass
 
+    def get_doc_class(self) -> Type[MutableDocument]:
+        pass
+
+    def get_entity_class(self) -> Type[MutableEntity]:
+        pass
+
 
 _DEFAULT_TOKENIZING: dict[str, tuple[str, str]] = {
     "regex": ("medcat2.tokenizing.regex_impl.tokenizer", "RegexTokenizer"),

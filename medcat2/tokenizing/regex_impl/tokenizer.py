@@ -1,5 +1,5 @@
 import re
-from typing import cast, Optional, Iterator, overload, Union, Any
+from typing import cast, Optional, Iterator, overload, Union, Any, Type
 from collections import defaultdict
 
 from medcat2.tokenizing.tokens import (
@@ -352,3 +352,9 @@ class RegexTokenizer(BaseTokenizer):
     @classmethod
     def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
         return {}
+
+    def get_doc_class(self) -> Type[MutableDocument]:
+        return Document
+
+    def get_entity_class(self) -> Type[MutableEntity]:
+        return Entity

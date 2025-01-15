@@ -1,4 +1,4 @@
-from typing import Optional, Callable, cast, Any
+from typing import Optional, Callable, cast, Any, Type
 import re
 import os
 
@@ -84,3 +84,9 @@ class SpacyTokenizer(BaseTokenizer):
     @classmethod
     def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
         return {"stopwords": config.preprocessing.stopwords}
+
+    def get_doc_class(self) -> Type[MutableDocument]:
+        return Document
+
+    def get_entity_class(self) -> Type[MutableEntity]:
+        return Entity

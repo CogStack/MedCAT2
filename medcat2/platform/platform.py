@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Type
 import logging
 
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
@@ -48,6 +48,12 @@ class DelegatingTokenizer(BaseTokenizer):
     @classmethod
     def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
         return {}
+
+    def get_doc_class(self) -> Type[MutableDocument]:
+        return self.tokenizer.get_doc_class()
+
+    def get_entity_class(self) -> Type[MutableEntity]:
+        return self.tokenizer.get_entity_class()
 
 
 class Platform:
