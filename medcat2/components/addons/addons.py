@@ -28,4 +28,4 @@ def get_addon_creator(addon_name: str) -> Callable[..., AddonComponent]:
 
 
 def create_addon(addon_name: str, *args, **kwargs) -> AddonComponent:
-    return get_addon_creator(addon_name)(*args, **kwargs)
+    return get_addon_creator(addon_name)(addon_name, *args, **kwargs)

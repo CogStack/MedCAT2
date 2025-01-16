@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from medcat2.components.addons import addons
 
@@ -16,6 +16,9 @@ import tempfile
 class FakeAddonNoInit:
     name = 'fake_addon'
 
+    def __init__(self, addon_name: str):
+        assert addon_name == self.name
+
     def __call__(self, doc):
         return doc
 
@@ -23,7 +26,8 @@ class FakeAddonNoInit:
 class FakeAddonWithInit:
     name = 'fake_addon_w_init'
 
-    def __init__(self, tokenizer: BaseTokenizer, cdb: CDB):
+    def __init__(self, addon_name: str, tokenizer: BaseTokenizer, cdb: CDB):
+        assert addon_name == self.name
         self._token = tokenizer
         self._cdb = cdb
 
@@ -31,13 +35,13 @@ class FakeAddonWithInit:
         return doc
 
     @classmethod
-    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
-                      ) -> list[Any]:
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+                      model_load_path: Optional[str]) -> list[Any]:
         return [tokenizer, cdb]
 
     @classmethod
-    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
-                        ) -> dict[str, Any]:
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+                        model_load_path: Optional[str]) -> dict[str, Any]:
         return {}
 
 

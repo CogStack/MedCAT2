@@ -33,7 +33,7 @@ class ComponentInitTests:
 
     @classmethod
     def set_def_args(cls, cdb: FakeCDB, vocab: FVocab, tokenizer: FTokenizer):
-        set_components_defaults(cdb, vocab, tokenizer)
+        set_components_defaults(cdb, vocab, tokenizer, None)
 
     @classmethod
     def setUpClass(cls):

@@ -207,11 +207,11 @@ class Linker(AbstractCoreComponent):
         self.context_model.train(cui, entity, doc, negative, names)
 
     @classmethod
-    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
-                      ) -> list[Any]:
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+                      model_load_path: Optional[str]) -> list[Any]:
         return [cdb, vocab, cdb.config]
 
     @classmethod
-    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
-                        ) -> dict[str, Any]:
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+                        model_load_path: Optional[str]) -> dict[str, Any]:
         return {}

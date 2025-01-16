@@ -58,7 +58,8 @@ class DelegatingTokenizer(BaseTokenizer):
 
 class Platform:
 
-    def __init__(self, cdb: CDB, vocab: Optional[Vocab]):
+    def __init__(self, cdb: CDB, vocab: Optional[Vocab],
+                 model_load_path: Optional[str]):
         # NOTE: this only sets the default arguments if the
         #       default tokenizer is used
         set_tokenizer_defaults(cdb.config)
@@ -67,8 +68,8 @@ class Platform:
         self._tokenizer = self._init_tokenizer()
         self._components: list[CoreComponent] = []
         self._addons: list[AddonComponent] = []
-        set_components_defaults(cdb, vocab, self._tokenizer)
-        set_addon_defaults(cdb, vocab, self._tokenizer)
+        set_components_defaults(cdb, vocab, self._tokenizer, model_load_path)
+        set_addon_defaults(cdb, vocab, self._tokenizer, model_load_path)
         # NOTE: this only sets the default arguments if the
         #       a specific default component is used
         self._init_components()

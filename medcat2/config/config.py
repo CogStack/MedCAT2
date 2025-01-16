@@ -1,9 +1,9 @@
-from typing import Optional, Iterator, Iterable, TypeVar, cast
+from typing import Optional, Iterator, Iterable, TypeVar, cast, Type, Any
 import logging
 from datetime import datetime
 from contextlib import contextmanager
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from medcat2.utils.defaults import workers
 from medcat2.utils.envsnapshot import Environment, get_environment_info
@@ -26,6 +26,38 @@ class SerialisableBaseModel(BaseModel):
     @classmethod
     def ignore_attrs(cls) -> list[str]:
         return []
+
+    def merge_config(self, other: dict):
+        for k, v in other.items():
+            if not hasattr(self, k):
+                try:
+                    setattr(self, k, v)
+                except (ValidationError, ValueError) as e:
+                    raise IncorrectConfigValues(
+                        type(self), k, type(None), v
+                    ) from e
+                continue
+            cur_v = getattr(self, k)
+            if isinstance(cur_v, SerialisableBaseModel):
+                if not isinstance(v, dict):
+                    raise IncorrectConfigValues(
+                        type(self), k, type(cur_v), v)
+                cur_v.merge_config(v)
+            else:
+                try:
+                    setattr(self, k, v)
+                except ValidationError as e:
+                    raise IncorrectConfigValues(
+                        type(self), k, type(cur_v), v
+                    ) from e
+
+
+class IncorrectConfigValues(ValueError):
+
+    def __init__(self, cls: Type, attr_name: str,
+                 exp_type: Type, got: Any):
+        super().__init__(f"Incorrect attribute set for {cls}.{attr_name}. "
+                         f"Expected {exp_type}, but got {type(got)}: {got}")
 
 
 class ComponentConfig(SerialisableBaseModel):

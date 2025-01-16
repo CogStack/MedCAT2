@@ -8,13 +8,42 @@ from medcat2.vocab import Vocab
 from medcat2.config import Config
 from medcat2.model_creation.cdb_maker import CDBMaker
 from medcat2.cdb import CDB
-from medcat2.cat import CAT
 from medcat2.tokenizing.tokens import UnregisteredDataPathException
 
 import unittest
+import unittest.mock
 
 from . import EXAMPLE_MODEL_PACK_ZIP
 from .utils.legacy.test_conversion_all import ConvertedFunctionalityTests
+
+
+orig_init = cat.CAT.__init__
+
+
+class ModelLoadTests(unittest.TestCase):
+
+    def assert_has_model_name(self, func):
+        expected_model_packl_name = EXAMPLE_MODEL_PACK_ZIP.replace(".zip", "")
+
+        def wrapper(*args, **kwargs):
+            if 'model_load_path' in kwargs:
+                self.assertEqual(kwargs['model_load_path'],
+                                 expected_model_packl_name)
+            else:
+                self.assertEqual(args[-1], expected_model_packl_name)
+            return func(*args, **kwargs)
+        return wrapper
+
+    def setUp(self):
+        cat.CAT.__init__ = self.assert_has_model_name(cat.CAT.__init__)
+
+    def tearDown(self):
+        cat.CAT.__init__ = orig_init
+
+    def test_loaded_model_knows_model_path(self):
+        # NOTE: the assertion is checked due to wrapper on CAT.__init__
+        inst = cat.CAT.load_model_pack(EXAMPLE_MODEL_PACK_ZIP)
+        self.assertIsInstance(inst, cat.CAT)
 
 
 class TrainedModelTests(unittest.TestCase):
@@ -76,13 +105,13 @@ class CATIncludingTests(unittest.TestCase):
         cls.cdb: CDB = maker.prepare_csvs([cls.CDB_PREPROCESSED_PATH])
 
         # CAT
-        cls.cat = CAT(cls.cdb, vocab)
+        cls.cat = cat.CAT(cls.cdb, vocab)
 
 
 class CATCReationTests(CATIncludingTests):
 
     @classmethod
-    def get_cui2ct(cls, cat: Optional[CAT] = None):
+    def get_cui2ct(cls, cat: Optional[cat.CAT] = None):
         if cat is None:
             cat = cls.cat
         return {
