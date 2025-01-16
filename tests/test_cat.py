@@ -18,6 +18,7 @@ from .utils.legacy.test_conversion_all import ConvertedFunctionalityTests
 
 
 class ModelLoadTests(unittest.TestCase):
+    orig_init = cat.CAT.__init__
 
     def assert_has_model_name(self, func):
         expected_model_packl_name = EXAMPLE_MODEL_PACK_ZIP.replace(".zip", "")
@@ -32,11 +33,10 @@ class ModelLoadTests(unittest.TestCase):
         return wrapper
 
     def setUp(self):
-        self.orig_init = cat.CAT.__init__
         cat.CAT.__init__ = self.assert_has_model_name(cat.CAT.__init__)
 
     def tearDown(self):
-        cat.CAT.__init__ == self.orig_init
+        cat.CAT.__init__ = self.orig_init
 
     def test_loaded_model_knows_model_path(self):
         # NOTE: the assertion is checked due to wrapper on CAT.__init__
