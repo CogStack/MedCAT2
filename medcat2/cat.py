@@ -31,8 +31,7 @@ class CAT(AbstractSerialisable):
                  cdb: CDB,
                  vocab: Union[Vocab, None] = None,
                  config: Optional[Config] = None,
-                 #  meta_cats: List[MetaCAT] = [],
-                 #  addl_ner: Union[TransformersNER, List[TransformersNER]]
+                 model_load_path: Optional[str] = None,
                  ) -> None:
         self.cdb = cdb
         self.vocab = vocab
@@ -46,7 +45,7 @@ class CAT(AbstractSerialisable):
         self.config = config
 
         self._trainer: Optional[Trainer] = None
-        self._platform = Platform(self.cdb, self.vocab)
+        self._platform = Platform(self.cdb, self.vocab, model_load_path)
 
     @classmethod
     def get_init_attrs(cls) -> list[str]:
@@ -188,7 +187,7 @@ class CAT(AbstractSerialisable):
             model_pack_path = folder_path
         logger.info("Attempting to load model from file: %s",
                     model_pack_path)
-        cat = deserialise(model_pack_path)
+        cat = deserialise(model_pack_path, model_load_path=model_pack_path)
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         # NOTE: this should only be `True` during training

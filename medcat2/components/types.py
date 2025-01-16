@@ -34,13 +34,35 @@ class BaseComponent(Protocol):
         pass
 
     @classmethod
-    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
-                      ) -> list[Any]:
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+                      model_load_path: Optional[str]) -> list[Any]:
+        """Get the init arguments for the component.
+
+        Args:
+            tokenizer (BaseTokenizer): The tokenizer.
+            cdb (CDB): The CDB.
+            vocab (Vocab): The Vocab.
+            model_load_path (Optional[str]): The model load path (or None).
+
+        Returns:
+            list[Any]: The list of init arguments.
+        """
         pass
 
     @classmethod
-    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
-                        ) -> dict[str, Any]:
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+                        model_load_path: Optional[str]) -> dict[str, Any]:
+        """Get init keyword arguments for the component.
+
+        Args:
+            tokenizer (BaseTokenizer): The tokenizer.
+            cdb (CDB): The CDB.
+            vocab (Vocab): The Vocab.
+            model_load_path (Optional[str]): The model load path (or None).
+
+        Returns:
+            dict[str, Any]: The keywrod arguments.
+        """
         pass
 
 

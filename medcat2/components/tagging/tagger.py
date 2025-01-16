@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import re
 
 from medcat2.config.config import Preprocessing
@@ -38,11 +38,11 @@ class TagAndSkipTagger(AbstractCoreComponent):
         return doc
 
     @classmethod
-    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
-                      ) -> list[Any]:
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+                      model_load_path: Optional[str]) -> list[Any]:
         return [cdb.config.preprocessing]
 
     @classmethod
-    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab
-                        ) -> dict[str, Any]:
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+                        model_load_path: Optional[str]) -> dict[str, Any]:
         return {}

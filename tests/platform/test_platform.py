@@ -28,5 +28,5 @@ class PlatformInitTests(unittest.TestCase):
         cls.vocab = Vocab()
 
     def test_can_create_platform(self):
-        pf = platform.Platform(self.cdb, self.vocab)
+        pf = platform.Platform(self.cdb, self.vocab, None)
         self.assertIsInstance(pf, platform.Platform)

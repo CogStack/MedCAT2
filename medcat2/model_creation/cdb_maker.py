@@ -43,7 +43,7 @@ class CDBMaker(object):
             self.cdb = cdb
 
         # Build the required spacy pipeline
-        self.platform = Platform(self.cdb, vocab=None)
+        self.platform = Platform(self.cdb, vocab=None, model_load_path=None)
 
     def reset_cdb(self) -> None:
         """This will re-create a new internal CDB based on the same config.

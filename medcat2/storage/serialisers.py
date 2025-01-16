@@ -64,14 +64,14 @@ class Serialiser(ABC):
         save_schema(schema_path, obj.__class__, obj.get_init_attrs())
         self.save_ser_type_file(target_folder)
 
-    def deserialise_all(self, folder_path: str) -> Serialisable:
+    def deserialise_all(self, folder_path: str, **kwargs) -> Serialisable:
         self.check_ser_type(folder_path)
         schema_path = os.path.join(folder_path, DEFAULT_SCHEMA_FILE)
         cls_path, init_attrs = load_schema(schema_path)
         module_path, cls_name = cls_path.rsplit('.', 1)
         module = import_module(module_path)
         cls: Type = getattr(module, cls_name)
-        init_kwargs: dict[str, Serialisable] = {}
+        init_kwargs: dict[str, Serialisable] = kwargs
         non_init_sers: dict[str, Serialisable] = {}
         for part_name in os.listdir(folder_path):
             if part_name == DEFAULT_SCHEMA_FILE or part_name == self.RAW_FILE:
@@ -158,6 +158,6 @@ def serialise(serialiser_type: Union[str, AvailableSerialisers],
     ser.serialise_all(obj, target_folder)
 
 
-def deserialise(folder_path: str) -> Serialisable:
+def deserialise(folder_path: str, **init_kwargs) -> Serialisable:
     ser = get_serialiser_from_folder(folder_path)
-    return ser.deserialise_all(folder_path)
+    return ser.deserialise_all(folder_path, **init_kwargs)
