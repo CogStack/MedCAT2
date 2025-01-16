@@ -118,7 +118,8 @@ class Platform:
             self._addons.append(addon)
 
     def _init_addon(self, cnf: ComponentConfig):
-        return create_addon(cnf.comp_name, *cnf.init_args, **cnf.init_kwargs)
+        return create_addon(cnf.comp_name, cnf,
+                            *cnf.init_args, **cnf.init_kwargs)
 
     def get_doc(self, text: str) -> MutableDocument:
         doc = self._tokenizer(text)
