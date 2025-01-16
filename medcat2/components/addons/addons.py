@@ -2,6 +2,7 @@ from typing import Callable, Protocol
 
 from medcat2.components.types import BaseComponent
 from medcat2.utils.registry import Registry
+from medcat2.config.config import ComponentConfig
 
 
 class AddonComponent(BaseComponent, Protocol):
@@ -27,5 +28,6 @@ def get_addon_creator(addon_name: str) -> Callable[..., AddonComponent]:
     return _ADDON_REGISTRY.get_component(addon_name)
 
 
-def create_addon(addon_name: str, *args, **kwargs) -> AddonComponent:
-    return get_addon_creator(addon_name)(addon_name, *args, **kwargs)
+def create_addon(addon_name: str, cnf: ComponentConfig,
+                 *args, **kwargs) -> AddonComponent:
+    return get_addon_creator(addon_name)(cnf, *args, **kwargs)
