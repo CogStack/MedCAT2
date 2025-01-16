@@ -16,6 +16,9 @@ import tempfile
 class FakeAddonNoInit:
     name = 'fake_addon'
 
+    def __init__(self, addon_name: str):
+        assert addon_name == self.name
+
     def __call__(self, doc):
         return doc
 
@@ -23,7 +26,8 @@ class FakeAddonNoInit:
 class FakeAddonWithInit:
     name = 'fake_addon_w_init'
 
-    def __init__(self, tokenizer: BaseTokenizer, cdb: CDB):
+    def __init__(self, addon_name: str, tokenizer: BaseTokenizer, cdb: CDB):
+        assert addon_name == self.name
         self._token = tokenizer
         self._cdb = cdb
 
