@@ -16,8 +16,8 @@ import tempfile
 class FakeAddonNoInit:
     name = 'fake_addon'
 
-    def __init__(self, addon_name: str):
-        assert addon_name == self.name
+    def __init__(self, cnf: ComponentConfig):
+        assert cnf.comp_name == self.name
 
     def __call__(self, doc):
         return doc
@@ -26,8 +26,9 @@ class FakeAddonNoInit:
 class FakeAddonWithInit:
     name = 'fake_addon_w_init'
 
-    def __init__(self, addon_name: str, tokenizer: BaseTokenizer, cdb: CDB):
-        assert addon_name == self.name
+    def __init__(self, cnf: ComponentConfig,
+                 tokenizer: BaseTokenizer, cdb: CDB):
+        assert cnf.comp_name == self.name
         self._token = tokenizer
         self._cdb = cdb
 
@@ -61,7 +62,9 @@ class AddonsRegistrationTests(unittest.TestCase):
         self.assertIs(addon_cls, self.addon_cls)
 
     def test_can_create_empty_addon(self):
-        addon = addons.create_addon(self.addon_cls.name)
+        addon = addons.create_addon(
+            self.addon_cls.name, ComponentConfig(
+                comp_name=self.addon_cls.name))
         self.assertIsInstance(addon, self.addon_cls)
 
 
