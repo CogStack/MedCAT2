@@ -11,7 +11,7 @@ import unittest
 import random
 import pandas as pd
 
-from .platform.test_platform import FakeCDB as BFakeCDB
+from .pipeline.test_pipeline import FakeCDB as BFakeCDB
 from .utils.legacy.test_convert_config import TESTS_PATH
 from .test_cat import TrainedModelTests
 
@@ -61,7 +61,7 @@ class FakeComponent:
     pass
 
 
-class FakePlatform:
+class FakePipeline:
 
     def tokenizer(self, text: str) -> FakeMutDoc:
         return FakeMutDoc(text)
@@ -86,7 +86,7 @@ class TrainerTestsBase(unittest.TestCase):
         cls.cdb = FakeCDB(cls.cnf)
         cls.vocab = Vocab()
         cls.trainer = Trainer(cls.cdb,
-                              cls.caller, FakePlatform())
+                              cls.caller, FakePipeline())
 
     def setUp(self):
         self.cnf = Config()
