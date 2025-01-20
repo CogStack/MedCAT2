@@ -66,6 +66,9 @@ class FakePlatform:
     def tokenizer(self, text: str) -> FakeMutDoc:
         return FakeMutDoc(text)
 
+    def tokenizer_with_tag(self, text: str) -> FakeMutDoc:
+        return FakeMutDoc(text)
+
     def get_component(self, comp_type):
         return FakeComponent
 
