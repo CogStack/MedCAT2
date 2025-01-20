@@ -5,7 +5,7 @@ import logging
 import re
 from typing import Optional, List, Dict, Union, Any
 
-from medcat2.platform.pipeline import Pipeline
+from medcat2.pipeline.pipeline import Pipeline
 from medcat2.cdb import CDB
 from medcat2.config import Config
 from medcat2.preprocessors.cleaners import prepare_name
