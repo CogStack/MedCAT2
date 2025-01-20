@@ -289,6 +289,8 @@ class ContextModel(AbstractSerialisable):
             # Change the status of the name so that it has
             # to be disambiguated always
             for name in names:
+                if name not in self.name2info:
+                    continue
                 per_cui_status = self.name2info[name].per_cui_status
                 cui_status = per_cui_status[cui]
                 if cui_status == ST.PRIMARY_STATUS_NO_DISAMB:

@@ -497,7 +497,7 @@ class Trainer:
             do_add_concept (bool):
                 Whether to add concept to CDB.
         """
-        names = prepare_name(name, self._platform.tokenizer, {},
+        names = prepare_name(name, self._platform.tokenizer_with_tag, {},
                              self._pn_configs)
         if (not names and cui not in self.cdb.cui2info and
                 name_status == 'P'):
