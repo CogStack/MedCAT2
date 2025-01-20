@@ -1,9 +1,11 @@
 import dill
 import logging
+from collections import defaultdict
 
 from medcat2.cdb import CDB
 from medcat2.config import Config
 from medcat2.cdb.concepts import NameInfo, CUIInfo
+from medcat2.utils.defaults import StatusTypes as ST
 from medcat2.utils.legacy.convert_config import get_config_from_nested_dict
 
 
@@ -105,7 +107,8 @@ def _add_name_info(cdb: CDB, data: dict) -> CDB:
     name2is_upper = data['name_isupper']
     for name in all_names:
         cuis = set(name2cuis.get(name, []))
-        cuis2status = name2cuis2status.get(name, {})
+        cuis2status: defaultdict[str, str] = defaultdict(lambda: ST.AUTOMATIC)
+        cuis2status.update(name2cuis2status.get(name, {}))
         cnt_train = name2cnt_train.get(name, 0)
         is_upper = name2is_upper.get(name, False)
         info = NameInfo(name, cuis=cuis, per_cui_status=cuis2status,
