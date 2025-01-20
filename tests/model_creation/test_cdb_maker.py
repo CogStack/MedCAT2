@@ -202,7 +202,7 @@ class CDBMakerNameAdditionTests(CDBMakerEditTestsBase):
     @classmethod
     def add_name(cls, cdb: CDB):
         cdb.add_names(cui=cls.CONCEPT, names=prepare_name(
-            cls.NAME2PREPARE, cls.maker.platform.tokenizer_with_tag, {},
+            cls.NAME2PREPARE, cls.maker.pipeline.tokenizer_with_tag, {},
             cls.pn_cnf_parts()), name_status=cls.NAME_STATUS, full_build=True)
 
     @classmethod
@@ -241,7 +241,7 @@ class CDBMakerNameRemovalTests(CDBMakerEditTestsBase):
         cls.cdb._remove_names(cui=CDBMakerNameAdditionTests.CONCEPT,
                               names=prepare_name(
                                    CDBMakerNameAdditionTests.NAME2PREPARE,
-                                   cls.maker.platform.tokenizer_with_tag,
+                                   cls.maker.pipeline.tokenizer_with_tag,
                                    {}, cls.pn_cnf_parts()))
         cls.cdb._undirty()
 

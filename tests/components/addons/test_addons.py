@@ -83,8 +83,8 @@ class AddonUsageTests(unittest.TestCase):
         cls.cat = CAT(cls.cdb, cls.vocab)
 
     def test_has_addon(self):
-        self.assertTrue(self.cat._platform._addons)
-        addon = self.cat._platform._addons[0]
+        self.assertTrue(self.cat._pipeline._addons)
+        addon = self.cat._pipeline._addons[0]
         self.assertIsInstance(addon, self.addon_cls)
 
     def test_addon_runs(self):
@@ -100,7 +100,7 @@ class AddonUsageTests(unittest.TestCase):
 
     def test_can_create_cat_with_addon(self):
         self.assertIsInstance(self.cat, CAT)
-        self.assertEqual(len(self.cat._platform._addons), self.EXP_ADDONS)
+        self.assertEqual(len(self.cat._pipeline._addons), self.EXP_ADDONS)
 
     def test_can_save_model(self):
         with tempfile.TemporaryDirectory() as ntd:
@@ -112,7 +112,7 @@ class AddonUsageTests(unittest.TestCase):
             full_path = self.cat.save_model_pack(ntd)
             cat = CAT.load_model_pack(full_path)
         self.assertIsInstance(cat, CAT)
-        self.assertEqual(len(self.cat._platform._addons), self.EXP_ADDONS)
+        self.assertEqual(len(self.cat._pipeline._addons), self.EXP_ADDONS)
 
 
 class AddonUsageWithInitTests(AddonUsageTests):
