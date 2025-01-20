@@ -1,11 +1,12 @@
 import logging
 import contextlib
 from typing import TypedDict, cast
-import numpy as np
 import tempfile
 import dill
 
 from copy import deepcopy
+
+from medcat2.cdb.concepts import NameInfo, CUIInfo
 
 
 logger = logging.getLogger(__name__)
@@ -14,8 +15,8 @@ logger = logging.getLogger(__name__)
 CDBState = TypedDict(
     'CDBState',
     {
-        'name2info': dict[str, list[str]],
-        'cui2info': dict[str, dict[str, np.ndarray]],
+        'name2info': dict[str, NameInfo],
+        'cui2info': dict[str, CUIInfo],
         'token_counts': dict[str, int],
     })
 """CDB State.

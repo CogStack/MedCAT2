@@ -273,9 +273,9 @@ class CDB(AbstractSerialisable):
             if name in self.name2info:
                 info = self.name2info[name]
                 cuis2status = info.per_cui_status
-                if cui in cuis2status[name]:
+                if cui in cuis2status:
                     _ = cuis2status.pop(cui)
-                if len(cuis2status[name]) == 0:
+                if len(cuis2status) == 0:
                     # TODO: does this make sense?
                     del self.name2info[name]
 
