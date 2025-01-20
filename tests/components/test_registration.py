@@ -143,7 +143,7 @@ class CoreCompNoInitCATTests(RegisteredCompBaseTests):
             full_path = self.cat.save_model_pack(folder)
             cat = CAT.load_model_pack(full_path)
         self.assertIsInstance(cat, CAT)
-        comp = cat._platform.get_component(self.TYPE)
+        comp = cat._pipeline.get_component(self.TYPE)
         self.assertIsInstance(comp, self.TO_REGISTR)
 
 

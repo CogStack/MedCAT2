@@ -45,7 +45,7 @@ class CAT(AbstractSerialisable):
         self.config = config
 
         self._trainer: Optional[Trainer] = None
-        self._platform = Pipeline(self.cdb, self.vocab, model_load_path)
+        self._pipeline = Pipeline(self.cdb, self.vocab, model_load_path)
 
     @classmethod
     def get_init_attrs(cls) -> list[str]:
@@ -55,12 +55,12 @@ class CAT(AbstractSerialisable):
     def ignore_attrs(cls) -> list[str]:
         return [
             '_trainer',  # recreate if nededed
-            '_platform',  # need to recreate regardless
+            '_pipeline',  # need to recreate regardless
             'config',  # will be loaded along with CDB
         ]
 
     def __call__(self, text: str) -> Optional[MutableDocument]:
-        return self._platform.get_doc(text)
+        return self._pipeline.get_doc(text)
 
     def get_entities(self,
                      text: str,
@@ -157,7 +157,7 @@ class CAT(AbstractSerialisable):
     @property
     def trainer(self):
         if not self._trainer:
-            self._trainer = Trainer(self.cdb, self.__call__, self._platform)
+            self._trainer = Trainer(self.cdb, self.__call__, self._pipeline)
         return self._trainer
 
     def save_model_pack(
