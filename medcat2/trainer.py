@@ -15,7 +15,7 @@ from medcat2.data.mctexport import (MedCATTrainerExport,
                                     MedCATTrainerExportDocument)
 from medcat2.preprocessors.cleaners import prepare_name, NameDescriptor
 from medcat2.components.types import CoreComponentType, TrainableComponent
-from medcat2.platform.platform import Pipeline
+from medcat2.platform.pipeline import Pipeline
 
 
 logger = logging.getLogger(__name__)
