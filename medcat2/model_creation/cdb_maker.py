@@ -5,7 +5,7 @@ import logging
 import re
 from typing import Optional, List, Dict, Union, Any
 
-from medcat2.platform.platform import Platform
+from medcat2.platform.platform import Pipeline
 from medcat2.cdb import CDB
 from medcat2.config import Config
 from medcat2.preprocessors.cleaners import prepare_name
@@ -43,7 +43,7 @@ class CDBMaker(object):
             self.cdb = cdb
 
         # Build the required spacy pipeline
-        self.platform = Platform(self.cdb, vocab=None, model_load_path=None)
+        self.platform = Pipeline(self.cdb, vocab=None, model_load_path=None)
 
     def reset_cdb(self) -> None:
         """This will re-create a new internal CDB based on the same config.

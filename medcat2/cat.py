@@ -12,7 +12,7 @@ from medcat2.storage.serialisers import serialise, AvailableSerialisers
 from medcat2.storage.serialisers import deserialise
 from medcat2.storage.serialisables import AbstractSerialisable
 from medcat2.utils.fileutils import ensure_folder_if_parent
-from medcat2.platform.platform import Platform
+from medcat2.platform.platform import Pipeline
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.data.entities import Entity, Entities, OnlyCUIEntities
 
@@ -45,7 +45,7 @@ class CAT(AbstractSerialisable):
         self.config = config
 
         self._trainer: Optional[Trainer] = None
-        self._platform = Platform(self.cdb, self.vocab, model_load_path)
+        self._platform = Pipeline(self.cdb, self.vocab, model_load_path)
 
     @classmethod
     def get_init_attrs(cls) -> list[str]:
