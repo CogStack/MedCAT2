@@ -12,7 +12,7 @@ from medcat2.storage.serialisers import serialise, AvailableSerialisers
 from medcat2.storage.serialisers import deserialise
 from medcat2.storage.serialisables import AbstractSerialisable
 from medcat2.utils.fileutils import ensure_folder_if_parent
-from medcat2.platform.platform import Platform
+from medcat2.pipeline.pipeline import Pipeline
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.data.entities import Entity, Entities, OnlyCUIEntities
 
@@ -45,7 +45,7 @@ class CAT(AbstractSerialisable):
         self.config = config
 
         self._trainer: Optional[Trainer] = None
-        self._platform = Platform(self.cdb, self.vocab, model_load_path)
+        self._pipeline = Pipeline(self.cdb, self.vocab, model_load_path)
 
     @classmethod
     def get_init_attrs(cls) -> list[str]:
@@ -55,12 +55,12 @@ class CAT(AbstractSerialisable):
     def ignore_attrs(cls) -> list[str]:
         return [
             '_trainer',  # recreate if nededed
-            '_platform',  # need to recreate regardless
+            '_pipeline',  # need to recreate regardless
             'config',  # will be loaded along with CDB
         ]
 
     def __call__(self, text: str) -> Optional[MutableDocument]:
-        return self._platform.get_doc(text)
+        return self._pipeline.get_doc(text)
 
     def get_entities(self,
                      text: str,
@@ -157,7 +157,7 @@ class CAT(AbstractSerialisable):
     @property
     def trainer(self):
         if not self._trainer:
-            self._trainer = Trainer(self.cdb, self.__call__, self._platform)
+            self._trainer = Trainer(self.cdb, self.__call__, self._pipeline)
         return self._trainer
 
     def save_model_pack(

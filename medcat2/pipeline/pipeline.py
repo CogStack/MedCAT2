@@ -56,7 +56,7 @@ class DelegatingTokenizer(BaseTokenizer):
         return self.tokenizer.get_entity_class()
 
 
-class Platform:
+class Pipeline:
 
     def __init__(self, cdb: CDB, vocab: Optional[Vocab],
                  model_load_path: Optional[str]):

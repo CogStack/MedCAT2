@@ -106,6 +106,7 @@ class CATIncludingTests(unittest.TestCase):
 
         # CAT
         cls.cat = cat.CAT(cls.cdb, vocab)
+        cls.cat.config.general.nlp.provider
 
 
 class CATCReationTests(CATIncludingTests):

@@ -15,7 +15,7 @@ from medcat2.data.mctexport import (MedCATTrainerExport,
                                     MedCATTrainerExportDocument)
 from medcat2.preprocessors.cleaners import prepare_name, NameDescriptor
 from medcat2.components.types import CoreComponentType, TrainableComponent
-from medcat2.platform.platform import Platform
+from medcat2.pipeline.pipeline import Pipeline
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class Trainer:
 
     def __init__(self, cdb: CDB, caller: Callable[[str], MutableDocument],
-                 platform: Platform):
+                 platform: Pipeline):
         self.cdb = cdb
         self.config = cdb.config
         self.caller = caller
@@ -497,7 +497,7 @@ class Trainer:
             do_add_concept (bool):
                 Whether to add concept to CDB.
         """
-        names = prepare_name(name, self._platform.tokenizer, {},
+        names = prepare_name(name, self._platform.tokenizer_with_tag, {},
                              self._pn_configs)
         if (not names and cui not in self.cdb.cui2info and
                 name_status == 'P'):

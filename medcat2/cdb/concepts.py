@@ -69,7 +69,7 @@ class CUIInfo:
 class NameInfo:
     name: str  # NOTE: we _could_ get away without to save on memory
     cuis: set[str]  # = field(default_factory=set)
-    per_cui_status: dict[str, str] = field(
+    per_cui_status: defaultdict[str, str] = field(
         default_factory=lambda: defaultdict(lambda: ST.AUTOMATIC))
     is_upper: bool = False
     # stuff related to training starts here

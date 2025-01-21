@@ -43,7 +43,7 @@ class ConversionFromFolderTests(ConversionFromZIPTests):
         cls.cat.config.preprocessing.max_document_length = ml
         # NOTE: this is implementation-specific!
         if cls.cat.config.general.nlp.provider == 'spacy':
-            cls.cat._platform._tokenizer._nlp.max_length = ml
+            cls.cat._pipeline._tokenizer._nlp.max_length = ml
         if cls.cat.config.components.linking.train:
             print("TRAINING WAS ENABLED ! DISABLING")
             cls.cat.config.components.linking.train = False

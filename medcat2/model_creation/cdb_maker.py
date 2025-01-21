@@ -5,7 +5,7 @@ import logging
 import re
 from typing import Optional, List, Dict, Union, Any
 
-from medcat2.platform.platform import Platform
+from medcat2.pipeline.pipeline import Pipeline
 from medcat2.cdb import CDB
 from medcat2.config import Config
 from medcat2.preprocessors.cleaners import prepare_name
@@ -43,7 +43,7 @@ class CDBMaker(object):
             self.cdb = cdb
 
         # Build the required spacy pipeline
-        self.platform = Platform(self.cdb, vocab=None, model_load_path=None)
+        self.pipeline = Pipeline(self.cdb, vocab=None, model_load_path=None)
 
     def reset_cdb(self) -> None:
         """This will re-create a new internal CDB based on the same config.
@@ -204,7 +204,7 @@ class CDBMaker(object):
                     for raw_name in raw_names:
                         raw_name = raw_name.strip()
                         prepare_name(
-                            raw_name, self.platform.tokenizer_with_tag,
+                            raw_name, self.pipeline.tokenizer_with_tag,
                             names, pn_cnf_parts)
 
                         if (self.config.cdb_maker.remove_parenthesis > 0 and
@@ -214,7 +214,7 @@ class CDBMaker(object):
                             raw_name = PH_REMOVE.sub(" ", raw_name).strip()
                             if len(raw_name) >= self.cnf_cm.remove_parenthesis:
                                 prepare_name(
-                                    raw_name, self.platform.tokenizer_with_tag,
+                                    raw_name, self.pipeline.tokenizer_with_tag,
                                     names, pn_cnf_parts)
 
                     self.cdb._add_concept(
