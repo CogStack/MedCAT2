@@ -10,6 +10,10 @@ class AddonComponent(BaseComponent, Protocol):
     def is_core(self) -> bool:
         return False
 
+    @property
+    def config(self) -> ComponentConfig:
+        pass
+
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {
     # 'addon name' : ('module name', 'class name')
