@@ -15,6 +15,7 @@ from medcat2.utils.fileutils import ensure_folder_if_parent
 from medcat2.pipeline.pipeline import Pipeline
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.data.entities import Entity, Entities, OnlyCUIEntities
+from medcat2.components.addons.addons import AddonComponent
 
 
 logger = logging.getLogger(__name__)
@@ -202,3 +203,9 @@ class CAT(AbstractSerialisable):
         return (self.cdb == other.cdb and
                 ((self.vocab is None and other.vocab is None)
                  or self.vocab == other.vocab))
+
+    # addon (e.g MetaCAT) related stuff
+
+    def add_addon(self, addon: AddonComponent) -> None:
+        self.config.components.addons.append(addon.config)
+        self._pipeline.add_addon(addon)

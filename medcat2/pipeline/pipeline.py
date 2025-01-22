@@ -142,6 +142,9 @@ class Pipeline:
                 return comp
         raise ValueError(f"No component found of type {ctype}")
 
+    def add_addon(self, addon: AddonComponent) -> None:
+        self._addons.append(addon)
+
 
 class IncorrectArgumentsForTokenizer(TypeError):
 
