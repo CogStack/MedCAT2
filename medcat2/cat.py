@@ -190,7 +190,9 @@ class CAT(AbstractSerialisable):
             model_pack_path = folder_path
         logger.info("Attempting to load model from file: %s",
                     model_pack_path)
-        cat = deserialise(model_pack_path, model_load_path=model_pack_path)
+        # NOTE: ignoring addons since they will be loaded later / separately
+        cat = deserialise(model_pack_path, model_load_path=model_pack_path,
+                          ignore_folders_prefix={AddonComponent.NAME_PREFIX})
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         # NOTE: this should only be `True` during training
