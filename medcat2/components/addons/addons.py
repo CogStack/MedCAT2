@@ -6,8 +6,8 @@ from medcat2.config.config import ComponentConfig
 
 
 class AddonComponent(BaseComponent, Protocol):
-    NAME_PREFIX = "addon_"
-    NAME_SPLITTER = "_"
+    NAME_PREFIX: str = "addon_"
+    NAME_SPLITTER: str = "_"
     config: ComponentConfig
 
     @property
