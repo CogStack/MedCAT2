@@ -66,7 +66,10 @@ class Serialiser(ABC):
         save_schema(schema_path, obj.__class__, obj.get_init_attrs())
         self.save_ser_type_file(target_folder)
 
-    def deserialise_all(self, folder_path: str, **kwargs) -> Serialisable:
+    def deserialise_all(self, folder_path: str,
+                        ignore_folders_prefix: set[str] = set(),
+                        ignore_folders_suffix: set[str] = set(),
+                        **kwargs) -> Serialisable:
         self.check_ser_type(folder_path)
         schema_path = os.path.join(folder_path, DEFAULT_SCHEMA_FILE)
         cls_path, init_attrs = load_schema(schema_path)
@@ -78,10 +81,18 @@ class Serialiser(ABC):
         for part_name in os.listdir(folder_path):
             if part_name == DEFAULT_SCHEMA_FILE or part_name == self.RAW_FILE:
                 continue
+            for ignore_prefix in ignore_folders_prefix:
+                if part_name.startswith(ignore_prefix):
+                    continue
+            for ignore_suffix in ignore_folders_suffix:
+                if part_name.endswith(ignore_suffix):
+                    continue
             part_path = os.path.join(folder_path, part_name)
             if not os.path.isdir(part_path):
                 continue
-            part = self.deserialise_all(part_path)
+            part = self.deserialise_all(
+                part_path, ignore_folders_prefix=ignore_folders_prefix,
+                ignore_folders_suffix=ignore_folders_suffix)
             if part_name in init_attrs:
                 init_kwargs[part_name] = part
             else:
