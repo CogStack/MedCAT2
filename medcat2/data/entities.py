@@ -7,7 +7,7 @@ class MetaAnnotation(TypedDict):
     name: str
 
 
-class Entity(TypedDict):
+class Entity(TypedDict, total=False):
     pretty_name: str
     cui: str
     type_ids: list[str]

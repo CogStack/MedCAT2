@@ -4,7 +4,7 @@ import logging
 import numpy
 from multiprocessing import Lock
 from datetime import datetime
-from typing import Iterable, Optional, cast, Union, Any
+from typing import Iterable, Optional, cast, Union, Any, TypedDict
 
 from medcat2.utils.hasher import Hasher
 
@@ -37,8 +37,15 @@ _META_ANNS_PATH = 'meta_cat_meta_anns'
 _SHARE_TOKENS_PATH = 'meta_cat_share_tokens'
 
 
+class MedCATTrainerExportDocument(TypedDict):
+    name: str
+    confidence: float
+    value: str
+
+
 class MetaCATAddon(AddonComponent):
     addon_type = 'meta_cat'
+    output_key = 'meta_anns'
     config: ConfigMetaCAT
 
     def __init__(self, cnf: ConfigMetaCAT, base_tokenizer: BaseTokenizer,
@@ -65,6 +72,7 @@ class MetaCATAddon(AddonComponent):
         else:
             self.mc = self.load(os.path.join(model_load_path,
                                              self.get_folder_name()))
+        self._init_data_paths()
 
     @property
     def name(self) -> Optional[str]:
@@ -150,6 +158,17 @@ class MetaCATAddon(AddonComponent):
         # Used for sharing pre-processed data/tokens
         self.base_tokenizer.get_doc_class().register_addon_path(
             _SHARE_TOKENS_PATH, def_val=None, force=True)
+
+    @property
+    def include_in_output(self) -> bool:
+        return True
+
+    def get_output_key_val(self, ent: MutableEntity
+                           ) -> tuple[str, dict[str, Any]]:
+        # NOTE: In case of multiple MetaCATs, this will be called
+        #       once for each MetaCAT and will get the same value.
+        #       But it shouldn't be too much of an issue.
+        return self.output_key, ent.get_addon_data(_META_ANNS_PATH)
 
 
 class MetaCAT(AbstractSerialisable):
@@ -670,6 +689,7 @@ class MetaCAT(AbstractSerialisable):
                        id2category_value: dict
                        ) -> MutableDocument:
         config = self.config
+        data: list
         if (not config.general.save_and_reuse_tokens or
                 doc.get_addon_data(_SHARE_TOKENS_PATH) is None):
             if config.general.lowercase:
@@ -678,7 +698,7 @@ class MetaCAT(AbstractSerialisable):
                 all_text = doc.base.text
             assert self.tokenizer is not None
             all_text_processed = self.tokenizer(all_text)
-            ent_id2ind, _ = self.prepare_document(
+            ent_id2ind, data = self.prepare_document(
                 doc, input_ids=all_text_processed['input_ids'],
                 offset_mapping=all_text_processed['offset_mapping'],
                 lowercase=config.general.lowercase)
@@ -698,7 +718,6 @@ class MetaCAT(AbstractSerialisable):
             ent_ind = ent_id2ind[ent.id]
             value = id2category_value[predictions[ent_ind]]
             confidence = confidences[ent_ind]
-            # TODO: Fix META ANNS
             if ent.get_addon_data(_META_ANNS_PATH) is None:
                 ent.set_addon_data(_META_ANNS_PATH, {
                     config.general.category_name: {

@@ -1,6 +1,6 @@
-from typing import Callable, Protocol
+from typing import Callable, Protocol, Any
 
-from medcat2.components.types import BaseComponent
+from medcat2.components.types import BaseComponent, MutableEntity
 from medcat2.utils.registry import Registry
 from medcat2.config.config import ComponentConfig
 
@@ -30,6 +30,14 @@ class AddonComponent(BaseComponent, Protocol):
     @property
     def full_name(self) -> str:
         return self.addon_type + self.NAME_SPLITTER + str(self.name)
+
+    @property
+    def include_in_output(self) -> bool:
+        return False  # default to False
+
+    def get_output_key_val(self, ent: MutableEntity
+                           ) -> tuple[str, dict[str, Any]]:
+        pass
 
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {

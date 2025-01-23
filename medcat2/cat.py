@@ -93,7 +93,7 @@ class CAT(AbstractSerialisable):
             right_context = []
             center_context = []
 
-        return {
+        out_dict: Entity = {
             'pretty_name': self.cdb.get_name(cui),
             'cui': cui,
             'type_ids': list(self.cdb.cui2info[cui].type_ids),
@@ -117,6 +117,25 @@ class CAT(AbstractSerialisable):
             'context_center': center_context,
             'context_right': right_context,
         }
+        # addons:
+        for addon in self._pipeline._addons:
+            if not addon.include_in_output:
+                continue
+            key, val = addon.get_output_key_val(ent)
+            if key in out_dict:
+                # e.g multiple meta_anns types
+                # NOTE: type-ignore due to the strict TypedDict implementation
+                cur_val = out_dict[key]  # type: ignore
+                if not isinstance(cur_val, dict):
+                    raise ValueError(
+                        "Unable to merge multiple addon output for the same "
+                        f" key. Tried to update '{key}'. Previously had "
+                        f"{cur_val}, got {val} from addon {addon.full_name}")
+                cur_val.update(val)
+            else:
+                # NOTE: type-ignore due to the strict TypedDict implementation
+                out_dict[key] = val  # type: ignore
+        return out_dict
 
     def _doc_to_out_entity(self, ent: MutableEntity,
                            doc_tokens: list[str],

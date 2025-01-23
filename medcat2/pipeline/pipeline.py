@@ -1,4 +1,4 @@
-from typing import Optional, Any, Type
+from typing import Optional, Any, Type, Iterable
 import logging
 import os
 
@@ -155,6 +155,9 @@ class Pipeline:
                             addon.full_name, addon_folder)
                 os.mkdir(addon_folder)
                 addon.save(addon_folder)
+
+    def iter_addons(self) -> Iterable[AddonComponent]:
+        yield from self._addons
 
 
 class IncorrectArgumentsForTokenizer(TypeError):

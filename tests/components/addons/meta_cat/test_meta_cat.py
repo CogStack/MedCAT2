@@ -5,6 +5,7 @@ from medcat2.components.addons.addons import AddonComponent
 from medcat2.storage.serialisables import Serialisable
 from medcat2.storage.serialisers import serialise, AvailableSerialisers
 from medcat2.config.config_meta_cat import ConfigMetaCAT
+from medcat2.config.config import Config
 
 import unittest
 import unittest.mock
@@ -14,6 +15,7 @@ from transformers import AutoTokenizer
 from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
     TokenizerWrapperBERT)
 from medcat2.cat import CAT
+from medcat2.tokenizing.spacy_impl.tokenizers import SpacyTokenizer
 
 from .... import EXAMPLE_MODEL_PACK_ZIP
 
@@ -40,6 +42,7 @@ class MetaCATBaseTests(unittest.TestCase):
     SER_TYPE = AvailableSerialisers.dill
     VOCAB_SIZE = 10
     PAD_IDX = 5
+    TOKENIZER_CLS = FakeTokenizer
 
     @classmethod
     def setUpClass(cls):
@@ -47,7 +50,10 @@ class MetaCATBaseTests(unittest.TestCase):
         cls.cnf.comp_name = meta_cat.MetaCATAddon.addon_type
         cls.cnf.general.vocab_size = cls.VOCAB_SIZE
         cls.cnf.model.padding_idx = cls.PAD_IDX
-        cls.tokenizer = FakeTokenizer()
+        cls.cnf.general.category_name = 'FAKE_category'
+        cls.cnf.general.category_value2id = {
+            'Future': 0, 'Past': 2, 'Recent': 1}
+        cls.tokenizer = cls.TOKENIZER_CLS()
         mc_tokenizer = TokenizerWrapperBERT(
             AutoTokenizer.from_pretrained('prajjwal1/bert-tiny'))
         cls.meta_cat = meta_cat.MetaCATAddon(
@@ -65,6 +71,12 @@ class MetaCATTests(MetaCATBaseTests):
 
 
 class MetaCATWithCATTests(MetaCATBaseTests):
+    _DEF_CNF = Config()
+    TOKENIZER_CLS = lambda: SpacyTokenizer(  # noqa
+        MetaCATWithCATTests._DEF_CNF.general.nlp.modelname,
+        MetaCATWithCATTests._DEF_CNF.general.nlp.disabled_components,
+        MetaCATWithCATTests._DEF_CNF.general.diacritics,
+        MetaCATWithCATTests._DEF_CNF.preprocessing.max_document_length)
 
     @classmethod
     def setUpClass(cls):
@@ -93,3 +105,13 @@ class MetaCATWithCATTests(MetaCATBaseTests):
                 temp_dir, serialiser_type=self.SER_TYPE)
             cat2 = CAT.load_model_pack(file_name)
         self.assert_has_meta_cat(cat2, False)
+
+    def test_turns_up_in_output(self):
+        ents = self.cat.get_entities(
+            "This is a fit text for rich and chronic disease like fittest.")
+        self.assertGreater(len(ents['entities']), 0)
+        for eid, ent in ents['entities'].items():
+            with self.subTest(str(eid)):
+                self.assertIn(meta_cat.MetaCATAddon.output_key, ent)
+                val = ent[meta_cat.MetaCATAddon.output_key]
+                self.assertIn(self.meta_cat.name, val)

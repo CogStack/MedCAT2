@@ -6,7 +6,7 @@ from medcat2.cat import CAT
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
 from medcat2.config.config import Config, ComponentConfig
-from medcat2.tokenizing.tokenizers import BaseTokenizer
+from medcat2.tokenizing.tokenizers import BaseTokenizer, MutableEntity
 
 import unittest
 import unittest.mock
@@ -39,6 +39,10 @@ class FakeAddonNoInit:
     @property
     def full_name(self) -> str:
         return self.addon_type + "_" + str(self.name)
+
+    def get_output_key_val(self, ent: MutableEntity
+                           ) -> tuple[str, dict[str, Any]]:
+        return '', {}
 
 
 class FakeAddonWithInit:
