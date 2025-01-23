@@ -81,12 +81,17 @@ class Serialiser(ABC):
         for part_name in os.listdir(folder_path):
             if part_name == DEFAULT_SCHEMA_FILE or part_name == self.RAW_FILE:
                 continue
+            suitable_folder = True
             for ignore_prefix in ignore_folders_prefix:
                 if part_name.startswith(ignore_prefix):
-                    continue
+                    suitable_folder = False
+                    break
             for ignore_suffix in ignore_folders_suffix:
                 if part_name.endswith(ignore_suffix):
-                    continue
+                    suitable_folder = False
+                    break
+            if not suitable_folder:
+                continue
             part_path = os.path.join(folder_path, part_name)
             if not os.path.isdir(part_path):
                 continue
