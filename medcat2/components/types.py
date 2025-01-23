@@ -4,7 +4,6 @@ from enum import Enum, auto
 from medcat2.utils.registry import Registry
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.tokenizing.tokenizers import BaseTokenizer
-from medcat2.config.config import ComponentConfig
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
 
@@ -35,13 +34,11 @@ class BaseComponent(Protocol):
         pass
 
     @classmethod
-    def get_init_args(cls, cnf: ComponentConfig,
-                      tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         """Get the init arguments for the component.
 
         Args:
-            cnf (ComponentConfig): The component's config.
             tokenizer (BaseTokenizer): The tokenizer.
             cdb (CDB): The CDB.
             vocab (Vocab): The Vocab.
@@ -53,13 +50,11 @@ class BaseComponent(Protocol):
         pass
 
     @classmethod
-    def get_init_kwargs(cls, cnf: ComponentConfig,
-                        tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
         """Get init keyword arguments for the component.
 
         Args:
-            cnf (ComponentConfig): The component's config.
             tokenizer (BaseTokenizer): The tokenizer.
             cdb (CDB): The CDB.
             vocab (Vocab): The Vocab.

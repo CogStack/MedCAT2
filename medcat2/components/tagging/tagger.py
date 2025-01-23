@@ -7,7 +7,6 @@ from medcat2.tokenizing.tokens import MutableDocument
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
-from medcat2.config.config import ComponentConfig
 
 
 class TagAndSkipTagger(AbstractCoreComponent):
@@ -39,13 +38,11 @@ class TagAndSkipTagger(AbstractCoreComponent):
         return doc
 
     @classmethod
-    def get_init_args(cls, cnf: ComponentConfig,
-                      tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         return [cdb.config.preprocessing]
 
     @classmethod
-    def get_init_kwargs(cls, cnf: ComponentConfig,
-                        tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
         return {}
