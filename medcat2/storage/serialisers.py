@@ -172,6 +172,11 @@ def serialise(serialiser_type: Union[str, AvailableSerialisers],
     ser.serialise_all(obj, target_folder, overwrite=overwrite)
 
 
-def deserialise(folder_path: str, **init_kwargs) -> Serialisable:
+def deserialise(folder_path: str,
+                ignore_folders_prefix: set[str] = set(),
+                ignore_folders_suffix: set[str] = set(),
+                **init_kwargs) -> Serialisable:
     ser = get_serialiser_from_folder(folder_path)
-    return ser.deserialise_all(folder_path, **init_kwargs)
+    return ser.deserialise_all(
+        folder_path, ignore_folders_prefix=ignore_folders_prefix,
+        ignore_folders_suffix=ignore_folders_suffix, **init_kwargs)
