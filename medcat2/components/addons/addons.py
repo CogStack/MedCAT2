@@ -6,13 +6,10 @@ from medcat2.config.config import ComponentConfig
 
 
 class AddonComponent(BaseComponent, Protocol):
+    config: ComponentConfig
 
     def is_core(self) -> bool:
         return False
-
-    @property
-    def config(self) -> ComponentConfig:
-        pass
 
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {
