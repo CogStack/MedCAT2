@@ -46,17 +46,19 @@ class Serialiser(ABC):
             raise TypeError(
                 "Expected nested bits to be serialised by the same serialiser")
 
-    def serialise_all(self, obj: Serialisable, target_folder: str) -> None:
+    def serialise_all(self, obj: Serialisable, target_folder: str,
+                      overwrite: bool = False) -> None:
         ser_parts, raw_parts = get_all_serialisable_members(obj)
         for part, name in ser_parts:
             basename = name
             part_folder = os.path.join(target_folder, basename)
-            if os.path.exists(part_folder):
+            if os.path.exists(part_folder) and not overwrite:
                 raise IllegalSchemaException(
                     f"File already exists: {part_folder}. Unable to overwrite")
-            os.mkdir(part_folder)
+            elif not os.path.exists(part_folder):
+                os.mkdir(part_folder)
             # recursive
-            self.serialise_all(part, part_folder)
+            self.serialise_all(part, part_folder, overwrite=overwrite)
         if raw_parts:
             raw_file = os.path.join(target_folder, self.RAW_FILE)
             self.serialise(raw_parts, raw_file)
@@ -153,9 +155,10 @@ def get_serialiser_from_folder(folder_path: str) -> Serialiser:
 
 
 def serialise(serialiser_type: Union[str, AvailableSerialisers],
-              obj: Serialisable, target_folder: str) -> None:
+              obj: Serialisable, target_folder: str,
+              overwrite: bool = False) -> None:
     ser = get_serialiser(serialiser_type)
-    ser.serialise_all(obj, target_folder)
+    ser.serialise_all(obj, target_folder, overwrite=overwrite)
 
 
 def deserialise(folder_path: str, **init_kwargs) -> Serialisable:
