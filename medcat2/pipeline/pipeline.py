@@ -149,7 +149,8 @@ class Pipeline:
     def save_addons(self, folder_path: str) -> None:
         for addon in self._addons:
             if addon.should_save:
-                addon_folder = os.path.join(folder_path, f"addon_{addon.name}")
+                addon_folder = os.path.join(
+                    folder_path, addon.get_folder_name())
                 logger.info("Saving addon '%s' to '%s'",
                             addon.full_name, addon_folder)
                 os.mkdir(addon_folder)

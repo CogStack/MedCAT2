@@ -29,6 +29,17 @@ class FakeAddonNoInit:
     def save(self, path: str) -> None:
         return
 
+    @property
+    def addon_type(self) -> str:
+        return 'FAKE'
+
+    def get_folder_name(self) -> str:
+        return "addon_" + self.full_name
+
+    @property
+    def full_name(self) -> str:
+        return self.addon_type + "_" + str(self.name)
+
 
 class FakeAddonWithInit:
     name = 'fake_addon_w_init'
@@ -60,6 +71,17 @@ class FakeAddonWithInit:
 
     def save(self, path: str) -> None:
         return
+
+    @property
+    def addon_type(self) -> str:
+        return 'FAKE'
+
+    def get_folder_name(self) -> str:
+        return "addon_" + self.full_name
+
+    @property
+    def full_name(self) -> str:
+        return self.addon_type + "_" + str(self.name)
 
 
 class AddonsRegistrationTests(unittest.TestCase):

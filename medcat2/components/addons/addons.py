@@ -8,6 +8,10 @@ from medcat2.config.config import ComponentConfig
 class AddonComponent(BaseComponent, Protocol):
     config: ComponentConfig
 
+    @property
+    def addon_type(self) -> str:
+        pass
+
     def is_core(self) -> bool:
         return False
 
@@ -17,6 +21,13 @@ class AddonComponent(BaseComponent, Protocol):
 
     def save(self, folder: str) -> None:
         pass
+
+    def get_folder_name(self) -> str:
+        return "addon_" + self.full_name
+
+    @property
+    def full_name(self) -> str:
+        return self.addon_type + "_" + str(self.name)
 
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {
