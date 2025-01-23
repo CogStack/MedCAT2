@@ -47,8 +47,8 @@ def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],
         comp_cls = get_component_creator(CoreComponentType[comp_name],
                                          comp_cnf.comp_name)
         if hasattr(comp_cls, 'get_init_args'):
-            comp_cnf.init_args = comp_cls.get_init_args(tokenizer, cdb, vocab,
-                                                        model_load_path)
+            comp_cnf.init_args = comp_cls.get_init_args(
+                comp_cnf, tokenizer, cdb, vocab, model_load_path)
         else:
             logger.warning(
                 "The component %s (%s) does not define init arguments. "
@@ -57,7 +57,7 @@ def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],
                 comp_name, comp_cnf.comp_name)
         if hasattr(comp_cls, 'get_init_kwargs'):
             comp_cnf.init_kwargs = comp_cls.get_init_kwargs(
-                tokenizer, cdb, vocab, model_load_path)
+                comp_cnf, tokenizer, cdb, vocab, model_load_path)
         else:
             logger.warning(
                 "The component %s (%s) does not define init keyword arguments."
@@ -73,7 +73,7 @@ def set_addon_defaults(cdb: CDB, vocab: Optional[Vocab],
         addon_cls = get_addon_creator(addon_cnf.comp_name)
         if hasattr(addon_cls, 'get_init_args'):
             addon_cnf.init_args = addon_cls.get_init_args(
-                tokenizer, cdb, vocab, model_load_path)
+                addon_cnf, tokenizer, cdb, vocab, model_load_path)
         else:
             logger.warning(
                 "The addon  '%s' does not define init arguments. "
@@ -82,7 +82,7 @@ def set_addon_defaults(cdb: CDB, vocab: Optional[Vocab],
                 addon_cnf.comp_name)
         if hasattr(addon_cls, 'get_init_kwargs'):
             addon_cnf.init_kwargs = addon_cls.get_init_kwargs(
-                tokenizer, cdb, vocab, model_load_path)
+                addon_cnf, tokenizer, cdb, vocab, model_load_path)
         else:
             logger.warning(
                 "The component '%s' does not define init keyword arguments."

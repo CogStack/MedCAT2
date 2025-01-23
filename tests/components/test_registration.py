@@ -30,12 +30,14 @@ class NoInitNER(types.AbstractCoreComponent):
         return types.CoreComponentType.ner
 
     @classmethod
-    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_args(cls, cnf: ComponentConfig,
+                      tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         return []
 
     @classmethod
-    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_kwargs(cls, cnf: ComponentConfig,
+                        tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
         return {}
 
@@ -57,12 +59,14 @@ class WithInitNER(types.AbstractCoreComponent):
         return types.CoreComponentType.ner
 
     @classmethod
-    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_args(cls, cnf: ComponentConfig,
+                      tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         return [tokenizer, cdb]
 
     @classmethod
-    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_kwargs(cls, cnf: ComponentConfig,
+                        tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
         return {}
 
@@ -93,9 +97,9 @@ class CoreCompNoInitRegistrationTests(RegisteredCompBaseTests):
     def setUpClass(cls):
         super().setUpClass()
         cls.init_args = cls.TO_REGISTR.get_init_args(
-            cls.FTOK, cls.FCDB, cls.FVOCAB, None)
+            cls.CNF, cls.FTOK, cls.FCDB, cls.FVOCAB, None)
         cls.init_kwargs = cls.TO_REGISTR.get_init_kwargs(
-            cls.FTOK, cls.FCDB, cls.FVOCAB, None)
+            cls.CNF, cls.FTOK, cls.FCDB, cls.FVOCAB, None)
 
     def test_can_create_component(self):
         comp = types.create_core_component(self.TYPE, self.TO_REGISTR.name,

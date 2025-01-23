@@ -7,7 +7,7 @@ from medcat2.tokenizing.tokens import MutableEntity, MutableDocument
 from medcat2.components.linking.vector_context_model import ContextModel
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
-from medcat2.config import Config
+from medcat2.config.config import Config, ComponentConfig
 from medcat2.utils.defaults import StatusTypes as ST
 from medcat2.utils.postprocessing import create_main_ann
 from medcat2.tokenizing.tokenizers import BaseTokenizer
@@ -207,11 +207,13 @@ class Linker(AbstractCoreComponent):
         self.context_model.train(cui, entity, doc, negative, names)
 
     @classmethod
-    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_args(cls, cnf: ComponentConfig,
+                      tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         return [cdb, vocab, cdb.config]
 
     @classmethod
-    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_kwargs(cls, cnf: ComponentConfig,
+                        tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
         return {}
