@@ -22,6 +22,13 @@ class FakeAddonNoInit:
     def __call__(self, doc):
         return doc
 
+    @property
+    def should_save(self) -> bool:
+        return False
+
+    def save(self, path: str) -> None:
+        return
+
 
 class FakeAddonWithInit:
     name = 'fake_addon_w_init'
@@ -46,6 +53,13 @@ class FakeAddonWithInit:
                         tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
         return {}
+
+    @property
+    def should_save(self) -> bool:
+        return False
+
+    def save(self, path: str) -> None:
+        return
 
 
 class AddonsRegistrationTests(unittest.TestCase):

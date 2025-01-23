@@ -11,6 +11,13 @@ class AddonComponent(BaseComponent, Protocol):
     def is_core(self) -> bool:
         return False
 
+    @property
+    def should_save(self) -> bool:
+        pass
+
+    def save(self, folder: str) -> None:
+        pass
+
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {
     # 'addon name' : ('module name', 'class name')

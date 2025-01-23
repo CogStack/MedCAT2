@@ -172,6 +172,8 @@ class CAT(AbstractSerialisable):
         ensure_folder_if_parent(model_pack_path)
         # serialise
         serialise(serialiser_type, self, model_pack_path)
+        # addons
+        self._pipeline.save_addons(model_pack_path)
         # zip everything
         shutil.make_archive(model_pack_path, 'zip', root_dir=model_pack_path)
         return model_pack_path
