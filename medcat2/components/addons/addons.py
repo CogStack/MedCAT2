@@ -6,6 +6,8 @@ from medcat2.config.config import ComponentConfig
 
 
 class AddonComponent(BaseComponent, Protocol):
+    NAME_PREFIX = "addon_"
+    NAME_SPLITTER = ""
     config: ComponentConfig
 
     @property
@@ -23,11 +25,11 @@ class AddonComponent(BaseComponent, Protocol):
         pass
 
     def get_folder_name(self) -> str:
-        return "addon_" + self.full_name
+        return self.NAME_PREFIX + self.full_name
 
     @property
     def full_name(self) -> str:
-        return self.addon_type + "_" + str(self.name)
+        return self.addon_type + self.NAME_SPLITTER + str(self.name)
 
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {
