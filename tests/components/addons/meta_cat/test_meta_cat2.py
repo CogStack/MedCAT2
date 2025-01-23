@@ -87,36 +87,6 @@ class MetaCATTests(unittest.TestCase):
         doc.spans[spangroup_name] = [span_0, span_1]
         return doc
 
-    # def test_predict_spangroup(self):
-    #     json_path = os.path.join(
-    #         os.path.dirname(os.path.realpath(__file__)), 'resources',
-    #         'mct_export_for_meta_cat_test.json')
-    #     self.meta_cat.train_from_json(json_path, save_dir_path=self.tmp_dir)
-    #     serialise(self.SERIALISER_TYPE, self.meta_cat, self.tmp_dir)
-    #     n_meta_cat = cast(MetaCAT, deserialise(self.tmp_dir))
-
-    #     spangroup_name = "mock_span_group"
-    #     n_meta_cat.config.general.span_group = spangroup_name
-
-    #     doc = self._prepare_doc_w_spangroup(spangroup_name)
-    #     doc = n_meta_cat(doc)
-    #     spans = doc.spans[spangroup_name]
-    #     self.assertEqual(len(spans), 2)
-
-    #     # All spans are annotate
-    #     for span in spans:
-    #         self.assertEqual(span._.meta_anns['Status']['value'], "Affirmed")
-
-    #     # Informative error if spangroup is not set
-    #     doc = self._prepare_doc_w_spangroup("foo")
-    #     n_meta_cat.config.general.span_group = "bar"
-    #     try:
-    #         doc = n_meta_cat(doc)
-    #     except Exception as error:
-    #         self.assertIn("Configuration error", str(error))
-
-    #     n_meta_cat.config.general.span_group = None
-
 
 class MetaCATBertTest(MetaCATTests):
     @classmethod
