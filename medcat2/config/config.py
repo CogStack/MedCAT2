@@ -27,6 +27,10 @@ class SerialisableBaseModel(BaseModel):
     def ignore_attrs(cls) -> list[str]:
         return []
 
+    @classmethod
+    def include_properties(cls) -> list[str]:
+        return []
+
     def merge_config(self, other: dict):
         for k, v in other.items():
             if not hasattr(self, k):

@@ -49,10 +49,17 @@ class SerialisingStrategy(Enum):
             yield val
 
     def get_dict(self, obj: 'Serialisable') -> dict[str, Any]:
-        return {
+        out_dict = {
             attr_name: attr for attr_name, attr in self._iter_obj_items(obj)
             if self._is_suitable_in_dict(attr_name, attr, obj)
         }
+        # do properties
+        # NOTE: these are explicitly declared, so suitability is not checked
+        out_dict.update({
+            property_name: getattr(obj, property_name)
+            for property_name in obj.include_properties()
+        })
+        return out_dict
 
     def get_parts(self, obj: 'Serialisable'
                   ) -> list[tuple['Serialisable', str]]:
@@ -77,6 +84,10 @@ class Serialisable(Protocol):
     def ignore_attrs(cls) -> list[str]:
         pass
 
+    @classmethod
+    def include_properties(cls) -> list[str]:
+        pass
+
 
 class AbstractSerialisable:
 
@@ -89,6 +100,10 @@ class AbstractSerialisable:
 
     @classmethod
     def ignore_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def include_properties(cls) -> list[str]:
         return []
 
     def __eq__(self, other: Any) -> bool:
