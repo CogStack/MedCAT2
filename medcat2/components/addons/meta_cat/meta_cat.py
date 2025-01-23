@@ -39,7 +39,6 @@ _SHARE_TOKENS_PATH = 'meta_cat_share_tokens'
 
 class MetaCATAddon(AddonComponent):
     addon_type = 'meta_cat'
-    name: str
     config: ConfigMetaCAT
 
     def __init__(self, cnf: ConfigMetaCAT, base_tokenizer: BaseTokenizer,
@@ -68,7 +67,7 @@ class MetaCATAddon(AddonComponent):
                                              self.get_folder_name()))
 
     @property
-    def name(self) -> str:
+    def name(self) -> Optional[str]:
         return self._name
 
     def _init_tokenizer(self, cnf: ConfigMetaCAT, pack_save_path: Optional[str]
@@ -81,6 +80,7 @@ class MetaCATAddon(AddonComponent):
             raise MisconfiguredMetaCATException(
                 "Failed to load MetaCAT tokenizer without model pack path. "
                 "When creating a new MetaCAT, please provide a tokenizer.")
+        tokenizer: Optional[TokenizerWrapperBase] = None
         if cnf.general.tokenizer_name == 'bbpe':
             from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (  # noqa
                 TokenizerWrapperBPE)
@@ -90,22 +90,19 @@ class MetaCATAddon(AddonComponent):
                 TokenizerWrapperBERT)
             tokenizer = TokenizerWrapperBERT.load(model_save_path,
                                                   cnf.model.model_variant)
-        self.mc = MetaCAT(tokenizer, config=cnf)
-        self._init_data_paths()
+        return tokenizer
 
     def __call__(self, doc: MutableDocument) -> MutableDocument:
         return self.mc(doc)
 
     @classmethod
-    def get_init_args(cls, cnf: ConfigMetaCAT,
-                      tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         # NOTE: cnf is silent init parameter
         return [tokenizer, model_load_path]
 
     @classmethod
-    def get_init_kwargs(cls, cnf: ConfigMetaCAT,
-                        tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
+    def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
         return {}
 
@@ -116,7 +113,7 @@ class MetaCATAddon(AddonComponent):
     def load(self, folder_path: str) -> 'MetaCAT':
         mc_path, tokenizer_folder = self._get_meta_cat_and_tokenizer_paths(
             folder_path)
-        mc: MetaCAT = deserialise(mc_path)
+        mc = cast(MetaCAT, deserialise(mc_path))
         tokenizer: Optional[TokenizerWrapperBase] = None
         if self.config.general.tokenizer_name == 'bbpe':
             from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (  # noqa
@@ -141,6 +138,9 @@ class MetaCATAddon(AddonComponent):
         os.mkdir(mc_path)
         os.mkdir(tokenizer_folder)
         serialise(self.config.general.serialiser, self.mc, mc_path)
+        if self.mc.tokenizer is None:
+            raise MisconfiguredMetaCATException(
+                "Unable to save MetaCAT without a tokenizer")
         self.mc.tokenizer.save(tokenizer_folder)
 
     def _init_data_paths(self):
