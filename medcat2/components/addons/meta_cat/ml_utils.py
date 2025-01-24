@@ -139,7 +139,7 @@ def split_list_train_test(data: list, test_size: float, shuffle: bool = True
         shuffle (bool): Whether to shuffle the data. Defaults to True.
 
     Returns:
-        Tuple: The train data, and the test data.
+        tuple: The train data, and the test data.
     """
     if shuffle:
         random.shuffle(data)
