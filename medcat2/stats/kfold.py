@@ -114,7 +114,7 @@ class FoldCreator(ABC):
             ValueError: If something went wrong.
 
         Returns:
-            List[MedCATTrainerExport]: The created folds.
+            list[MedCATTrainerExport]: The created folds.
         """
 
 
@@ -359,7 +359,7 @@ def get_metrics_mean(metrics: list[tuple[dict, dict, dict,
     """The the mean of the provided metrics.
 
     Args:
-        metrics (List[Tuple[dict, dict, dict, dict, dict, dict, dict, dict]):
+        metrics (list[tuple[dict, dict, dict, dict, dict, dict, dict, dict]):
             The metrics.
         include_std (bool): Whether to include the standard deviation.
 
@@ -472,7 +472,7 @@ def get_k_fold_stats(cat: CAT, mct_export_data: MedCATTrainerExport,
             method.
 
     Returns:
-        Tuple: The averaged metrics. Potentially with their corresponding
+        tuple: The averaged metrics. Potentially with their corresponding
             standard deviations.
     """
     creator = get_fold_creator(mct_export_data, k, split_type=split_type)

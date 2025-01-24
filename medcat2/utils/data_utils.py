@@ -144,7 +144,7 @@ def make_mc_train_test(data: MedCATTrainerExport,
         test_size (float): The test size. Defaults to 0.2.
 
     Returns:
-        Tuple:
+        tuple:
             The train set, the test set, the test annotations,
             and the total annotations
     """

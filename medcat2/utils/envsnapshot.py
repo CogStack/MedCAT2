@@ -65,7 +65,7 @@ def get_transitive_deps(direct_deps: list[str]) -> dict[str, str]:
     """Get the transitive dependencies of the direct dependencies.
 
     Args:
-        direct_deps (List[str]): List of direct dependencies.
+        direct_deps (list[str]): List of direct dependencies.
 
     Returns:
         dict[str, str]: The dependency names and their corresponding versions.
