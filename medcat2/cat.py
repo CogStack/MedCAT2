@@ -131,7 +131,7 @@ class CAT(AbstractSerialisable):
     def _doc_to_out(self,
                     doc: MutableDocument,
                     only_cui: bool,
-                    # addl_info: List[str], # TODO
+                    # addl_info: list[str], # TODO
                     out_with_text: bool = False
                     ) -> Union[Entities, OnlyCUIEntities]:
         out: Union[Entities, OnlyCUIEntities] = {'entities': {},

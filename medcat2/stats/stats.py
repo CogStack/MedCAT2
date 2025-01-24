@@ -335,7 +335,7 @@ def get_stats(cat: CAT,
     Args:
         cat: (CAT):
             The model pack.
-        data (Dict):
+        data (dict):
             The json object that we get from MedCATtrainer on export.
         epoch (int):
             Used during training, so we know what epoch is it.
@@ -353,7 +353,7 @@ def get_stats(cat: CAT,
         use_groups (bool):
             If True concepts that have groups will be combined and stats will
             be reported on groups.
-        extra_cui_filter(Optional[Set]):
+        extra_cui_filter(Optional[set]):
             This filter will be intersected with all other filters, or if all
             others are not set then only this one will be used.
         do_print (bool):

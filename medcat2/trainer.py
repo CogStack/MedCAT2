@@ -165,7 +165,7 @@ class Trainer:
         extra_cui_filter ⊆ MCT filter ⊆ Model/config filter.
 
         Args:
-            data (Dict[str, List[Dict[str, dict]]]):
+            data (dict[str, list[dict[str, dict]]]):
                 The raw data, e.g from MedCATtrainer on export.
             reset_cui_count (bool):
                 Used for training with weight_decay (annealing). Each concept
@@ -205,7 +205,7 @@ class Trainer:
             train_from_false_positives (bool):
                 If True it will use false positive examples detected by medcat
                 and train from them as negative examples.
-            extra_cui_filter(Optional[Set]):
+            extra_cui_filter(Optional[set]):
                 This filter will be intersected with all other filters, or if
                 all others are not set then only this one will be used.
             checkpoint (Optional[Optional[medcat.utils.checkpoint.Checkpoint]):
@@ -215,7 +215,7 @@ class Trainer:
                 False.
 
         Returns:
-            Tuple: Consisting of the following parts
+            tuple: Consisting of the following parts
                 fp (dict):
                     False positives for each CUI.
                 fn (dict):
@@ -475,11 +475,11 @@ class Trainer:
                                                    MutableEntity]]):
                 Given the spacy document, this is the annotated span of text -
                 list of annotated tokens that are marked with this CUI.
-            ontologies (Set[str]):
+            ontologies (set[str]):
                 ontologies in which the concept exists (e.g. SNOMEDCT, HPO)
             name_status (str):
                 One of `P`, `N`, `A`
-            type_ids (Set[str]):
+            type_ids (set[str]):
                 Semantic type identifier (have a look at TUIs in UMLS or
                 SNOMED-CT)
             description (str):

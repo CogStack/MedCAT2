@@ -88,7 +88,7 @@ class BasicSpellChecker:
             words (Iterable[str]): The words.
 
         Returns:
-            Set[str]: The set of candidates.
+            set[str]: The set of candidates.
         """
         return set(w for w in words if w in self.vocab)
 
@@ -99,7 +99,7 @@ class BasicSpellChecker:
             word (str): The word.
 
         Returns:
-            Set[str]: The set of all edits
+            set[str]: The set of all edits
         """
         letters = 'abcdefghijklmnopqrstuvwxyz'
 

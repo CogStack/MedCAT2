@@ -3,7 +3,7 @@ import numpy as np
 import datetime
 import logging
 import re
-from typing import Optional, List, Dict, Union, Any
+from typing import Optional, Union, Any
 
 from medcat2.pipeline.pipeline import Pipeline
 from medcat2.cdb import CDB
@@ -54,7 +54,7 @@ class CDBMaker(object):
         self.cdb = CDB(config=self.config)
 
     def prepare_csvs(self,
-                     csv_paths: Union[pd.DataFrame, List[str]],
+                     csv_paths: Union[pd.DataFrame, list[str]],
                      sep: str = ',',
                      encoding: Optional[str] = None,
                      escapechar: Optional[str] = None,
@@ -70,7 +70,7 @@ class CDBMaker(object):
               To reset the CDB, call `reset_cdb`.
 
         Args:
-            csv_paths (Union[pd.DataFrame, List[str]]):
+            csv_paths (Union[pd.DataFrame, list[str]]):
                 An array of paths to the csv files that should be processed.
                 Can also be an array of pd.DataFrames
             sep (str):
@@ -125,7 +125,7 @@ class CDBMaker(object):
             df = df.fillna('')
 
             # Find which columns to use from the CSV
-            cols: List = []
+            cols: list = []
             col2ind = {}
             for col in list(df.columns):
                 if str(col).lower().strip() in useful_columns:
@@ -195,7 +195,7 @@ class CDBMaker(object):
 
                     # We can have multiple versions of a name
                     # {'name': {'tokens': [<str>], 'snames': [<str>]}}
-                    names: Dict = {}
+                    names: dict = {}
 
                     raw_names = [
                         raw_name.strip()
