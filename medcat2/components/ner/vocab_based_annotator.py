@@ -26,7 +26,7 @@ def maybe_annotate_name(tokenizer: BaseTokenizer, name: str,
             The tokenizer platform (probably SpaCy).
         name (str):
             The name found in the text of the document.
-        tkns (List[MutableToken]):
+        tkns (list[MutableToken]):
             Tokens that belong to this name in the spacy document.
         doc (BaseDocument):
             Spacy document to be annotated with named entities.

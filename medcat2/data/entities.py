@@ -11,16 +11,16 @@ class Entity(TypedDict):
     pretty_name: str
     cui: str
     type_ids: list[str]
-    # types: List[str]# TODO: add back
+    # types: list[str]# TODO: add back
     source_value: str
     detected_name: str
     acc: float
     context_similarity: float
     start: int
     end: int
-    # icd10: List[str]# TODO: add back
-    # ontologies: List[str]# TODO: add back
-    # snomed: List[str]# TODO: add back
+    # icd10: list[str]# TODO: add back
+    # ontologies: list[str]# TODO: add back
+    # snomed: list[str]# TODO: add back
     id: int
     meta_anns: dict[str, MetaAnnotation]
     # optionals:
