@@ -1,7 +1,7 @@
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import List, Dict, Optional, Union, overload
+from typing import Optional, Union, overload
 from tokenizers import Tokenizer, ByteLevelBPETokenizer
 from transformers.models.bert.tokenization_bert_fast import BertTokenizerFast
 
@@ -17,14 +17,14 @@ class TokenizerWrapperBase(ABC):
         self.hf_tokenizers = hf_tokenizer
 
     @overload
-    def __call__(self, text: str) -> Dict: ...
+    def __call__(self, text: str) -> dict: ...
 
     @overload
-    def __call__(self, text: List[str]) -> List[Dict]: ...
+    def __call__(self, text: list[str]) -> list[dict]: ...
 
     @abstractmethod
-    def __call__(self, text: Union[str, List[str]]
-                 ) -> Union[Dict, List[Dict]]: ...
+    def __call__(self, text: Union[str, list[str]]
+                 ) -> Union[dict, list[dict]]: ...
 
     @abstractmethod
     def save(self, dir_path: str) -> None: ...
@@ -38,10 +38,10 @@ class TokenizerWrapperBase(ABC):
     def get_size(self) -> int: ...
 
     @abstractmethod
-    def token_to_id(self, token: str) -> Union[int, List[int]]: ...
+    def token_to_id(self, token: str) -> Union[int, list[int]]: ...
 
     @abstractmethod
-    def get_pad_id(self) -> Union[Optional[int], List[int]]: ...
+    def get_pad_id(self) -> Union[Optional[int], list[int]]: ...
 
     def ensure_tokenizer(self) -> Tokenizer:
         if self.hf_tokenizers is None:
@@ -69,20 +69,20 @@ class TokenizerWrapperBPE(TokenizerWrapperBase):
             self.hf_tokenizers.add_tokens(['<PAD>'])
 
     @overload
-    def __call__(self, text: str) -> Dict: ...
+    def __call__(self, text: str) -> dict: ...
 
     @overload
-    def __call__(self, text: List[str]) -> List[Dict]: ...
+    def __call__(self, text: list[str]) -> list[dict]: ...
 
-    def __call__(self, text: Union[str, List[str]]) -> Union[Dict, List[Dict]]:
+    def __call__(self, text: Union[str, list[str]]) -> Union[dict, list[dict]]:
         """Tokenize some text
 
         Args:
-            text (Union[str, List[str]]):
+            text (Union[str, list[str]]):
                 Text/texts to be tokenized.
 
         Returns:
-            Union(dict, List[Dict]):
+            Union(dict, list[dict]):
                 Dictionary/ies containing `offset_mapping`, `input_ids` and
                 `tokens` corresponding to the input text/s.
 
@@ -140,11 +140,11 @@ class TokenizerWrapperBPE(TokenizerWrapperBase):
         self.hf_tokenizers = self.ensure_tokenizer()
         return self.hf_tokenizers.get_vocab_size()
 
-    def token_to_id(self, token: str) -> Union[int, List[int]]:
+    def token_to_id(self, token: str) -> Union[int, list[int]]:
         self.hf_tokenizers = self.ensure_tokenizer()
         return self.hf_tokenizers.token_to_id(token)
 
-    def get_pad_id(self) -> Union[int, List[int]]:
+    def get_pad_id(self) -> Union[int, list[int]]:
         pad = self.token_to_id('<PAD>')
         if pad is None:
             raise Exception(
@@ -168,12 +168,12 @@ class TokenizerWrapperBERT(TokenizerWrapperBase):
         super().__init__(hf_tokenizers)
 
     @overload
-    def __call__(self, text: str) -> Dict: ...
+    def __call__(self, text: str) -> dict: ...
 
     @overload
-    def __call__(self, text: List[str]) -> List[Dict]: ...
+    def __call__(self, text: list[str]) -> list[dict]: ...
 
-    def __call__(self, text: Union[str, List[str]]) -> Union[Dict, List[Dict]]:
+    def __call__(self, text: Union[str, list[str]]) -> Union[dict, list[dict]]:
         self.hf_tokenizers = self.ensure_tokenizer()
         if isinstance(text, str):
             result = self.hf_tokenizers.encode_plus(
@@ -225,7 +225,7 @@ class TokenizerWrapperBERT(TokenizerWrapperBase):
         self.hf_tokenizers = self.ensure_tokenizer()
         return len(self.hf_tokenizers.vocab)
 
-    def token_to_id(self, token: str) -> Union[int, List[int]]:
+    def token_to_id(self, token: str) -> Union[int, list[int]]:
         self.hf_tokenizers = self.ensure_tokenizer()
         return self.hf_tokenizers.convert_tokens_to_ids(token)
 

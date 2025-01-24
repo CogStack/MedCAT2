@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import numpy as np
 import pandas as pd
 import torch.optim as optim
-from typing import List, Optional, Tuple, Any, Dict, Union
+from typing import Optional, Any, Union
 from torch import nn
 from scipy.special import softmax
 from medcat2.config.config_meta_cat import ConfigMetaCAT
@@ -30,15 +30,15 @@ def set_all_seeds(seed: int) -> None:
     random.seed(seed)
 
 
-def create_batch_piped_data(data: List[Tuple[List[int], int, Optional[int]]],
+def create_batch_piped_data(data: list[tuple[list[int], int, Optional[int]]],
                             start_ind: int, end_ind: int,
                             device: Union[torch.device, str],
-                            pad_id: int) -> Tuple:
+                            pad_id: int) -> tuple:
     """Creates a batch given data and start/end that denote batch size,
     will also add padding and move to the right device.
 
     Args:
-        data (List[Tuple[List[int], int, Optional[int]]]):
+        data (list[tuple[list[int], int, Optional[int]]]):
             Data in the format: [[<[input_ids]>, <cpos>, Optional[int]], ...],
             the third column is optional and represents the output label
         start_ind (int):
@@ -76,22 +76,22 @@ def create_batch_piped_data(data: List[Tuple[List[int], int, Optional[int]]],
     return x2, cpos, attention_masks, y
 
 
-def predict(model: nn.Module, data: List[Tuple[List[int], int, Optional[int]]],
-            config: ConfigMetaCAT) -> Tuple:
+def predict(model: nn.Module, data: list[tuple[list[int], int, Optional[int]]],
+            config: ConfigMetaCAT) -> tuple:
     """Predict on data used in the meta_cat.pipe
 
     Args:
         model (nn.Module):
             The model.
-        data (List[Tuple[List[int], int, Optional[int]]]):
+        data (list[tuple[list[int], int, Optional[int]]]):
             Data in the format: [[<input_ids>, <cpos>], ...]
         config (ConfigMetaCAT):
             Configuration for this meta_cat instance.
 
     Returns:
-        predictions (List[int]):
+        predictions (list[int]):
             For each row of input data a prediction
-        confidence (List[float]):
+        confidence (list[float]):
             For each prediction a confidence value
     """
 
@@ -129,12 +129,12 @@ def predict(model: nn.Module, data: List[Tuple[List[int], int, Optional[int]]],
     return predictions, confidences
 
 
-def split_list_train_test(data: List, test_size: float, shuffle: bool = True
-                          ) -> Tuple:
+def split_list_train_test(data: list, test_size: float, shuffle: bool = True
+                          ) -> tuple:
     """Shuffle and randomly split data
 
     Args:
-        data (List): The data.
+        data (list): The data.
         test_size (float): The test size.
         shuffle (bool): Whether to shuffle the data. Defaults to True.
 
@@ -156,14 +156,14 @@ def split_list_train_test(data: List, test_size: float, shuffle: bool = True
     return train_data, test_data
 
 
-def print_report(epoch: int, running_loss: List, all_logits: List,
+def print_report(epoch: int, running_loss: list, all_logits: list,
                  y: Any, name: str = 'Train') -> None:
     """Prints some basic stats during training
 
     Args:
         epoch (int): Number of epochs.
-        running_loss (List): The loss
-        all_logits (List): List of logits
+        running_loss (list): The loss
+        all_logits (list): List of logits
         y (Any): The y array.
         name (str): The name of the report. Defaults to Train.
     """
@@ -186,19 +186,19 @@ class FocalLoss(nn.Module):
         return loss
 
 
-def train_model(model: nn.Module, data: List, config: ConfigMetaCAT,
-                save_dir_path: Optional[str] = None) -> Dict:
+def train_model(model: nn.Module, data: list, config: ConfigMetaCAT,
+                save_dir_path: Optional[str] = None) -> dict:
     """Trains a LSTM model and BERT with autocheckpoints
 
     Args:
         model (nn.Module): The model
-        data (List): The data.
+        data (list): The data.
         config (ConfigMetaCAT): MetaCAT config.
         save_dir_path (Optional[str]): The save dir path if required.
             Defaults to None.
 
     Returns:
-        Dict: The classification report for the winner.
+        dict: The classification report for the winner.
 
     Raises:
         Exception: If auto-save is enabled but no save dir path is provided.
@@ -255,7 +255,7 @@ def train_model(model: nn.Module, data: List, config: ConfigMetaCAT,
             Args:
                 classifier (nn.Module):
                     The model to be trained
-                data_ (List):
+                data_ (list):
                     The data
                 batch_size_:
                     Batch size
@@ -310,7 +310,7 @@ def train_model(model: nn.Module, data: List, config: ConfigMetaCAT,
     y_test = [x[2] for x in test_data]
     y_train = [x[2] for x in train_data]
 
-    winner_report: Dict = {}
+    winner_report: dict = {}
     for epoch in range(nepochs):
         running_loss = []
         all_logits = []
@@ -396,18 +396,18 @@ def train_model(model: nn.Module, data: List, config: ConfigMetaCAT,
     return winner_report
 
 
-def eval_model(model: nn.Module, data: List, config: ConfigMetaCAT,
-               tokenizer: TokenizerWrapperBase) -> Dict:
+def eval_model(model: nn.Module, data: list, config: ConfigMetaCAT,
+               tokenizer: TokenizerWrapperBase) -> dict:
     """Evaluate a trained model on the provided data
 
     Args:
         model (nn.Module): The model.
-        data (List): The data.
+        data (list): The data.
         config (ConfigMetaCAT): The MetaCAT config.
         tokenizer (TokenizerWrapperBase): The tokenizer.
 
     Returns:
-        Dict: Results (precision, recall, f1, examples, confusion matrix)
+        dict: Results (precision, recall, f1, examples, confusion matrix)
     """
     device = torch.device(config.general.device)  # Create a torch device
     batch_size_eval = config.general.batch_size_eval
@@ -456,7 +456,7 @@ def eval_model(model: nn.Module, data: List, config: ConfigMetaCAT,
     labels = [name for (name, _) in sorted(
         config.general.category_value2id.items(), key=lambda x: x[1])]
     labels_present_: set = set(predictions)
-    labels_present: List[str] = [str(x) for x in labels_present_]
+    labels_present: list[str] = [str(x) for x in labels_present_]
 
     if len(labels) != len(labels_present):
         logger.warning(
@@ -468,7 +468,7 @@ def eval_model(model: nn.Module, data: List, config: ConfigMetaCAT,
         index=["predicted " + label for label in labels_present],
     )
 
-    examples: Dict = {'FP': {}, 'FN': {}, 'TP': {}}
+    examples: dict = {'FP': {}, 'FN': {}, 'TP': {}}
     id2category_value = {v: k for k, v
                          in config.general.category_value2id.items()}
     for i, p in enumerate(predictions):

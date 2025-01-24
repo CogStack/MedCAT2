@@ -21,7 +21,7 @@ def prepare_from_json(data: dict,
     - but would be strange to have more than 1M manually annotated documents.
 
     Args:
-        data (Dict):
+        data (dict):
             Loaded output of MedCATtrainer. If we have a `my_export.json`
             from MedCATtrainer, than data = json.load(<my_export>).
         cntx_left (int):
@@ -34,7 +34,7 @@ def prepare_from_json(data: dict,
         replace_center (Optional[str]):
             If not None the center word (concept) will be replaced with
             whatever this is.
-        prerequisites (Dict):
+        prerequisites (dict):
             A map of prerequisites, for example our data has two
             meta-annotations (experiencer, negation). Assume I want to create
             a dataset for `negation` but only in those cases where
@@ -156,7 +156,7 @@ def prepare_for_oversampled_data(data: list,
        but would be strange to have more than 1M manually annotated documents.
 
        Args:
-           data (List):
+           data (list):
                Oversampled data expected in the following format:
                [[['text','of','the','document'], [index of medical entity],
                     "label" ],
@@ -194,9 +194,9 @@ def encode_category_values(data: dict,
     `prepare_from_json` into integer values.
 
     Args:
-        data (Dict):
+        data (dict):
             Output of `prepare_from_json`.
-        existing_category_value2id(Optional[Dict]):
+        existing_category_value2id(Optional[dict]):
             Map from category_value to id (old/existing).
         category_undersample:
             Name of class that should be used to undersample the data (for 2

@@ -1,6 +1,6 @@
 import torch
 from collections import OrderedDict
-from typing import Optional, Any, List, Iterable
+from typing import Optional, Any, Iterable
 from torch import nn, Tensor
 from transformers import BertModel, AutoConfig
 from medcat2.config.config_meta_cat import ConfigMetaCAT
@@ -96,7 +96,7 @@ class LSTM(nn.Module):
 
 
 class BertForMetaAnnotation(nn.Module):
-    _keys_to_ignore_on_load_unexpected: List[str] = [r"pooler"]  # type: ignore
+    _keys_to_ignore_on_load_unexpected: list[str] = [r"pooler"]  # type: ignore
 
     def __init__(self, config: ConfigMetaCAT):
         super(BertForMetaAnnotation, self).__init__()

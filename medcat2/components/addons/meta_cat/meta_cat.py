@@ -320,7 +320,7 @@ class MetaCAT(AbstractSerialisable):
                 Whether to allow overwriting the file if/when appropriate.
 
         Returns:
-            Dict: The resulting report.
+            dict: The resulting report.
         """
 
         # Load the medcattrainer export
@@ -382,7 +382,7 @@ class MetaCAT(AbstractSerialisable):
         }
 
         Args:
-            data_loaded (Dict):
+            data_loaded (dict):
                 The raw data we want to train for.
             save_dir_path (Optional[str]):
                 In case we have aut_save_model (meaning during the training
@@ -400,7 +400,7 @@ class MetaCAT(AbstractSerialisable):
                 Whether to allow overwriting the file if/when appropriate.
 
         Returns:
-            Dict: The resulting report.
+            dict: The resulting report.
 
         Raises:
             Exception: If no save path is specified, or category name
@@ -531,7 +531,7 @@ class MetaCAT(AbstractSerialisable):
                 The json file ath
 
         Returns:
-            Dict:
+            dict:
                 The resulting model dict
 
         Raises:
@@ -667,7 +667,7 @@ class MetaCAT(AbstractSerialisable):
                 Number of characters per batch
 
         Yields:
-            List[MutableDocument]: The batch of documents.
+            list[MutableDocument]: The batch of documents.
         """
         docs = []
         char_count = 0
