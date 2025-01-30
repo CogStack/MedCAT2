@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class SerialisableBaseModel(BaseModel):
+    """The base serialisable config."""
 
     def get_strategy(self) -> SerialisingStrategy:
         return SerialisingStrategy.SERIALISABLES_AND_DICT
@@ -28,6 +29,23 @@ class SerialisableBaseModel(BaseModel):
         return []
 
     def merge_config(self, other: dict):
+        """Merge this config with another config's (partial) model dump.
+
+        The exepctation is that the `other` dict is a partial model dump.
+        Values specified there are overwritten into the current config.
+        Values not specified there are left intact.
+
+        The `other` config can have keys/values that do not exist in the
+        config or sub-config. And they will be added where possible.
+
+        Args:
+            other (dict): The model dump
+
+        Raises:
+            IncorrectConfigValues: If unable to set the attribute,
+                trying to set incorrect value, or trying to set sub-config
+                values in an incorrect format (non-dict).
+        """
         for k, v in other.items():
             if not hasattr(self, k):
                 try:
@@ -403,6 +421,17 @@ class ModelMeta(SerialisableBaseModel):
     # NOTE: this is expected to be called when training finished
     def add_unsup_training(self, start_time: datetime, num_docs: int,
                            num_epochs: int = 1, project_name: str = 'N/A'):
+        """Add unsupervised training information based on data.
+
+        NOTE: This will mark down the time taken for training by comparing
+              the start time to the current time.
+
+        Args:
+            start_time (datetime): The time at which the training was started.
+            num_docs (int): The number of documents trained.
+            num_epochs (int, optional): The number of epochs. Defaults to 1.
+            project_name (str, optional): The project name. Defaults to 'N/A'.
+        """
         self.unsup_trained.append(TrainingDescriptor(
             train_time_start=start_time, train_time_end=datetime.now(),
             project_name=project_name, num_docs=num_docs,
@@ -410,6 +439,20 @@ class ModelMeta(SerialisableBaseModel):
 
     def add_sup_training(self, start_time: datetime, num_docs: int,
                          project_name: str) -> None:
+        """Add supervised training information based on data.
+
+        NOTE: This will mark down the time taken for training by comparing
+              the start time to the current time.
+
+        NOTE: This will be called for every project being trained separately.
+              So if there's a MCT export being trained with multiple projects,
+              multiple different training instances will be recorded.
+
+        Args:
+            start_time (datetime): The time at which the training was started.
+            num_docs (int): The number of documents that were trained.
+            project_name (str): The project name.
+        """
         self.sup_trained.append(TrainingDescriptor(
             train_time_start=start_time, train_time_end=datetime.now(),
             project_name=project_name, num_docs=num_docs, num_epochs=1
@@ -422,6 +465,21 @@ class ModelMeta(SerialisableBaseModel):
                                     supervised: bool = False,
                                     project_name: str = 'N/A'
                                     ) -> Iterator[C]:
+        """Context manager for preparing training.
+
+        This is used so that we can get the number of items in the data
+        during training.
+
+        Args:
+            data_iterator (C): The data to be trained.
+            num_epochs (int): The number of epochs to be used.
+            supervised (bool, optional): Whether training is supervised.
+                Defaults to False.
+            project_name (str, optional): The project name. Defaults to 'N/A'.
+
+        Yields:
+            Iterator[C]: The same data that was input.
+        """
         _names, _counts = [], [0]  # NOTE: 0 count for fallback
 
         def callback(name: str, count: int) -> None:
@@ -444,13 +502,13 @@ class ModelMeta(SerialisableBaseModel):
                                         num_docs=num_docs,
                                         num_epochs=num_epochs,
                                         project_name=project_name)
-                if len(_names) != 1:
-                    logger.warning(
-                        "Something went wrong druing %ssupervised training. "
-                        "The number of documents trained was unable to be "
-                        "clearly obtained. Counted %d names (%s) at %s",
-                        'un' if not supervised else '', len(_names), _names,
-                        _counts)
+            if len(_names) != 1:
+                logger.warning(
+                    "Something went wrong druing %ssupervised training. "
+                    "The number of documents trained was unable to be "
+                    "clearly obtained. Counted %d names (%s) at %s",
+                    'un' if not supervised else '', len(_names), _names,
+                    _counts)
 
 
 class Config(SerialisableBaseModel):
