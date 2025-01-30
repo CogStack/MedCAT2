@@ -154,6 +154,15 @@ def make_mc_train_test(data: MedCATTrainerExport,
 def get_false_positives(doc: MedCATTrainerExportDocument,
                         spacy_doc: MutableDocument
                         ) -> list[MutableEntity]:
+    """Get the false positives within a trainer export.
+
+    Args:
+        doc (MedCATTrainerExportDocument): The trainer export.
+        spacy_doc (MutableDocument): The annotated document.
+
+    Returns:
+        list[MutableEntity]: The list of false positive entities.
+    """
     truth = set([(ent['start'], ent['cui']) for ent in doc['annotations']])
 
     fps = []

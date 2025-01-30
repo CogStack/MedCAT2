@@ -15,6 +15,18 @@ def default_weighted_average(step: int) -> float:
 
 
 def workers(workers_override: Optional[int] = None) -> int:
+    """Get number of workers.
+
+    Either the number of workers specified (if done so).
+    Or the number of workers available (i.e cpu count - 1).
+
+    Args:
+        workers_override (Optional[int], optional):
+            The number of workers to use. Defaults to None.
+
+    Returns:
+        int: _description_
+    """
     if workers_override is not None:
         return workers_override
     return max(cpu_count() - 1, 1)
