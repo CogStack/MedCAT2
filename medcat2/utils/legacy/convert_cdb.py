@@ -32,7 +32,18 @@ class CustomUnpickler(dill.Unpickler):
             return LegacyClassNotFound
 
 
-def load_old_raw_data(old_path) -> dict:
+def load_old_raw_data(old_path: str) -> dict:
+    """Looads the raw data from old file.
+
+    This uses a wrapper that allows loading the data even if the classes
+    do not exist.
+
+    Args:
+        old_path (str): The path of the file to read.
+
+    Returns:
+        dict: The resulting raw data.
+    """
     with open(old_path, 'rb') as f:
         # NOTE: custom unpickler needed because we
         #       do not have access to original modules within medcat(v1)
@@ -118,6 +129,14 @@ def _add_name_info(cdb: CDB, data: dict) -> CDB:
 
 
 def convert_data(all_data: dict) -> CDB:
+    """Convert the raw v1 data into a CDB.
+
+    Args:
+        all_data (dict): The raw v1 data off disk.
+
+    Returns:
+        CDB: The v2 CDB.
+    """
     data = all_data['cdb']
     cdb = CDB(Config())
     cdb = _add_cui_info(cdb, data)
@@ -129,5 +148,13 @@ def convert_data(all_data: dict) -> CDB:
 
 
 def get_cdb_from_old(old_path: str) -> CDB:
+    """Get the v2 CDB from a v1 CDB path.
+
+    Args:
+        old_path (str): The v1 CDB path.
+
+    Returns:
+        CDB: The v2 CDB.
+    """
     data = load_old_raw_data(old_path)
     return convert_data(data)

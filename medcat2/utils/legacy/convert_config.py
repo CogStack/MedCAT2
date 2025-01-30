@@ -34,6 +34,21 @@ def get_val_and_parent_model(old_data: Optional[dict],
                              cnf: Optional[Config],
                              path: str
                              ) -> tuple[Optional[Any], Optional[BaseModel]]:
+    """Get the value and the model to set it for from the path specified.
+
+    The paths may be specified in a `.`-separated manner. This unwraps that
+    and figures out the value in the old model and the class that should
+    be used in the new model.
+
+    Args:
+        old_data (Optional[dict]): The raw v1 config data.
+        cnf (Optional[Config]): The v2 config.
+        path (str): The path to look for.
+
+    Returns:
+        tuple[Optional[Any], Optional[BaseModel]]: The value to set, and the
+            model to set it for.
+    """
     val = old_data
     target_model: Optional[BaseModel] = cnf
     name = path
@@ -127,6 +142,14 @@ def _make_changes(cnf: Config, old_data: dict) -> Config:
 
 
 def get_config_from_nested_dict(old_data: dict) -> Config:
+    """Get the v2 config from v1 json data.
+
+    Args:
+        old_data (dict): The json (nested dict) data.
+
+    Returns:
+        Config: The v 2 config.
+    """
     cnf = Config()
     # v1 models always used spacy
     # but we now default to regex
@@ -135,6 +158,14 @@ def get_config_from_nested_dict(old_data: dict) -> Config:
 
 
 def get_config_from_old(path: str) -> Config:
+    """Convert the saved v1 config into a v2 Config.
+
+    Args:
+        path (str): The v1 config path.
+
+    Returns:
+        Config: The v2 config.
+    """
     with open(path) as f:
         old_cnf_data = json.load(f)
     return get_config_from_nested_dict(old_cnf_data)

@@ -9,6 +9,13 @@ from medcat2.storage.serialisers import AvailableSerialisers
 
 def do_conversion(file_from: str, file_to: str,
                   save_format: AvailableSerialisers):
+    """Perform the conversion from v1 to v2.
+
+    Args:
+        file_from (str): The v1 model pack path.
+        file_to (str): The v2/target model pach path.
+        save_format (AvailableSerialisers): The type of serialiser for v2.
+    """
     converter = Converter(file_from, file_to, save_format)
     converter.convert()
 
