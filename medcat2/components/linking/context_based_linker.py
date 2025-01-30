@@ -204,6 +204,20 @@ class Linker(AbstractCoreComponent):
               doc: MutableDocument,
               negative: bool = False,
               names: Union[list[str], dict] = []) -> None:
+        """Train the linker.
+
+        This simply trains the context model.
+
+        Args:
+            cui (str): The CUI to train.
+            entity (BaseEntity): The entity we're at.
+            doc (BaseDocument): The document within which we're working.
+            negative (bool): Whether or not the example is negative.
+                Defaults to False.
+            names (list[str]/dict):
+                Optionally used to update the `status` of a name-cui
+                pair in the CDB.
+        """
         self.context_model.train(cui, entity, doc, negative, names)
 
     @classmethod
