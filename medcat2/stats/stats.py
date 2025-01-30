@@ -53,6 +53,13 @@ class StatsBuilder:
         self.fn_docs: set = set()
 
     def process_project(self, project: MedCATTrainerExportProject) -> None:
+        """Process the project.
+
+        This processes each document in the project.
+
+        Args:
+            project (MedCATTrainerExportProject): The trainer export project.
+        """
         self.filters.cuis = set()
 
         project_name = cast(str, project.get('name'))
@@ -70,6 +77,13 @@ class StatsBuilder:
     def process_document(self, project_name: str, project_id: str,
                          doc: MedCATTrainerExportDocument
                          ) -> None:
+        """Process the trainer export document.
+
+        Args:
+            project_name (str): The project within which this document lies.
+            project_id (str): The project ID for the project.
+            doc (MedCATTrainerExportDocument): The trainer export document.
+        """
         anns = doc['annotations']
 
         # Apply document level filtering, in this case project_filter is
@@ -217,6 +231,15 @@ class StatsBuilder:
         return anns_norm, anns_norm_neg, anns_examples, anns_norm_cui
 
     def finalise_report(self, epoch: int, do_print: bool = True):
+        """Finalise the report / metrics.
+
+        This prints out the overall metrics and calculates per CUI metrics.
+
+        Args:
+            epoch (int): The number of the current epoch.
+            do_print (bool, optional): Whether to print the output.
+                Defaults to True.
+        """
         try:
             prec = self.tp / (self.tp + self.fp)
             rec = self.tp / (self.tp + self.fn)
@@ -302,6 +325,21 @@ class StatsBuilder:
                  #  use_groups: bool = False,
                  extra_cui_filter: Optional[set[str]] = None
                  ) -> 'StatsBuilder':
+        """Get the stats builder from a model pack and some extra information.
+
+        Args:
+            cat (CAT):
+                The model pack.
+            use_project_filters (bool, optional):
+                Whether to use per project filters. Defaults to False.
+            use_overlaps (bool, optional):
+                Whether to allow overlaps. Defaults to False.
+            extra_cui_filter (Optional[set[str]], optional):
+                Extra CUI filter. Defaults to None.
+
+        Returns:
+            StatsBuilder: The stats builder.
+        """
         return StatsBuilder(addl_info=cat.cdb.addl_info,
                             filters=cat.config.components.linking.filters,
                             doc_getter=cat.__call__,
