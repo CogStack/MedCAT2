@@ -45,7 +45,11 @@ class CAT(AbstractSerialisable):
         self.config = config
 
         self._trainer: Optional[Trainer] = None
+        self._pipeline = self._recrate_pipe(model_load_path)
+
+    def _recrate_pipe(self, model_load_path: Optional[str] = None) -> Pipeline:
         self._pipeline = Pipeline(self.cdb, self.vocab, model_load_path)
+        return self._pipeline
 
     @classmethod
     def get_init_attrs(cls) -> list[str]:
