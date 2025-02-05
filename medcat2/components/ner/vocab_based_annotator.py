@@ -22,8 +22,8 @@ def maybe_annotate_name(tokenizer: BaseTokenizer, name: str,
     If yes the annotation will be added to the doc.entities array.
 
     Args:
-        platform (Platform):
-            The tokenizer platform (probably SpaCy).
+        tokenizer (BaseTokenizer):
+            The tokenizer (probably SpaCy).
         name (str):
             The name found in the text of the document.
         tkns (list[MutableToken]):
