@@ -352,9 +352,11 @@ class Trainer:
         with self.config.meta.prepare_and_report_training(
                 project['documents'], 1, True, project_name=project['name']
                 ) as docs:
-            self._train_supervised_for_project2(
-                docs, current_document, train_from_false_positives,
-                devalue_others)
+            with temp_changed_config(self.config.components.linking,
+                                     'train', True):
+                self._train_supervised_for_project2(
+                    docs, current_document, train_from_false_positives,
+                    devalue_others)
 
     def _train_supervised_for_project2(self,
                                        docs: list[MedCATTrainerExportDocument],
