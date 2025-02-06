@@ -26,13 +26,28 @@ class Registry(Generic[P]):
 
     def get_component(self, component_name: str
                       ) -> Callable[..., P]:
+        """Get the component that's registered.
+
+        The component generally refers to the class, but may
+        be another method that creates the object needed.
+
+        Args:
+            component_name (str): The name of the component.
+
+        Raises:
+            MedCATRegistryException: If no component by requested name
+                is registered.
+
+        Returns:
+            Callable[..., P]: The creator for the registered component.
+        """
         # NOTE: some default implementations may be big imports,
         #       so we only want to import them if/when required.
         if component_name in self._lazy_defaults:
             self._ensure_lazy_default(component_name)
         if component_name not in self._components:
             raise MedCATRegistryException(
-                f"No component registered by nane '{component_name}'. "
+                f"No component registered by name '{component_name}'. "
                 f"Available components: {self.list_components()}")
         return self._components[component_name]
 
@@ -46,10 +61,17 @@ class Registry(Generic[P]):
         self.register(component_name, cast(Callable[..., P], cls))
 
     def register_all_defaults(self) -> None:
+        """Register all default (lazily-added) components."""
         for comp_name in list(self._lazy_defaults):
             self._ensure_lazy_default(comp_name)
 
     def list_components(self) -> list[tuple[str, str]]:
+        """List all available component names and class names.
+
+        Returns:
+            list[tuple[str, str]]: The list of the names and class names
+                for each registered componetn.
+        """
         comps = [(comp_name, comp.__name__)
                  for comp_name, comp in self._components.items()]
         for lazy_def_name, (_, lazy_def_class) in self._lazy_defaults.items():
@@ -58,6 +80,18 @@ class Registry(Generic[P]):
 
     def unregister_component(self, component_name: str
                              ) -> Callable[..., P]:
+        """Unregister a component.
+
+        Args:
+            component_name (str): The component name.
+
+        Raises:
+            MedCATRegistryException: If no component by the name specified
+                had been registered.
+
+        Returns:
+            Callable[..., P]: The creator of the component.
+        """
         if component_name not in self._components:
             raise MedCATRegistryException(
                 f"No such component: {component_name}")
@@ -66,6 +100,7 @@ class Registry(Generic[P]):
         return self._components.pop(component_name)
 
     def unregister_all_components(self) -> None:
+        """Unregister all components."""
         for comp_name in list(self._components):
             self.unregister_component(comp_name)
 

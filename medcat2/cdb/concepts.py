@@ -10,6 +10,7 @@ from medcat2.storage.serialisables import SerialisingStrategy
 
 @dataclass
 class CUIInfo:
+    """Represents all the per concept information."""
     cui: str  # NOTE: we _could_ get away without to save on memory
     preferred_name: str
     names: set[str] = field(default_factory=set)
@@ -27,6 +28,11 @@ class CUIInfo:
     average_confidence: float = 0.0
 
     def reset_training(self) -> None:
+        """Reset the traininng for this concept.
+
+        This involves removing the context vectors, setting the
+        training count to 0, and setting average confidence to 0.
+        """
         self.context_vectors = None
         self.count_train = 0
         self.average_confidence = 0
@@ -67,6 +73,7 @@ class CUIInfo:
 
 @dataclass
 class NameInfo:
+    """Represents all the info regarding a name."""
     name: str  # NOTE: we _could_ get away without to save on memory
     cuis: set[str]  # = field(default_factory=set)
     per_cui_status: defaultdict[str, str] = field(
@@ -92,6 +99,7 @@ class NameInfo:
 
 @dataclass
 class TypeInfo:
+    """Represents all the info regarding a type ID."""
     type_id: str  # NOTE: we _could_ get away without to save on memory
     name: str
     cuis: set[str] = field(default_factory=set)

@@ -20,26 +20,58 @@ SER_TYPE_FILE = '.serialised_by'
 
 
 class Serialiser(ABC):
+    """The abstract serialiser base class.
+
+    This class is responsible for both serialising and deserialising.
+    """
     RAW_FILE = 'raw_dict.dat'
 
     @property
     @abstractmethod
     def ser_type(self) -> 'AvailableSerialisers':
+        """The serialiser type."""
         pass
 
     @abstractmethod
     def serialise(self, raw_parts: dict[str, Any], target_file: str) -> None:
+        """Serialise the raw attributes / objects.
+
+        Args:
+            raw_parts (dict[str, Any]): The raw objects to serialise.
+            target_file (str): The file name to write to.
+        """
         pass
 
     @abstractmethod
     def deserialise(self, target_file: str) -> dict[str, Any]:
+        """Deserialise data written to the specified file.
+
+        Args:
+            target_file (str): The file to read from.
+
+        Returns:
+            dict[str, Any]: The deserialised raw attributes / objects.
+        """
         pass
 
     def save_ser_type_file(self, folder: str) -> None:
+        """Save the serialiser type into the specified folder.
+
+        Args:
+            folder (str): The folder to use.
+        """
         file_path = os.path.join(folder, SER_TYPE_FILE)
         self.ser_type.write_to(file_path)
 
     def check_ser_type(self, folder: str) -> None:
+        """Check that the folder contains data serialised by this serialiser.
+
+        Args:
+            folder (str): Target folder.
+
+        Raises:
+            TypeError: If the folder was not serialised by this serialiser.
+        """
         file_path = os.path.join(folder, SER_TYPE_FILE)
         in_folder = AvailableSerialisers.from_file(file_path)
         if in_folder != self.ser_type:
@@ -47,6 +79,21 @@ class Serialiser(ABC):
                 "Expected nested bits to be serialised by the same serialiser")
 
     def serialise_all(self, obj: Serialisable, target_folder: str) -> None:
+        """Serialise the entire object into the target folder.
+
+        This finds the serialisable parts (attributes) of the object and calls
+        the same method on them recursively.
+        It also finds the raw attributes (if any) and serialises them.
+
+        Args:
+            obj (Serialisable): The object to serialise.
+            target_folder (str): The target folder.
+
+        Raises:
+            IllegalSchemaException:
+                If there's multiple parts with the same name or
+                a file already exists.
+        """
         ser_parts, raw_parts = get_all_serialisable_members(obj)
         for part, name in ser_parts:
             basename = name
@@ -65,6 +112,19 @@ class Serialiser(ABC):
         self.save_ser_type_file(target_folder)
 
     def deserialise_all(self, folder_path: str, **kwargs) -> Serialisable:
+        """Deserialise contents of folder.
+
+        Additional initialisation keyword arguments can be provided if needed.
+
+        This loads both the raw attributes for this object as well as the
+        serialisable parts / attributes recursively.
+
+        Args:
+            folder_path (str): The folder path.
+
+        Returns:
+            Serialisable: The resulting object.
+        """
         self.check_ser_type(folder_path)
         schema_path = os.path.join(folder_path, DEFAULT_SCHEMA_FILE)
         cls_path, init_attrs = load_schema(schema_path)
@@ -102,6 +162,7 @@ class Serialiser(ABC):
 
 
 class AvailableSerialisers(Enum):
+    """Describes the available serialisers."""
     dill = auto()
 
     def write_to(self, file_path: str) -> None:
@@ -115,6 +176,7 @@ class AvailableSerialisers(Enum):
 
 
 class DillSerialiser(Serialiser):
+    """The dill based serialiser."""
     ser_type = AvailableSerialisers.dill
 
     def serialise(self, raw_parts: dict[str, Any], target_file: str) -> None:
@@ -132,6 +194,18 @@ _DEF_SER = AvailableSerialisers.dill
 def get_serialiser(
         serialiser_type: Union[str, AvailableSerialisers] = _DEF_SER
                    ) -> Serialiser:
+    """Get the serialiser based on the type specified.
+
+    Args:
+        serialiser_type (Union[str, AvailableSerialisers], optional):
+            The required type. Defaults to 'dill'.
+
+    Raises:
+        ValueError: If no serialiser is found.
+
+    Returns:
+        Serialiser: The appropriate serialiser.
+    """
     if isinstance(serialiser_type, str):
         serialiser_type = AvailableSerialisers[serialiser_type.lower()]
     if serialiser_type is AvailableSerialisers.dill:
@@ -141,11 +215,27 @@ def get_serialiser(
 
 
 def get_serialiser_type_from_folder(folder_path: str) -> AvailableSerialisers:
+    """Get the serialiser type that was used to serialise data in the folder.
+
+    Args:
+        folder_path (str): The folder in question.
+
+    Returns:
+        AvailableSerialisers: The serialiser type.
+    """
     file_path = os.path.join(folder_path, SER_TYPE_FILE)
     return AvailableSerialisers.from_file(file_path)
 
 
 def get_serialiser_from_folder(folder_path: str) -> Serialiser:
+    """Get the serialiser that was used to serialise the data in the folder.
+
+    Args:
+        folder_path (str): The folder in question.
+
+    Returns:
+        Serialiser: The appropriate serialiser.
+    """
     ser_type = get_serialiser_type_from_folder(folder_path)
     logger.info("Determined serialised of type %s off disk",
                 ser_type.name)
@@ -154,10 +244,32 @@ def get_serialiser_from_folder(folder_path: str) -> Serialiser:
 
 def serialise(serialiser_type: Union[str, AvailableSerialisers],
               obj: Serialisable, target_folder: str) -> None:
+    """Serialise an object based on the specified serialiser type.
+
+    Args:
+        serialiser_type (Union[str, AvailableSerialisers]):
+            The serialiser type.
+        obj (Serialisable):
+            The object to serialise.
+        target_folder (str):
+            The folder to serialise into.
+    """
     ser = get_serialiser(serialiser_type)
     ser.serialise_all(obj, target_folder)
 
 
 def deserialise(folder_path: str, **init_kwargs) -> Serialisable:
+    """Deserialise contents of a folder.
+
+    Extra init keyword arguments can be provided if needed.
+
+    This method finds the serialiser to be used based on the files on disk.
+
+    Args:
+        folder_path (str): The folder to serialise.
+
+    Returns:
+        Serialisable: The deserialised object.
+    """
     ser = get_serialiser_from_folder(folder_path)
     return ser.deserialise_all(folder_path, **init_kwargs)

@@ -38,6 +38,14 @@ class CDB(AbstractSerialisable):
         self.is_dirty = False
 
     def has_subname(self, name: str) -> bool:
+        """Whether the CDB has the specified subname.
+
+        Args:
+            name (str): The subname to check.
+
+        Returns:
+            bool: Whether the subname is present in this CDB.
+        """
         if (self.is_dirty or self.has_changed_names or
                 len(self._subnames) < len(self.name2info)):
             self._undirty()
@@ -69,10 +77,23 @@ class CDB(AbstractSerialisable):
 
         return name
 
-    def weighted_average_function(self, step: int):
+    def weighted_average_function(self, step: int) -> float:
+        """Get the weighted average for steop.
+
+        Args:
+            step (int): The steop.
+
+        Returns:
+            float: The weighted average.
+        """
         return default_weighted_average(step)
 
     def add_types(self, types: Iterable[tuple[str, str]]) -> None:
+        """Add type info to CDB.
+
+        Args:
+            types (Iterable[tuple[str, str]]): The raw type info.
+        """
         for type_id, name in types:
             self.type_id2info[type_id] = TypeInfo(type_id, name)
 
@@ -83,7 +104,7 @@ class CDB(AbstractSerialisable):
 
         Args:
             cui (str):
-                Concept ID or unique identifer in this database, all concepts
+                Concept ID or unique identifier in this database, all concepts
                 that have the same CUI will be merged internally.
             names (dict[str, NameDescriptor]):
                 Names for this concept, or the value that if found in free
@@ -134,6 +155,7 @@ class CDB(AbstractSerialisable):
                 else:
                     self.token_counts[token] = 1
             self.has_changed_names = True
+            self.is_dirty = True
 
     def _add_full_build(self, cui: str, names: dict[str, NameDescriptor],
                         ontologies: set[str], description: str,
