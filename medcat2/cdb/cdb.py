@@ -155,6 +155,7 @@ class CDB(AbstractSerialisable):
                 else:
                     self.token_counts[token] = 1
             self.has_changed_names = True
+            self.is_dirty = True
 
     def _add_full_build(self, cui: str, names: dict[str, NameDescriptor],
                         ontologies: set[str], description: str,
