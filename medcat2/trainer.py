@@ -26,11 +26,11 @@ logger = logging.getLogger(__name__)
 class Trainer:
 
     def __init__(self, cdb: CDB, caller: Callable[[str], MutableDocument],
-                 platform: Pipeline):
+                 pipeline: Pipeline):
         self.cdb = cdb
         self.config = cdb.config
         self.caller = caller
-        self._platform = platform
+        self._pipeline = pipeline
 
     def train_unsupervised(self,
                            data_iterator: Iterable[str],
@@ -425,7 +425,7 @@ class Trainer:
             names: dict[str, NameDescriptor] = {
                 name: NameDescriptor([], set(), name, name.isupper())}
         else:
-            names = prepare_name(name, self._platform.tokenizer, {},
+            names = prepare_name(name, self._pipeline.tokenizer, {},
                                  self._pn_configs)
 
         # If full unlink find all CUIs
@@ -497,7 +497,7 @@ class Trainer:
             do_add_concept (bool):
                 Whether to add concept to CDB.
         """
-        names = prepare_name(name, self._platform.tokenizer_with_tag, {},
+        names = prepare_name(name, self._pipeline.tokenizer_with_tag, {},
                              self._pn_configs)
         if (not names and cui not in self.cdb.cui2info and
                 name_status == 'P'):
@@ -516,7 +516,7 @@ class Trainer:
 
         if mut_entity is None or mut_doc is None:
             return
-        linker = self._platform.get_component(
+        linker = self._pipeline.get_component(
             CoreComponentType.linking)
         if not isinstance(linker, TrainableComponent):
             logger.warning(
@@ -525,7 +525,7 @@ class Trainer:
         else:
             # Train Linking
             if isinstance(mut_entity, list):
-                mut_entity = self._platform.entity_from_tokens(mut_entity)
+                mut_entity = self._pipeline.entity_from_tokens(mut_entity)
             linker.train(cui=cui, entity=mut_entity, doc=mut_doc,
                          negative=negative, names=names)
 
