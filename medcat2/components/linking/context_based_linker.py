@@ -109,7 +109,7 @@ class Linker(AbstractCoreComponent):
         cnf_l = self.config.components.linking
         # NOTE: there used to be the condition
         # but if there are cuis, and it's an entity - surely, there's a match?
-        # And there wasn't really an alterantive anyway (which could have
+        # And there wasn't really an alternative anyway (which could have
         # caused and exception to be raised or cui/similarity from previous
         # entity to be used)
         # if len(cuis) > 0:
@@ -204,6 +204,20 @@ class Linker(AbstractCoreComponent):
               doc: MutableDocument,
               negative: bool = False,
               names: Union[list[str], dict] = []) -> None:
+        """Train the linker.
+
+        This simply trains the context model.
+
+        Args:
+            cui (str): The CUI to train.
+            entity (BaseEntity): The entity we're at.
+            doc (BaseDocument): The document within which we're working.
+            negative (bool): Whether or not the example is negative.
+                Defaults to False.
+            names (list[str]/dict):
+                Optionally used to update the `status` of a name-cui
+                pair in the CDB.
+        """
         self.context_model.train(cui, entity, doc, negative, names)
 
     @classmethod

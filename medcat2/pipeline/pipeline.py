@@ -20,6 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 class DelegatingTokenizer(BaseTokenizer):
+    """A delegating tokenizer.
+
+    This can be used to create a tokenizer with some preprocessing
+    (i.e components) included.
+    """
 
     def __init__(self, tokenizer: BaseTokenizer,
                  components: list[CoreComponent]):
@@ -57,6 +62,11 @@ class DelegatingTokenizer(BaseTokenizer):
 
 
 class Pipeline:
+    """The pipeline for the NLP process.
+
+    This class is responsible to initial creation of the NLP document,
+    as well as running through of all the components and addons.
+    """
 
     def __init__(self, cdb: CDB, vocab: Optional[Vocab],
                  model_load_path: Optional[str]):
@@ -76,10 +86,12 @@ class Pipeline:
 
     @property
     def tokenizer(self) -> BaseTokenizer:
+        """The raw tokenizer (with no components)."""
         return self._tokenizer
 
     @property
     def tokenizer_with_tag(self) -> BaseTokenizer:
+        """The tokenizer with the tagging component."""
         tag_comp = self.get_component(CoreComponentType.tagging)
         return DelegatingTokenizer(self.tokenizer, [tag_comp])
 
@@ -122,6 +134,16 @@ class Pipeline:
                             *cnf.init_args, **cnf.init_kwargs)
 
     def get_doc(self, text: str) -> MutableDocument:
+        """Get the document for this text.
+
+        This essentially runs the tokenizer over the text.
+
+        Args:
+            text (str): The input text.
+
+        Returns:
+            MutableDocument: The resulting document.
+        """
         doc = self._tokenizer(text)
         for comp in self._components:
             logger.info("Running component %s for %d of text (%s)",
@@ -132,9 +154,31 @@ class Pipeline:
         return doc
 
     def entity_from_tokens(self, tokens: list[MutableToken]) -> MutableEntity:
+        """Get the entity from the list of tokens.
+
+        This effectively turns a list of (consecutive) documents
+        into an entity.
+
+        Args:
+            tokens (list[MutableToken]): The tokens to use.
+
+        Returns:
+            MutableEntity: The resulting entity.
+        """
         return self._tokenizer.entity_from_tokens(tokens)
 
     def get_component(self, ctype: CoreComponentType) -> CoreComponent:
+        """Get the core component by the component type.
+
+        Args:
+            ctype (CoreComponentType): The core component type.
+
+        Raises:
+            ValueError: If no component by that type is found.
+
+        Returns:
+            CoreComponent: The corresponding core component.
+        """
         for comp in self._components:
             if not comp.is_core() or not isinstance(comp, CoreComponent):
                 continue

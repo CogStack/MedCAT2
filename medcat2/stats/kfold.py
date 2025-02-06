@@ -276,6 +276,19 @@ def get_fold_creator(mct_export: MedCATTrainerExport,
 
 def get_per_fold_metrics(cat: CAT, folds: list[MedCATTrainerExport],
                          *args, **kwargs) -> list[tuple]:
+    """Get per fold metrics for a given set of folds.
+
+    This method captures the state of the before processing each fold.
+    For each fold, it trains on all other folds, and runs metrics on
+    the fold itself.
+
+    Args:
+        cat (CAT): The model pack.
+        folds (list[MedCATTrainerExport]): The folds.
+
+    Returns:
+        list[tuple]: The metrics for each fold.
+    """
     metrics = []
     for fold_nr, cur_fold in enumerate(folds):
         others = list(folds)

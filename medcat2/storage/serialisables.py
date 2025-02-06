@@ -3,6 +3,7 @@ from enum import Enum, auto
 
 
 class SerialisingStrategy(Enum):
+    """Describes the strategy for serialising."""
     SERIALISABLE_ONLY = auto()
     """Only serialise attributes that are of Serialisable type"""
     SERIALISABLES_AND_DICT = auto()
@@ -49,6 +50,16 @@ class SerialisingStrategy(Enum):
             yield val
 
     def get_dict(self, obj: 'Serialisable') -> dict[str, Any]:
+        """Gets the appropriate parts of the __dict__ of the object.
+
+        I.e this filters out parts that shouldn't be included.
+
+        Args:
+            obj (Serialisable): The serialisable object.
+
+        Returns:
+            dict[str, Any]: The filtered attributes map.
+        """
         return {
             attr_name: attr for attr_name, attr in self._iter_obj_items(obj)
             if self._is_suitable_in_dict(attr_name, attr, obj)
@@ -56,6 +67,14 @@ class SerialisingStrategy(Enum):
 
     def get_parts(self, obj: 'Serialisable'
                   ) -> list[tuple['Serialisable', str]]:
+        """Gets the matching serialisable parts of the object.
+
+        This includes only serialisable parts, and only if specified
+        by the strategy.
+
+        Returns:
+            list[tuple[Serialisable, str]]: The serialisable parts with names.
+        """
         out_list: list[tuple[Serialisable, str]] = [
             (attr, attr_name) for attr_name, attr in self._iter_obj_items(obj)
             if self._is_suitable_part(attr_name, attr, obj)
@@ -65,20 +84,40 @@ class SerialisingStrategy(Enum):
 
 @runtime_checkable
 class Serialisable(Protocol):
+    """The base serialisable protocol."""
 
     def get_strategy(self) -> SerialisingStrategy:
+        """Get the serialisation strategy.
+
+        Returns:
+            SerialisingStrategy: The strategy.
+        """
         pass
 
     @classmethod
     def get_init_attrs(cls) -> list[str]:
+        """Get the names of the arguments needed for init upon deserialisation.
+
+        Returns:
+            list[str]: The list of init arguments' names.
+        """
         pass
 
     @classmethod
     def ignore_attrs(cls) -> list[str]:
+        """Get the names of attributes not to serialise.
+
+        Returns:
+            list[str]: The attribute names that should not be serialised.
+        """
         pass
 
 
 class AbstractSerialisable:
+    """The abstract serialisable base class.
+
+    This defines some common defaults.
+    """
 
     def get_strategy(self) -> SerialisingStrategy:
         return SerialisingStrategy.SERIALISABLES_AND_DICT

@@ -25,9 +25,15 @@ class BaseComponent(Protocol):
 
     @property
     def name(self) -> Optional[str]:
+        """The name of the component."""
         pass
 
     def is_core(self) -> bool:
+        """Whether the component is a core component or not.
+
+        Returns:
+            bool: Whether this is a core component.
+        """
         pass
 
     def __call__(self, doc: MutableDocument) -> MutableDocument:
@@ -91,6 +97,20 @@ class TrainableComponent(Protocol):
               doc: MutableDocument,
               negative: bool = False,
               names: Union[list[str], dict] = []) -> None:
+        """Train the component.
+
+        This should only apply to the linker.
+
+        Args:
+            cui (str): The CUI to train.
+            entity (BaseEntity): The entity we're at.
+            doc (BaseDocument): The document within which we're working.
+            negative (bool): Whether or not the example is negative.
+                Defaults to False.
+            names (list[str]/dict):
+                Optionally used to update the `status` of a name-cui
+                pair in the CDB.
+        """
         pass
 
 
@@ -124,26 +144,70 @@ _CORE_REGISTRIES: dict[CoreComponentType, Registry[CoreComponent]] = {
 def register_core_component(comp_type: CoreComponentType,
                             comp_name: str,
                             comp_clazz: Callable[..., CoreComponent]) -> None:
+    """Register a new core component.
+
+    Args:
+        comp_type (CoreComponentType): The component type.
+        comp_name (str): The component name.
+        comp_clazz (Callable[..., CoreComponent]): The component creator.
+    """
     _CORE_REGISTRIES[comp_type].register(comp_name, comp_clazz)
 
 
 def get_core_registry(comp_type: CoreComponentType) -> Registry[CoreComponent]:
+    """Get the registry for a core component type.
+
+    Args:
+        comp_type (CoreComponentType): The core component type.
+
+    Returns:
+        Registry[CoreComponent]: The corresponding registry.
+    """
     return _CORE_REGISTRIES[comp_type]
 
 
 def get_component_creator(comp_type: CoreComponentType,
                           comp_name: str) -> Callable[..., CoreComponent]:
+    """Get the component creator.
+
+    Args:
+        comp_type (CoreComponentType): The core component type.
+        comp_name (str): The component name.
+
+    Returns:
+        Callable[..., CoreComponent]: The creator for the component.
+    """
     return get_core_registry(comp_type).get_component(comp_name)
 
 
 def create_core_component(comp_type: CoreComponentType,
                           comp_name: str,
                           *args, **kwargs) -> CoreComponent:
+    """Creat a core component.
+
+    All `*args` and `**kwrags` are passed directly to the component creator.
+
+    Args:
+        comp_type (CoreComponentType): The component type.
+        comp_name (str): The name of the component.
+
+    Returns:
+        CoreComponent: The resulting / created component.
+    """
     comp_getter = get_core_registry(comp_type).get_component(comp_name)
     return comp_getter(*args, **kwargs)
 
 
 def get_registered_components(comp_type: CoreComponentType
                               ) -> list[tuple[str, str]]:
+    """Get all registered components (name and class name for each).
+
+    Args:
+        comp_type (CoreComponentType): The core component type.
+
+    Returns:
+        list[tuple[str, str]]: The name and class name for each
+            registered component.
+    """
     registry = get_core_registry(comp_type)
     return registry.list_components()
