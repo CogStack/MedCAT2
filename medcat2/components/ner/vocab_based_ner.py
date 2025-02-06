@@ -57,13 +57,17 @@ class NER(AbstractCoreComponent):
                     else:
                         name = name_version
                     break
+            # if name is in CDB
             if name in self.cdb.name2info and not tkn.base.is_stop:
                 maybe_annotate_name(self.tokenizer, name, tkns, doc,
                                     self.cdb, self.config)
+            # if name is not a subname CDB (explicitly)
             if not name:
                 # There has to be at least something appended to the name
                 # to go forward
                 continue
+            # if name is a part of a concept
+            # we start adding onto it to get a match
             for j in range(i+1, len(_doc)):
                 if (_doc[j].base.index - _doc[j-1].base.index - 1
                         > max_skip_tokens):
