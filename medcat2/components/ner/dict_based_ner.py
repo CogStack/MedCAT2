@@ -75,6 +75,13 @@ class NER(AbstractCoreComponent):
                 #       before the NER step.
                 #       But we will (at least for now) still handler this
                 cur_tokens = list(cur_tokens)
+            if not cur_tokens:
+                # NOTE: the most likely reason for this is when matching
+                #       a substring (e.g an abreviation in a longer word).
+                #       In that case, no spacy tokens will match. But we
+                #       don't really want to catch `mi` (for myocardial
+                #       infarction) in "family".
+                continue
             # print("[D] MAN")
             preprocessed_name = raw_name.replace(
                 ' ', self.config.general.separator)
