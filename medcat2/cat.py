@@ -208,6 +208,9 @@ class CAT(AbstractSerialisable):
         cat = deserialise(model_pack_path, model_load_path=model_pack_path)
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
+        # NOTE: Some CDB attributes will have been set manually
+        #       after init so the CDB is likely "dirty"
+        cat.cdb._undirty()
         return cat
 
     def __eq__(self, other: Any) -> bool:
