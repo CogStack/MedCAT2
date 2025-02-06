@@ -31,12 +31,20 @@ class NER(AbstractCoreComponent):
         logger.info("Rebuilding NER automaton (Aho-Corasick)")
         self.automaton.clear()
         # NOTE: we do not need name info for NER - only for linking
+        ignored_min_len = 0
         for name in self.cdb.name2info.keys():
             clean_name = name.replace(self.config.general.separator, " ")
             if clean_name in self.automaton:
                 # no need to duplicate
                 continue
+            if len(clean_name) < self.config.components.ner.min_name_len:
+                # ignore names that are too short
+                ignored_min_len += 1
+                continue
             self.automaton.add_word(clean_name, clean_name)
+        logger.debug("Ignored %d due to being smaller than minimum "
+                     "allowed length (%d)", ignored_min_len,
+                     self.config.components.ner.min_name_len)
         self.automaton.make_automaton()
 
     def get_type(self) -> CoreComponentType:
