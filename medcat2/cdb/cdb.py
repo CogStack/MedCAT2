@@ -266,10 +266,10 @@ class CDB(AbstractSerialisable):
         does not remove synonyms (names) that were potentially added during
         supervised/online learning.
         """
-        for info in self.cui2info.values():
-            info.reset_training()
-        for info in self.name2info.values():
-            info.count_train = 0
+        for cui_info in self.cui2info.values():
+            cui_info.reset_training()
+        for name_info in self.name2info.values():
+            name_info.count_train = 0
         self.is_dirty = True
 
     def _remove_names(self, cui: str, names: Iterable[str]) -> None:
