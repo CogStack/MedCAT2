@@ -66,11 +66,25 @@ class CAT(AbstractSerialisable):
     def __call__(self, text: str) -> Optional[MutableDocument]:
         return self._pipeline.get_doc(text)
 
+    def _ensure_not_training(self) -> None:
+        """Method to ensure config is not set to train.
+
+        `config.components.linking.train` should only be True while training
+        and not during inference.
+        This aalso corrects the setting if necessary.
+        """
+        # pass
+        if self.config.components.linking.train:
+            logger.warning("Training was enabled during inference. "
+                           "It was automatically disabled.")
+            self.config.components.linking.train = False
+
     def get_entities(self,
                      text: str,
                      only_cui: bool = False,
                      # TODO : addl_info
                      ) -> Union[dict, Entities, OnlyCUIEntities]:
+        self._ensure_not_training()
         doc = self(text)
         if not doc:
             return {}
@@ -194,10 +208,6 @@ class CAT(AbstractSerialisable):
         cat = deserialise(model_pack_path, model_load_path=model_pack_path)
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
-        # NOTE: this should only be `True` during training
-        #       but some models (especially converted ones)
-        #       are saved with it set to True accidentally
-        cat.config.components.linking.train = False
         return cat
 
     def __eq__(self, other: Any) -> bool:
