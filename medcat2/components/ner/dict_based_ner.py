@@ -26,7 +26,6 @@ class NER(AbstractCoreComponent):
         self._rebuild_automaton()
 
     def _rebuild_automaton(self):
-        # print("[D] BUILD AUTOMATON")
         # NOTE: every time the CDB changes (is dirtied)
         #       this will be recalculated
         logger.info("Rebuilding NER automaton (Aho-Corasick)")
@@ -37,10 +36,8 @@ class NER(AbstractCoreComponent):
             if clean_name in self.automaton:
                 # no need to duplicate
                 continue
-            # print("[D] ADD clean word", clean_name)
             self.automaton.add_word(clean_name, clean_name)
         self.automaton.make_automaton()
-        # print("[D] AUTOMATON", self.automaton)
 
     def get_type(self) -> CoreComponentType:
         return CoreComponentType.ner
@@ -59,15 +56,12 @@ class NER(AbstractCoreComponent):
             doc (MutableDocument):
                 Spacy document with detected entities.
         """
-        # print("[D] __call__")
         if self.cdb.has_changed_names:
-            # print("UNDIRTY[NAMES]!")
             self.cdb._undirty()
             self._rebuild_automaton()
         text = doc.base.text.lower()
         for end_idx, raw_name in self.automaton.iter(text):
             start_idx = end_idx - len(raw_name) + 1
-            # print("[D] FOUND", raw_name, "@", start_idx, end_idx)
             cur_tokens = doc.get_tokens(start_idx, end_idx)
             if not isinstance(cur_tokens, list):
                 # NOTE: this shouldn't really happen since
@@ -82,7 +76,6 @@ class NER(AbstractCoreComponent):
                 #       don't really want to catch `mi` (for myocardial
                 #       infarction) in "family".
                 continue
-            # print("[D] MAN")
             preprocessed_name = raw_name.replace(
                 ' ', self.config.general.separator)
             maybe_annotate_name(self.tokenizer, preprocessed_name, cur_tokens,
