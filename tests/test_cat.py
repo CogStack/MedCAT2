@@ -106,7 +106,7 @@ class CATIncludingTests(unittest.TestCase):
 
         # CAT
         cls.cat = cat.CAT(cls.cdb, vocab)
-        cls.cat.config.general.nlp.provider
+        cls.cat.config.components.linking.train = False
 
 
 class CATCReationTests(CATIncludingTests):
@@ -145,9 +145,49 @@ class CATSupTrainingTests(CATUnsupTrainingTests):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._perform_training()
+
+    @classmethod
+    def _perform_training(cls):
         with open(cls.SUPERVISED_DATA_PATH) as f:
             data = json.load(f)
         cls.cat.trainer.train_supervised_raw(data)
+
+
+class CATWithDictNERSupTrainingTests(CATSupTrainingTests):
+    from medcat2.components.types import CoreComponentType
+    from medcat2.components.ner.dict_based_ner import NER as DNER
+    from medcat2.components.ner.vocab_based_ner import NER as VNER
+
+    @classmethod
+    def _dummy_pt(cls):
+        pass
+
+    @classmethod
+    def setUpClass(cls):
+        # NOTE: need to do training AFTER changes
+        #       so stopping it from happening here
+        orig_training = cls._perform_training
+        cls._perform_training = cls._dummy_pt
+        super().setUpClass()
+        cls._perform_training = orig_training
+        cls.cdb.config.components.ner.comp_name = 'dict'
+        cls.cat._recrate_pipe()
+        # cls.cat.cdb.reset_training()
+        cls._perform_training()
+
+    def test_has_dict_based_ner(self):
+        comp = self.cat._pipeline.get_component(self.CoreComponentType.ner)
+        self.assertNotIsInstance(comp, self.VNER)
+        self.assertIsInstance(comp, self.DNER)
+
+    def test_can_get_entities(self,
+                              expected_cuis: list[str] = ['C01', 'C05']):
+        _ents = self.cat.get_entities(
+            "The fittest most fit of chronic kidney failure", only_cui=True)
+        ents = _ents['entities']
+        self.assertEqual(len(ents), len(expected_cuis))
+        self.assertEqual(set(ents.values()), set(expected_cuis))
 
 
 class CATWithDocAddonTests(CATIncludingTests):

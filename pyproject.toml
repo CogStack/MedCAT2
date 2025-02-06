@@ -83,6 +83,9 @@ spacy = [
   "spacy",
   "spacy<3.8.4; python_version == '3.9'"
 ]
+dict_ner = [
+  "pyahocorasick>=2.1.0,<3.0"
+]
 test = []  # TODO - list
 
 [project.urls]
