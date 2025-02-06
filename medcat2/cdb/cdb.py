@@ -79,7 +79,7 @@ class CDB(AbstractSerialisable):
         return name
 
     def weighted_average_function(self, step: int) -> float:
-        """Get the weigthed average for steop.
+        """Get the weighted average for steop.
 
         Args:
             step (int): The steop.
@@ -105,7 +105,7 @@ class CDB(AbstractSerialisable):
 
         Args:
             cui (str):
-                Concept ID or unique identifer in this database, all concepts
+                Concept ID or unique identifier in this database, all concepts
                 that have the same CUI will be merged internally.
             names (dict[str, NameDescriptor]):
                 Names for this concept, or the value that if found in free

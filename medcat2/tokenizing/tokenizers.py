@@ -40,7 +40,7 @@ class BaseTokenizer(Protocol):
         """
         pass
 
-    def __call__(selt, text: str) -> MutableDocument:
+    def __call__(self, text: str) -> MutableDocument:
         pass
 
     @classmethod

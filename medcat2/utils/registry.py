@@ -47,7 +47,7 @@ class Registry(Generic[P]):
             self._ensure_lazy_default(component_name)
         if component_name not in self._components:
             raise MedCATRegistryException(
-                f"No component registered by nane '{component_name}'. "
+                f"No component registered by name '{component_name}'. "
                 f"Available components: {self.list_components()}")
         return self._components[component_name]
 

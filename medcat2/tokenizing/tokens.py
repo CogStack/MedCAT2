@@ -4,7 +4,7 @@ from typing import Protocol, Optional, Iterator, overload, Union, Any, Type
 class BaseToken(Protocol):
     """Base token protocol.
 
-    This represents the static (unchangable) parts of a token.
+    This represents the static (unchangeable) parts of a token.
     """
 
     @property
@@ -24,7 +24,7 @@ class BaseToken(Protocol):
 
     @property
     def is_upper(self) -> bool:
-        """Whether hte text is upper case."""
+        """Whether the text is upper case."""
         pass
 
     @property
@@ -34,7 +34,7 @@ class BaseToken(Protocol):
 
     @property
     def char_index(self) -> int:
-        """The caracter index of the start of this token"""
+        """The character index of the start of this token"""
         pass
 
     @property
@@ -108,7 +108,7 @@ class MutableToken(Protocol):
 class BaseEntity(Protocol):
     """Base entity protocol.
 
-    This describes the static (unchangable) parts of an entity or
+    This describes the static (unchangeable) parts of an entity or
     sequence of tokens.
     """
 
@@ -152,7 +152,7 @@ class BaseEntity(Protocol):
 class MutableEntity(Protocol):
     """The mutable part of an entity.
 
-    This represent the changable part of an entnity. That is, parts
+    This represent the changeable part of an entnity. That is, parts
     that should be changed by the various components.
     """
 
@@ -178,7 +178,7 @@ class MutableEntity(Protocol):
         pass
 
     def set_addon_data(self, path: str, val: Any) -> None:
-        """Used to add arbitray data to the entity.
+        """Used to add arbitrary data to the entity.
 
         This is generally used by addons to keep track of their data.
 
@@ -320,7 +320,7 @@ class MutableEntity(Protocol):
 class BaseDocument(Protocol):
     """The base document protocol.
 
-    Represents the unchangable parts of the whole document.
+    Represents the unchangeable parts of the whole document.
     """
 
     @property
@@ -398,7 +398,7 @@ class MutableDocument(Protocol):
         pass
 
     def set_addon_data(self, path: str, val: Any) -> None:
-        """Used to add arbitray data to the entity.
+        """Used to add arbitrary data to the entity.
 
         This is generally used by addons to keep track of their data.
 

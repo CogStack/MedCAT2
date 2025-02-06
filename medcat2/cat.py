@@ -74,7 +74,7 @@ class CAT(AbstractSerialisable):
 
         Args:
             text (str): The text to use.
-            only_cui (bool, optional): Whether to only ouput the CUIs
+            only_cui (bool, optional): Whether to only output the CUIs
                 rather than the entire context. Defaults to False.
 
         Returns:

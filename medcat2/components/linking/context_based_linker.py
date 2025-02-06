@@ -109,7 +109,7 @@ class Linker(AbstractCoreComponent):
         cnf_l = self.config.components.linking
         # NOTE: there used to be the condition
         # but if there are cuis, and it's an entity - surely, there's a match?
-        # And there wasn't really an alterantive anyway (which could have
+        # And there wasn't really an alternative anyway (which could have
         # caused and exception to be raised or cui/similarity from previous
         # entity to be used)
         # if len(cuis) > 0:

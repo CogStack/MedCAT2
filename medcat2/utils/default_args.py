@@ -1,5 +1,5 @@
 """This module exists purely to set the default arguments
-in the config for the default tokenizer and the defualt
+in the config for the default tokenizer and the default
 components creation.
 """
 from typing import Optional

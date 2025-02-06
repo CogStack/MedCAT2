@@ -13,7 +13,7 @@ def do_conversion(file_from: str, file_to: str,
 
     Args:
         file_from (str): The v1 model pack path.
-        file_to (str): The v2/target model pach path.
+        file_to (str): The v2/target model pack path.
         save_format (AvailableSerialisers): The type of serialiser for v2.
     """
     converter = Converter(file_from, file_to, save_format)
@@ -29,7 +29,7 @@ def main(argv: Optional[list[str]] = None):
                         choices=list(AvailableSerialisers),
                         type=lambda s: AvailableSerialisers[s.lower()])
     parser.add_argument('--silent', '-s',
-                        help='Make the operation silent (no consol ouptut)',
+                        help='Make the operation silent (no console output)',
                         action='store_true')
     parser.add_argument('--verbose', '--debug',
                         help='Make the operation produce more debug output',

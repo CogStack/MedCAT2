@@ -190,7 +190,7 @@ class General(SerialisableBaseModel):
     if `long` it will be CUI | Name | Confidence"""
     map_cui_to_group: bool = False
     """If the cdb.addl_info['cui2group'] is provided and this option enabled,
-    each CUI will be maped to the group"""
+    each CUI will be mapped to the group"""
     simple_hash: bool = False
     """Whether to use a simple hash.
 
@@ -201,13 +201,13 @@ class General(SerialisableBaseModel):
 class LinkingFilters(SerialisableBaseModel):
     """These describe the linking filters used alongside the model.
 
-    When no CUIs nor exlcuded CUIs are specified (the sets are empty),
+    When no CUIs nor excluded CUIs are specified (the sets are empty),
     all CUIs are accepted.
     If there are CUIs specified then only those will be accepted.
     If there are excluded CUIs specified, they are excluded.
 
     In some cases, there are extra filters as well as MedCATtrainer (MCT)
-    export filters. These are expcted to follow the following:
+    export filters. These are expected to follow the following:
     extra_cui_filter ⊆ MCT filter ⊆ Model/config filter
 
     While any other CUIs can be included in the the extra CUI filter or
@@ -274,11 +274,11 @@ class Linking(ComponentConfig):
     used for similarity calculation and will have a similarity of -1."""
     always_calculate_similarity: bool = False
     """Do we want to calculate context similarity even for concepts that are
-    not ambigous."""
+    not ambiguous."""
     calculate_dynamic_threshold: bool = False
     """Concepts below this similarity will be ignored. Type can be
     static/dynamic - if dynamic each CUI has a different TH
-    and it is calcualted as the average confidence for that
+    and it is calculated as the average confidence for that
     CUI * similarity_threshold. Take care that dynamic works only
     if the cdb was trained with calculate_dynamic_threshold = True."""
     similarity_threshold_type: str = 'static'
@@ -292,23 +292,23 @@ class Linking(ComponentConfig):
     """If >0 concepts for which a detection is its primary name
     will be preferred by that amount (0 to 1)"""
     prefer_frequent_concepts: float = 0.35
-    """If >0 concepts that are more frequent will be prefered
+    """If >0 concepts that are more frequent will be preferred
     by a multiply of this amount"""
     subsample_after: int = 30000
     """DISABLED in code permanetly: Subsample during unsupervised
     training if a concept has received more than"""
     devalue_linked_concepts: bool = False
     """When adding a positive example, should it also be treated as Negative
-    for concepts which link to the postive one via names (ambigous names)."""
+    for concepts which link to the positive one via names (ambiguous names)."""
     context_ignore_center_tokens: bool = False
     """If true when the context of a concept is calculated (embedding)
-    the words making that concept are not taken into accout"""
+    the words making that concept are not taken into account"""
 
 
 class Preprocessing(SerialisableBaseModel):
     """The preprocessing part of the config"""
     words_to_skip: set = {'nos'}
-    """This words will be completly ignored from concepts and from the text
+    """This words will be completely ignored from concepts and from the text
     (must be a Set)"""
     keep_punct: set = {'.', ':'}
     """All punct will be skipped by default, here you can set what
@@ -319,7 +319,7 @@ class Preprocessing(SerialisableBaseModel):
     - https://spacy.io/usage/linguistic-features#pos-tagging
     - Label scheme section per model at https://spacy.io/models/en"""
     skip_stopwords: bool = False
-    """Should stopwords be skipped/ingored when processing input"""
+    """Should stopwords be skipped/ignored when processing input"""
     min_len_normalize: int = 5
     """Nothing below this length will ever be normalized (input tokens or
     concept names), normalized means lemmatized in this case"""
@@ -342,8 +342,7 @@ class CDBMaker(SerialisableBaseModel):
     """Name versions to be generated."""
     multi_separator: str = '|'
     """If multiple names or type_ids for a concept present in one row of a CSV,
-    they are separted
-    by the character below."""
+    they are separated by the specified character."""
     remove_parenthesis: int = 5
     """Should preferred names with parenthesis be cleaned 0 means no,
     else it means if longer than or equal
@@ -504,7 +503,7 @@ class ModelMeta(SerialisableBaseModel):
                                         project_name=project_name)
             if len(_names) != 1:
                 logger.warning(
-                    "Something went wrong druing %ssupervised training. "
+                    "Something went wrong during %ssupervised training. "
                     "The number of documents trained was unable to be "
                     "clearly obtained. Counted %d names (%s) at %s",
                     'un' if not supervised else '', len(_names), _names,

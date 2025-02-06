@@ -200,7 +200,7 @@ def create_core_component(comp_type: CoreComponentType,
 
 def get_registered_components(comp_type: CoreComponentType
                               ) -> list[tuple[str, str]]:
-    """Get all registerd components (name and class name for each).
+    """Get all registered components (name and class name for each).
 
     Args:
         comp_type (CoreComponentType): The core component type.

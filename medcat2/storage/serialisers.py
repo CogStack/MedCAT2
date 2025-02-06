@@ -114,7 +114,7 @@ class Serialiser(ABC):
     def deserialise_all(self, folder_path: str, **kwargs) -> Serialisable:
         """Deserialise contents of folder.
 
-        Additional initialisation keyword argumnets can be provided if needed.
+        Additional initialisation keyword arguments can be provided if needed.
 
         This loads both the raw attributes for this object as well as the
         serialisable parts / attributes recursively.
@@ -204,7 +204,7 @@ def get_serialiser(
         ValueError: If no serialiser is found.
 
     Returns:
-        Serialiser: The appropraite serialiser.
+        Serialiser: The appropriate serialiser.
     """
     if isinstance(serialiser_type, str):
         serialiser_type = AvailableSerialisers[serialiser_type.lower()]

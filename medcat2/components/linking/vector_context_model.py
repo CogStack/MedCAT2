@@ -151,7 +151,7 @@ class ContextModel(AbstractSerialisable):
             doc (BaseDocument): The document to look in.
 
         Returns:
-            float: The simularity.
+            float: The similarity.
         """
         vectors = self.get_context_vectors(entity, doc)
         sim = self._similarity(cui, vectors)
@@ -359,7 +359,7 @@ def get_lr_linking(config: Linking, cui_count: int) -> float:
         return config.optim['lr']
     elif config.optim['type'] == 'linear':
         lr = config.optim['base_lr']
-        cui_count += 1  # Just in case incrase by 1
+        cui_count += 1  # Just in case increase by 1
         return max(lr / cui_count, config.optim['min_lr'])
     else:
         raise Exception("Optimizer not implemented")
@@ -380,7 +380,7 @@ def get_similarity(cur_vectors: dict[str, np.ndarray],
         if vec_type not in cur_vectors:
             # NOTE: this means that the saved vector doesn't have
             #       context at this vector type. This should be a
-            #       rare occurance, but is definitely present in
+            #       rare occurrence, but is definitely present in
             #       models converted from v1
             continue
         w = weights[vec_type]
