@@ -26,6 +26,7 @@ class FTokenizer:
 
 
 class ComponentInitTests:
+    expected_def_components = 1
     default = 'default'
     # these need to be specified when overriding
     comp_type: types.CoreComponentType
@@ -47,7 +48,7 @@ class ComponentInitTests:
 
     def test_has_default(self):
         avail_components = types.get_registered_components(self.comp_type)
-        self.assertEqual(len(avail_components), 1)
+        self.assertEqual(len(avail_components), self.expected_def_components)
         name, cls_name = avail_components[0]
         self.assertEqual(name, self.default)
         self.assertIs(cls_name, self.default_cls.__name__)
