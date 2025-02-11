@@ -1,15 +1,44 @@
-from typing import Callable, Protocol
+from typing import Callable, Protocol, Any
 
-from medcat2.components.types import BaseComponent
+from medcat2.components.types import BaseComponent, MutableEntity
 from medcat2.utils.registry import Registry
 from medcat2.config.config import ComponentConfig
 
 
 class AddonComponent(BaseComponent, Protocol):
     """Base/abstract addon component class."""
+    NAME_PREFIX: str = "addon_"
+    NAME_SPLITTER: str = "_"
+    config: ComponentConfig
+
+    @property
+    def addon_type(self) -> str:
+        pass
 
     def is_core(self) -> bool:
         return False
+
+    @property
+    def should_save(self) -> bool:
+        pass
+
+    def save(self, folder: str) -> None:
+        pass
+
+    def get_folder_name(self) -> str:
+        return self.NAME_PREFIX + self.full_name
+
+    @property
+    def full_name(self) -> str:
+        return self.addon_type + self.NAME_SPLITTER + str(self.name)
+
+    @property
+    def include_in_output(self) -> bool:
+        return False  # default to False
+
+    def get_output_key_val(self, ent: MutableEntity
+                           ) -> tuple[str, dict[str, Any]]:
+        pass
 
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {

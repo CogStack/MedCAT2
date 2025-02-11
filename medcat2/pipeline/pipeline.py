@@ -1,5 +1,6 @@
-from typing import Optional, Any, Type
+from typing import Optional, Any, Type, Iterable
 import logging
+import os
 
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
 from medcat2.components.types import (CoreComponentType, create_core_component,
@@ -185,6 +186,22 @@ class Pipeline:
             if comp.get_type() is ctype:
                 return comp
         raise ValueError(f"No component found of type {ctype}")
+
+    def add_addon(self, addon: AddonComponent) -> None:
+        self._addons.append(addon)
+
+    def save_addons(self, folder_path: str) -> None:
+        for addon in self._addons:
+            if addon.should_save:
+                addon_folder = os.path.join(
+                    folder_path, addon.get_folder_name())
+                logger.info("Saving addon '%s' to '%s'",
+                            addon.full_name, addon_folder)
+                os.mkdir(addon_folder)
+                addon.save(addon_folder)
+
+    def iter_addons(self) -> Iterable[AddonComponent]:
+        yield from self._addons
 
 
 class IncorrectArgumentsForTokenizer(TypeError):

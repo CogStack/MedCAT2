@@ -6,7 +6,7 @@ from medcat2.cat import CAT
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
 from medcat2.config.config import Config, ComponentConfig
-from medcat2.tokenizing.tokenizers import BaseTokenizer
+from medcat2.tokenizing.tokenizers import BaseTokenizer, MutableEntity
 
 import unittest
 import unittest.mock
@@ -21,6 +21,28 @@ class FakeAddonNoInit:
 
     def __call__(self, doc):
         return doc
+
+    @property
+    def should_save(self) -> bool:
+        return False
+
+    def save(self, path: str) -> None:
+        return
+
+    @property
+    def addon_type(self) -> str:
+        return 'FAKE'
+
+    def get_folder_name(self) -> str:
+        return "addon_" + self.full_name
+
+    @property
+    def full_name(self) -> str:
+        return self.addon_type + "_" + str(self.name)
+
+    def get_output_key_val(self, ent: MutableEntity
+                           ) -> tuple[str, dict[str, Any]]:
+        return '', {}
 
 
 class FakeAddonWithInit:
@@ -44,6 +66,24 @@ class FakeAddonWithInit:
     def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
         return {}
+
+    @property
+    def should_save(self) -> bool:
+        return False
+
+    def save(self, path: str) -> None:
+        return
+
+    @property
+    def addon_type(self) -> str:
+        return 'FAKE'
+
+    def get_folder_name(self) -> str:
+        return "addon_" + self.full_name
+
+    @property
+    def full_name(self) -> str:
+        return self.addon_type + "_" + str(self.name)
 
 
 class AddonsRegistrationTests(unittest.TestCase):

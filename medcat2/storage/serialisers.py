@@ -78,7 +78,8 @@ class Serialiser(ABC):
             raise TypeError(
                 "Expected nested bits to be serialised by the same serialiser")
 
-    def serialise_all(self, obj: Serialisable, target_folder: str) -> None:
+    def serialise_all(self, obj: Serialisable, target_folder: str,
+                      overwrite: bool = False) -> None:
         """Serialise the entire object into the target folder.
 
         This finds the serialisable parts (attributes) of the object and calls
@@ -88,6 +89,7 @@ class Serialiser(ABC):
         Args:
             obj (Serialisable): The object to serialise.
             target_folder (str): The target folder.
+            overwrite (bool): Whether to allow overwriting. Defaults to False.
 
         Raises:
             IllegalSchemaException:
@@ -98,12 +100,13 @@ class Serialiser(ABC):
         for part, name in ser_parts:
             basename = name
             part_folder = os.path.join(target_folder, basename)
-            if os.path.exists(part_folder):
+            if os.path.exists(part_folder) and not overwrite:
                 raise IllegalSchemaException(
                     f"File already exists: {part_folder}. Unable to overwrite")
-            os.mkdir(part_folder)
+            elif not os.path.exists(part_folder):
+                os.mkdir(part_folder)
             # recursive
-            self.serialise_all(part, part_folder)
+            self.serialise_all(part, part_folder, overwrite=overwrite)
         if raw_parts:
             raw_file = os.path.join(target_folder, self.RAW_FILE)
             self.serialise(raw_parts, raw_file)
@@ -111,7 +114,10 @@ class Serialiser(ABC):
         save_schema(schema_path, obj.__class__, obj.get_init_attrs())
         self.save_ser_type_file(target_folder)
 
-    def deserialise_all(self, folder_path: str, **kwargs) -> Serialisable:
+    def deserialise_all(self, folder_path: str,
+                        ignore_folders_prefix: set[str] = set(),
+                        ignore_folders_suffix: set[str] = set(),
+                        **kwargs) -> Serialisable:
         """Deserialise contents of folder.
 
         Additional initialisation keyword arguments can be provided if needed.
@@ -121,6 +127,10 @@ class Serialiser(ABC):
 
         Args:
             folder_path (str): The folder path.
+            ignore_folders_prefix (set[str]): The prefixes of folders
+                to ignore.
+            ignore_folders_suffix (set[str]): The suffixes of folders
+                to ignore.
 
         Returns:
             Serialisable: The resulting object.
@@ -136,10 +146,23 @@ class Serialiser(ABC):
         for part_name in os.listdir(folder_path):
             if part_name == DEFAULT_SCHEMA_FILE or part_name == self.RAW_FILE:
                 continue
+            suitable_folder = True
+            for ignore_prefix in ignore_folders_prefix:
+                if part_name.startswith(ignore_prefix):
+                    suitable_folder = False
+                    break
+            for ignore_suffix in ignore_folders_suffix:
+                if part_name.endswith(ignore_suffix):
+                    suitable_folder = False
+                    break
+            if not suitable_folder:
+                continue
             part_path = os.path.join(folder_path, part_name)
             if not os.path.isdir(part_path):
                 continue
-            part = self.deserialise_all(part_path)
+            part = self.deserialise_all(
+                part_path, ignore_folders_prefix=ignore_folders_prefix,
+                ignore_folders_suffix=ignore_folders_suffix)
             if part_name in init_attrs:
                 init_kwargs[part_name] = part
             else:
@@ -243,7 +266,8 @@ def get_serialiser_from_folder(folder_path: str) -> Serialiser:
 
 
 def serialise(serialiser_type: Union[str, AvailableSerialisers],
-              obj: Serialisable, target_folder: str) -> None:
+              obj: Serialisable, target_folder: str,
+              overwrite: bool = False) -> None:
     """Serialise an object based on the specified serialiser type.
 
     Args:
@@ -253,12 +277,17 @@ def serialise(serialiser_type: Union[str, AvailableSerialisers],
             The object to serialise.
         target_folder (str):
             The folder to serialise into.
+        overwrite (bool):
+            Whether to allow overwriting. Defaults to False.
     """
     ser = get_serialiser(serialiser_type)
-    ser.serialise_all(obj, target_folder)
+    ser.serialise_all(obj, target_folder, overwrite=overwrite)
 
 
-def deserialise(folder_path: str, **init_kwargs) -> Serialisable:
+def deserialise(folder_path: str,
+                ignore_folders_prefix: set[str] = set(),
+                ignore_folders_suffix: set[str] = set(),
+                **init_kwargs) -> Serialisable:
     """Deserialise contents of a folder.
 
     Extra init keyword arguments can be provided if needed.
@@ -267,9 +296,13 @@ def deserialise(folder_path: str, **init_kwargs) -> Serialisable:
 
     Args:
         folder_path (str): The folder to serialise.
+        ignore_folders_prefix (set[str]): The prefixes of folders to ignore.
+        ignore_folders_suffix (set[str]): The suffixes of folders to ignore.
 
     Returns:
         Serialisable: The deserialised object.
     """
     ser = get_serialiser_from_folder(folder_path)
-    return ser.deserialise_all(folder_path, **init_kwargs)
+    return ser.deserialise_all(
+        folder_path, ignore_folders_prefix=ignore_folders_prefix,
+        ignore_folders_suffix=ignore_folders_suffix, **init_kwargs)

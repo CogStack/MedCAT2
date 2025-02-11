@@ -15,6 +15,7 @@ from medcat2.utils.fileutils import ensure_folder_if_parent
 from medcat2.pipeline.pipeline import Pipeline
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.data.entities import Entity, Entities, OnlyCUIEntities
+from medcat2.components.addons.addons import AddonComponent
 
 
 logger = logging.getLogger(__name__)
@@ -124,7 +125,7 @@ class CAT(AbstractSerialisable):
             right_context = []
             center_context = []
 
-        return {
+        out_dict: Entity = {
             'pretty_name': self.cdb.get_name(cui),
             'cui': cui,
             'type_ids': list(self.cdb.cui2info[cui].type_ids),
@@ -148,6 +149,25 @@ class CAT(AbstractSerialisable):
             'context_center': center_context,
             'context_right': right_context,
         }
+        # addons:
+        for addon in self._pipeline._addons:
+            if not addon.include_in_output:
+                continue
+            key, val = addon.get_output_key_val(ent)
+            if key in out_dict:
+                # e.g multiple meta_anns types
+                # NOTE: type-ignore due to the strict TypedDict implementation
+                cur_val = out_dict[key]  # type: ignore
+                if not isinstance(cur_val, dict):
+                    raise ValueError(
+                        "Unable to merge multiple addon output for the same "
+                        f" key. Tried to update '{key}'. Previously had "
+                        f"{cur_val}, got {val} from addon {addon.full_name}")
+                cur_val.update(val)
+            else:
+                # NOTE: type-ignore due to the strict TypedDict implementation
+                out_dict[key] = val  # type: ignore
+        return out_dict
 
     def _doc_to_out_entity(self, ent: MutableEntity,
                            doc_tokens: list[str],
@@ -217,6 +237,8 @@ class CAT(AbstractSerialisable):
         ensure_folder_if_parent(model_pack_path)
         # serialise
         serialise(serialiser_type, self, model_pack_path)
+        # addons
+        self._pipeline.save_addons(model_pack_path)
         # zip everything
         shutil.make_archive(model_pack_path, 'zip', root_dir=model_pack_path)
         return model_pack_path
@@ -244,7 +266,9 @@ class CAT(AbstractSerialisable):
             model_pack_path = folder_path
         logger.info("Attempting to load model from file: %s",
                     model_pack_path)
-        cat = deserialise(model_pack_path, model_load_path=model_pack_path)
+        # NOTE: ignoring addons since they will be loaded later / separately
+        cat = deserialise(model_pack_path, model_load_path=model_pack_path,
+                          ignore_folders_prefix={AddonComponent.NAME_PREFIX})
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         # NOTE: Some CDB attributes will have been set manually
@@ -258,3 +282,9 @@ class CAT(AbstractSerialisable):
         return (self.cdb == other.cdb and
                 ((self.vocab is None and other.vocab is None)
                  or self.vocab == other.vocab))
+
+    # addon (e.g MetaCAT) related stuff
+
+    def add_addon(self, addon: AddonComponent) -> None:
+        self.config.components.addons.append(addon.config)
+        self._pipeline.add_addon(addon)

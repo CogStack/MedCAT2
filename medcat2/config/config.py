@@ -28,6 +28,10 @@ class SerialisableBaseModel(BaseModel):
     def ignore_attrs(cls) -> list[str]:
         return []
 
+    @classmethod
+    def include_properties(cls) -> list[str]:
+        return []
+
     def merge_config(self, other: dict):
         """Merge this config with another config's (partial) model dump.
 
