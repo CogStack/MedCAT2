@@ -46,7 +46,11 @@ class CAT(AbstractSerialisable):
         self.config = config
 
         self._trainer: Optional[Trainer] = None
+        self._pipeline = self._recrate_pipe(model_load_path)
+
+    def _recrate_pipe(self, model_load_path: Optional[str] = None) -> Pipeline:
         self._pipeline = Pipeline(self.cdb, self.vocab, model_load_path)
+        return self._pipeline
 
     @classmethod
     def get_init_attrs(cls) -> list[str]:
@@ -63,11 +67,39 @@ class CAT(AbstractSerialisable):
     def __call__(self, text: str) -> Optional[MutableDocument]:
         return self._pipeline.get_doc(text)
 
+    def _ensure_not_training(self) -> None:
+        """Method to ensure config is not set to train.
+
+        `config.components.linking.train` should only be True while training
+        and not during inference.
+        This aalso corrects the setting if necessary.
+        """
+        # pass
+        if self.config.components.linking.train:
+            logger.warning("Training was enabled during inference. "
+                           "It was automatically disabled.")
+            self.config.components.linking.train = False
+
     def get_entities(self,
                      text: str,
                      only_cui: bool = False,
                      # TODO : addl_info
                      ) -> Union[dict, Entities, OnlyCUIEntities]:
+        """Get the entities recognised and linked within the provided text.
+
+        This will run the text through the pipeline and annotated the
+        recognised and linked entities.
+
+        Args:
+            text (str): The text to use.
+            only_cui (bool, optional): Whether to only output the CUIs
+                rather than the entire context. Defaults to False.
+
+        Returns:
+            Union[dict, Entities, OnlyCUIEntities]: The entities found and
+                linked within the text.
+        """
+        self._ensure_not_training()
         doc = self(text)
         if not doc:
             return {}
@@ -176,6 +208,7 @@ class CAT(AbstractSerialisable):
 
     @property
     def trainer(self):
+        """The trainer object."""
         if not self._trainer:
             self._trainer = Trainer(self.cdb, self.__call__, self._pipeline)
         return self._trainer
@@ -184,6 +217,19 @@ class CAT(AbstractSerialisable):
             self, target_folder: str, pack_name: str = DEFAULT_PACK_NAME,
             serialiser_type: Union[str, AvailableSerialisers] = 'dill'
             ) -> str:
+        """Save model pack.
+
+        Args:
+            target_folder (str):
+                The folder to save the pack in.
+            pack_name (str, optional): The model pack name.
+                Defaults to DEFAULT_PACK_NAME.
+            serialiser_type (Union[str, AvailableSerialisers], optional):
+                The serialiser type. Defaults to 'dill'.
+
+        Returns:
+            str: The final model pack path.
+        """
         self.config.meta.mark_saved_now()
         # figure out the location/folder of the saved files
         model_pack_path = os.path.join(target_folder, pack_name)
@@ -199,6 +245,17 @@ class CAT(AbstractSerialisable):
 
     @classmethod
     def load_model_pack(cls, model_pack_path: str) -> 'CAT':
+        """Load the model pack from file.
+
+        Args:
+            model_pack_path (str): The model pack path.
+
+        Raises:
+            ValueError: If the saved data does not represent a model pack.
+
+        Returns:
+            CAT: The loaded model pack.
+        """
         if model_pack_path.endswith(".zip"):
             folder_path = model_pack_path.rsplit(".zip", 1)[0]
             if not os.path.exists(folder_path):
@@ -214,10 +271,9 @@ class CAT(AbstractSerialisable):
                           ignore_folders_prefix={AddonComponent.NAME_PREFIX})
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
-        # NOTE: this should only be `True` during training
-        #       but some models (especially converted ones)
-        #       are saved with it set to True accidentally
-        cat.config.components.linking.train = False
+        # NOTE: Some CDB attributes will have been set manually
+        #       after init so the CDB is likely "dirty"
+        cat.cdb._undirty()
         return cat
 
     def __eq__(self, other: Any) -> bool:

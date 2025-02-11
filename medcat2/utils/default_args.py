@@ -1,5 +1,5 @@
 """This module exists purely to set the default arguments
-in the config for the default tokenizer and the defualt
+in the config for the default tokenizer and the default
 components creation.
 """
 from typing import Optional
@@ -19,6 +19,14 @@ logger = logging.getLogger(__name__)
 
 
 def set_tokenizer_defaults(config: Config) -> None:
+    """Set the default init arguments for the tokenizer.
+
+    This generally uses the `get_init_args` and `get_init_kwargs`
+    method bound to the tokenizer class.
+
+    Args:
+        config (Config): The same (modified) config.
+    """
     nlp_cnf = config.general.nlp
     tok_cls = get_tokenizer_creator(nlp_cnf.provider)
     if hasattr(tok_cls, 'get_init_args'):
@@ -40,6 +48,17 @@ def set_tokenizer_defaults(config: Config) -> None:
 def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],
                             tokenizer: BaseTokenizer,
                             model_load_path: Optional[str]):
+    """Set the default init arguments for the componts.
+
+    This generally uses the `get_init_args` and `get_init_kwargs`
+    method bound to the tokenizer class.
+
+    Args:
+        cdb (CDB): The CDB.
+        vocab (Optional[Vocab]): The Vocab.
+        tokenizer (BaseTokenizer): The tokenizer.
+        model_load_path (Optional[str]): The model load path.
+    """
     for comp_name, comp_cnf in cdb.config.components:
         if not isinstance(comp_cnf, ComponentConfig):
             # e.g ignore order
@@ -69,6 +88,14 @@ def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],
 def set_addon_defaults(cdb: CDB, vocab: Optional[Vocab],
                        tokenizer: BaseTokenizer,
                        model_load_path: Optional[str]):
+    """Set default init arguments for addons.
+
+    Args:
+        cdb (CDB): The CDB.
+        vocab (Optional[Vocab]): The Vocab.
+        tokenizer (BaseTokenizer): The tokenizer.
+        model_load_path (Optional[str]): The model load path.
+    """
     for addon_cnf in cdb.config.components.addons:
         addon_cls = get_addon_creator(addon_cnf.comp_name)
         if hasattr(addon_cls, 'get_init_args'):

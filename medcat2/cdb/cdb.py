@@ -23,6 +23,7 @@ class CDB(AbstractSerialisable):
         self.addl_info: dict[str, Any] = {}
         self._subnames: set[str] = set()
         self.is_dirty = False
+        self.has_changed_names = False
 
     @classmethod
     def get_init_attrs(cls) -> list[str]:
@@ -30,16 +31,22 @@ class CDB(AbstractSerialisable):
 
     def _undirty(self):
         logger.info("Resetting subnames")
-        if not hasattr(self, '_subnames'):
-            # NOTE: only if/when loading a model without subnames set
-            self._subnames = set()
         self._subnames.clear()
         for info in self.cui2info.values():
             self._subnames.update(info.subnames)
+        self.has_changed_names = False
         self.is_dirty = False
 
     def has_subname(self, name: str) -> bool:
-        if (not hasattr(self, 'is_dirty') or self.is_dirty or
+        """Whether the CDB has the specified subname.
+
+        Args:
+            name (str): The subname to check.
+
+        Returns:
+            bool: Whether the subname is present in this CDB.
+        """
+        if (self.is_dirty or self.has_changed_names or
                 len(self._subnames) < len(self.name2info)):
             self._undirty()
         return name in self._subnames
@@ -70,10 +77,23 @@ class CDB(AbstractSerialisable):
 
         return name
 
-    def weighted_average_function(self, step: int):
+    def weighted_average_function(self, step: int) -> float:
+        """Get the weighted average for steop.
+
+        Args:
+            step (int): The steop.
+
+        Returns:
+            float: The weighted average.
+        """
         return default_weighted_average(step)
 
     def add_types(self, types: Iterable[tuple[str, str]]) -> None:
+        """Add type info to CDB.
+
+        Args:
+            types (Iterable[tuple[str, str]]): The raw type info.
+        """
         for type_id, name in types:
             self.type_id2info[type_id] = TypeInfo(type_id, name)
 
@@ -84,7 +104,7 @@ class CDB(AbstractSerialisable):
 
         Args:
             cui (str):
-                Concept ID or unique identifer in this database, all concepts
+                Concept ID or unique identifier in this database, all concepts
                 that have the same CUI will be merged internally.
             names (dict[str, NameDescriptor]):
                 Names for this concept, or the value that if found in free
@@ -134,6 +154,8 @@ class CDB(AbstractSerialisable):
                     self.token_counts[token] += 1
                 else:
                     self.token_counts[token] = 1
+            self.has_changed_names = True
+            self.is_dirty = True
 
     def _add_full_build(self, cui: str, names: dict[str, NameDescriptor],
                         ontologies: set[str], description: str,
@@ -210,6 +232,7 @@ class CDB(AbstractSerialisable):
                            "particular name", cui,
                            self.config.cdb_maker.min_letters_required)
             return
+        will_change_names = any(name not in self.name2info for name in names)
         # Add CUI to the required dictionaries
         if cui not in self.cui2info:
             # Create placeholders
@@ -234,6 +257,8 @@ class CDB(AbstractSerialisable):
         # Add other fields if full_build
         if full_build:
             self._add_full_build(cui, names, ontologies, description, type_ids)
+        if will_change_names:
+            self.has_changed_names = True
         self.is_dirty = True
 
     def reset_training(self) -> None:
@@ -242,8 +267,10 @@ class CDB(AbstractSerialisable):
         does not remove synonyms (names) that were potentially added during
         supervised/online learning.
         """
-        for info in self.cui2info.values():
-            info.reset_training()
+        for cui_info in self.cui2info.values():
+            cui_info.reset_training()
+        for name_info in self.name2info.values():
+            name_info.count_train = 0
         self.is_dirty = True
 
     def _remove_names(self, cui: str, names: Iterable[str]) -> None:
@@ -290,6 +317,7 @@ class CDB(AbstractSerialisable):
                         elif cuis2status[_cui] == 'P':
                             cuis2status[_cui] = 'PD'
         self.is_dirty = True
+        self.has_changed_names = True
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, CDB):

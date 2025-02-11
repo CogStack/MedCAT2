@@ -35,7 +35,7 @@ class Vocab(AbstractSerialisable):
 
     def inc_or_add(self, word: str, cnt: int = 1,
                    vec: Optional[np.ndarray] = None) -> None:
-        """Add a word or incrase its count.
+        """Add a word or increase its count.
 
         Args:
             word(str):
@@ -90,7 +90,7 @@ class Vocab(AbstractSerialisable):
             word(str):
                 For which word to increase the count
             cnt(int):
-                By how muhc to incrase the count (Default value = 1)
+                By how muhc to increase the count (Default value = 1)
         """
         self.item(word)['count'] += cnt
 

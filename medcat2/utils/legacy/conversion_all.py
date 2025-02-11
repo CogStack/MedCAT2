@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Converter:
+    """Converts v1 models to v2 models."""
     cdb_name = 'cdb.dat'
     vocab_name = 'vocab.dat'
     config_name = 'config.dat'
@@ -37,6 +38,7 @@ class Converter:
 
     @property
     def expected_files_in_folder(self):
+        """The base names of the required files in a folder for a v1 model."""
         return [self.cdb_name, self.vocab_name, ]
 
     def _validate(self):
@@ -47,6 +49,16 @@ class Converter:
                                  f"{self.old_model_folder}")
 
     def convert(self) -> CAT:
+        """Use the gathered information to convert to a v2 model.
+
+        This converts the CDB, Vocab, and Config, in order and then
+        created the model pack.
+
+        If `self.new_model_folder` is set, the model will be saved as well.
+
+        Returns:
+            CAT: The model pack.
+        """
         cdb = get_cdb_from_old(
             os.path.join(self.old_model_folder, self.cdb_name))
         vocab = get_vocab_from_old(
@@ -66,4 +78,10 @@ class Converter:
 
 
 def unpack(model_zip_path: str, target_folder: str):
+    """Unpack v1 model into target folder.
+
+    Args:
+        model_zip_path (str): ZIP path.
+        target_folder (str): Target folder.
+    """
     shutil.unpack_archive(model_zip_path, extract_dir=target_folder)
