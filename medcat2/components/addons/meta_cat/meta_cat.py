@@ -16,7 +16,7 @@ from medcat2.components.addons.meta_cat.ml_utils import (
     predict, train_model, set_all_seeds, eval_model)
 from medcat2.components.addons.meta_cat.data_utils import (
     prepare_from_json, encode_category_values, prepare_for_oversampled_data)
-from medcat2.components.addons.addons import AddonComponent, register_addon
+from medcat2.components.addons.addons import AddonComponent
 from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
     TokenizerWrapperBase)
 from medcat2.storage.serialisers import serialise, deserialise
@@ -791,7 +791,3 @@ class MisconfiguredMetaCATException(ValueError):
 
     def ____(self, *args):
         super().__init__(*args)
-
-
-# NOTE: register as soon as this is imported
-register_addon(MetaCATAddon.addon_type, MetaCATAddon)

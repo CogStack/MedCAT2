@@ -42,7 +42,7 @@ class AddonComponent(BaseComponent, Protocol):
 
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {
-    # 'addon name' : ('module name', 'class name')
+    'meta_cat': ('medcat2.components.addons.meta_cat.meta_cat', 'MetaCATAddon')
 }
 
 # NOTE: type error due to non-concrete type
