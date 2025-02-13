@@ -122,6 +122,11 @@ class MetaCATAddon(AddonComponent):
         mc_path, tokenizer_folder = self._get_meta_cat_and_tokenizer_paths(
             folder_path)
         mc = cast(MetaCAT, deserialise(mc_path))
+        mc.tokenizer = self._load_tokenizer(tokenizer_folder)
+        return mc
+
+    def _load_tokenizer(self, tokenizer_folder: str
+                        ) -> Optional[TokenizerWrapperBase]:
         tokenizer: Optional[TokenizerWrapperBase] = None
         if self.config.general.tokenizer_name == 'bbpe':
             from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (  # noqa
@@ -132,8 +137,7 @@ class MetaCATAddon(AddonComponent):
                 TokenizerWrapperBERT)
             tokenizer = TokenizerWrapperBERT.load(
                 tokenizer_folder, self.config.model.model_variant)
-        mc.tokenizer = tokenizer
-        return mc
+        return tokenizer
 
     def _get_meta_cat_and_tokenizer_paths(self, folder_path: str
                                           ) -> tuple[str, str]:
