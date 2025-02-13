@@ -8,6 +8,9 @@ import torch
 from medcat2.components.addons.meta_cat.meta_cat import MetaCAT, MetaCATAddon
 from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
     TokenizerWrapperBase)
+# NOTE: both in same module so no benefit in dynamic loading
+from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
+    TokenizerWrapperBPE, TokenizerWrapperBERT)
 from medcat2.config.config_meta_cat import ConfigMetaCAT
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 
@@ -19,12 +22,8 @@ def _load_legacy(config: ConfigMetaCAT, save_dir_path: str) -> MetaCAT:
     tokenizer: Optional[TokenizerWrapperBase] = None
     # Load tokenizer
     if config.general.tokenizer_name == 'bbpe':
-        from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
-            TokenizerWrapperBPE)
         tokenizer = TokenizerWrapperBPE.load(save_dir_path)
     elif config.general.tokenizer_name == 'bert-tokenizer':
-        from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
-            TokenizerWrapperBERT)
         tokenizer = TokenizerWrapperBERT.load(save_dir_path,
                                               config.model.model_variant)
 
@@ -99,8 +98,7 @@ def get_meta_cat_from_old(old_path: str, tokenizer: BaseTokenizer
     """
     cnf = load_cnf(os.path.join(old_path, "config.json"))
     mc = _load_legacy(cnf, old_path)
-    # NOTE: this may leave something on the table?
-    return MetaCATAddon(cnf, tokenizer, tokenizer=mc.tokenizer,
-                        # NOTE: can't use model load path since it asasumes
-                        #       new format
-                        model_load_path=None)
+    addon = MetaCATAddon(cnf, tokenizer, model_load_path=None,
+                         tokenizer=mc.tokenizer)
+    addon.mc = mc
+    return addon
