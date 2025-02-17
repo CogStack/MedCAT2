@@ -8,6 +8,7 @@ from medcat2.cat import CAT
 from medcat2.utils.legacy.convert_cdb import get_cdb_from_old
 from medcat2.utils.legacy.convert_config import get_config_from_old
 from medcat2.utils.legacy.convert_vocab import get_vocab_from_old
+from medcat2.utils.legacy.convert_meta_cat import get_meta_cat_from_old
 from medcat2.storage.serialisers import AvailableSerialisers
 
 
@@ -69,6 +70,17 @@ class Converter:
         else:
             config = cdb.config
         cat = CAT(cdb, vocab, config)
+        # MetaCATs
+        meta_cats = [
+            get_meta_cat_from_old(
+                os.path.join(self.old_model_folder, subfolder),
+                cat._pipeline.tokenizer)
+            for subfolder in os.listdir(self.old_model_folder)
+            if subfolder.startswith("meta_")
+        ]
+        for mc in meta_cats:
+            cat.add_addon(mc)
+
         if self.new_model_folder:
             logger.info("Saving converted model to '%s'",
                         self.new_model_folder)

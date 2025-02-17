@@ -16,7 +16,7 @@ from medcat2.components.addons.meta_cat.ml_utils import (
     predict, train_model, set_all_seeds, eval_model)
 from medcat2.components.addons.meta_cat.data_utils import (
     prepare_from_json, encode_category_values, prepare_for_oversampled_data)
-from medcat2.components.addons.addons import AddonComponent, register_addon
+from medcat2.components.addons.addons import AddonComponent
 from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
     TokenizerWrapperBase)
 from medcat2.storage.serialisers import serialise, deserialise
@@ -122,6 +122,11 @@ class MetaCATAddon(AddonComponent):
         mc_path, tokenizer_folder = self._get_meta_cat_and_tokenizer_paths(
             folder_path)
         mc = cast(MetaCAT, deserialise(mc_path))
+        mc.tokenizer = self._load_tokenizer(tokenizer_folder)
+        return mc
+
+    def _load_tokenizer(self, tokenizer_folder: str
+                        ) -> Optional[TokenizerWrapperBase]:
         tokenizer: Optional[TokenizerWrapperBase] = None
         if self.config.general.tokenizer_name == 'bbpe':
             from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (  # noqa
@@ -132,8 +137,7 @@ class MetaCATAddon(AddonComponent):
                 TokenizerWrapperBERT)
             tokenizer = TokenizerWrapperBERT.load(
                 tokenizer_folder, self.config.model.model_variant)
-        mc.tokenizer = tokenizer
-        return mc
+        return tokenizer
 
     def _get_meta_cat_and_tokenizer_paths(self, folder_path: str
                                           ) -> tuple[str, str]:
@@ -791,7 +795,3 @@ class MisconfiguredMetaCATException(ValueError):
 
     def ____(self, *args):
         super().__init__(*args)
-
-
-# NOTE: register as soon as this is imported
-register_addon(MetaCATAddon.addon_type, MetaCATAddon)
