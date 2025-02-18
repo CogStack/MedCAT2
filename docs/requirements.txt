@@ -26,7 +26,7 @@ pyflakes==3.2.0
 spacy==3.8.2
 catalogue==2.0.10
 cymem==2.0.8
-Jinja2==3.1.4
+Jinja2==3.1.5
 MarkupSafe==3.0.2
 langcodes==3.4.1
 language_data==1.2.0
