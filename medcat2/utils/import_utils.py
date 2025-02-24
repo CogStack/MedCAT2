@@ -103,7 +103,14 @@ class MissingDependenciesError(Exception):
                  missing: list[str]):
         super().__init__(f"The optional dependency set '{extra_name}' "
                          f"is missing for {package_name}. The list of "
-                         f"missing dependencies: {missing}.")
+                         f"missing dependencies: {missing}. "
+                         "If this came up when using the package, you need "
+                         "to install the optional dependency alongside the "
+                         "package. For instance, you can use "
+                         f"`pip install {package_name}[{extra_name}]`. "
+                         "PS: If you require multiple extras, you need to "
+                         "specify them all ans separate by comma, e.g "
+                         "`pkg[add1,add2]`")
         self.package_name = package_name
         self.extra_name = extra_name
         self.missing = missing
