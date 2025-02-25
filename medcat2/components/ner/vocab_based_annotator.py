@@ -13,6 +13,29 @@ from medcat2.tokenizing.tokenizers import BaseTokenizer
 logger = logging.getLogger(__name__)
 
 
+def annotate_name(tokenizer: BaseTokenizer, name: str,
+                  tkns: list[MutableToken],
+                  doc: MutableDocument, cdb: CDB,
+                  label: str):
+    entity: MutableEntity = tokenizer.create_entity(
+        doc, tkns[0].base.index, tkns[-1].base.index + 1, label=label)
+    # Only set this property when using a vocab approach
+    # and where this name fits a name in the cdb.
+    # All standard name entity recognition models will not set this.
+    entity.detected_name = name
+    entity.link_candidates = list(cdb.name2info[name].cuis)
+    entity.id = len(doc.all_ents)
+    entity.confidence = -1  # This does not calculate confidence
+    # Append the entity to the document
+    doc.all_ents.append(entity)
+
+    # Not necessary, but why not
+    logger.debug("NER detected an entity.\n\tDetected name: %s" +
+                 "\n\tLink candidates: %s\n", entity.detected_name,
+                 entity.link_candidates)
+    return entity
+
+
 def maybe_annotate_name(tokenizer: BaseTokenizer, name: str,
                         tkns: list[MutableToken],
                         doc: MutableDocument, cdb: CDB, config: Config,
@@ -62,23 +85,6 @@ def maybe_annotate_name(tokenizer: BaseTokenizer, name: str,
         if (len(name) >= config.components.ner.upper_case_limit_len or
                 (len(tkns) == 1 and tkns[0].base.is_upper)):
             # Everything is fine, mark name
-            entity: MutableEntity = tokenizer.create_entity(
-                doc, tkns[0].base.index, tkns[-1].base.index + 1, label=label)
-            # Only set this property when using a vocab approach
-            # and where this name fits a name in the cdb.
-            # All standard name entity recognition models will not set this.
-            entity.detected_name = name
-            entity.link_candidates = list(cdb.name2info[name].cuis)
-            entity.id = len(doc.all_ents)
-            entity.confidence = -1  # This does not calculate confidence
-            # Append the entity to the document
-            doc.all_ents.append(entity)
-
-            # Not necessary, but why not
-            logger.debug("NER detected an entity." +
-                         "\n\tDetected name: %s" +
-                         "\n\tLink candidates: %s\n", entity.detected_name,
-                         entity.link_candidates)
-            return entity
+            return annotate_name(tokenizer, name, tkns, doc, cdb, label)
 
     return None
