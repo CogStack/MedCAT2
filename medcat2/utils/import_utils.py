@@ -6,6 +6,18 @@ import re
 _DEP_PATTERN = re.compile(r"^([\w-]+)[<>=~;!].*")
 
 
+class KeyDefaultDict(dict):
+    def __missing__(self, key):
+        return key
+
+
+# Map the project name to the package needed to be imported where appropraite.
+# Default to the package name itself.
+_DEP_NAME_MAPPER = KeyDefaultDict({
+    "pyahocorasick": "ahocorasick"
+})
+
+
 def get_all_extra_deps_raw(package_name: str) -> list[str]:
     """Get all the dependencies for a pcakge that are for an extra component.
 
@@ -63,7 +75,7 @@ def get_installed_extra_dependencies(package_name: str, extra_name: str
     """
     extra_deps = get_required_extra_deps(package_name, extra_name)
     return [dep for dep in extra_deps
-            if importlib.util.find_spec(dep) is not None]
+            if importlib.util.find_spec(_DEP_NAME_MAPPER[dep]) is not None]
 
 
 def ensure_optional_extras_installed(package_name: str, extra_name: str):
