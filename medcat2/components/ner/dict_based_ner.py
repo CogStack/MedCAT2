@@ -4,11 +4,20 @@ import logging
 from medcat2.tokenizing.tokens import MutableDocument
 from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.components.ner.vocab_based_annotator import maybe_annotate_name
+from medcat2.utils.import_utils import ensure_optional_extras_installed
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.vocab import Vocab
 from medcat2.cdb import CDB
 
 from ahocorasick import Automaton
+import medcat2
+
+
+# NOTE: the _ is converted to - automatically
+_EXTRA_NAME = "dict-ner"
+
+
+ensure_optional_extras_installed(medcat2.__name__, _EXTRA_NAME)
 
 
 logger = logging.getLogger(__name__)
