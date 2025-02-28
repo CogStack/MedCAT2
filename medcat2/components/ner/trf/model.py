@@ -99,7 +99,7 @@ class NerModel:
         ner_comp = self.cat._pipeline.get_component(CoreComponentType.ner)
         if not isinstance(ner_comp, TransformersNER):
             raise ValueError(f"Incorrect NER component: {ner_comp.full_name}")
-        ner_comp.expand_model_with_concepts(
+        ner_comp._component.expand_model_with_concepts(
             cui2preferred_name, use_avg_init=not with_random_init)
 
     @property
