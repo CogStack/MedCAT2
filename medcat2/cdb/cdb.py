@@ -65,6 +65,8 @@ class CDB(AbstractSerialisable):
         name = cui
         sep = self.config.general.separator
 
+        if cui not in self.cui2info:
+            return name
         cui_info = self.cui2info[cui]
         pref_name = cui_info.preferred_name
         names = cui_info.names
