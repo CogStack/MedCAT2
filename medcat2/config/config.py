@@ -374,6 +374,8 @@ class Ner(ComponentConfig):
     try_reverse_word_order: bool = False
     """Try reverse word order for short concepts (2 words max),
     e.g. heart disease -> disease heart"""
+    custom_cnf: Optional[Any] = None
+    """The custom config for the component."""
 
 
 class AnnotationOutput(SerialisableBaseModel):
