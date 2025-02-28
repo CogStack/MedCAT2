@@ -15,6 +15,7 @@ from medcat2.utils.fileutils import ensure_folder_if_parent
 from medcat2.pipeline.pipeline import Pipeline
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.data.entities import Entity, Entities, OnlyCUIEntities
+from medcat2.components.types import AbstractCoreComponent
 from medcat2.components.addons.addons import AddonComponent
 
 
@@ -268,7 +269,10 @@ class CAT(AbstractSerialisable):
                     model_pack_path)
         # NOTE: ignoring addons since they will be loaded later / separately
         cat = deserialise(model_pack_path, model_load_path=model_pack_path,
-                          ignore_folders_prefix={AddonComponent.NAME_PREFIX})
+                          ignore_folders_prefix={
+                            AddonComponent.NAME_PREFIX,
+                            # NOTE: will be loaded manually
+                            AbstractCoreComponent.NAME_PREFIX})
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         # NOTE: Some CDB attributes will have been set manually
