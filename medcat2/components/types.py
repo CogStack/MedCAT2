@@ -28,6 +28,16 @@ class BaseComponent(Protocol):
         """The name of the component."""
         pass
 
+    @property
+    def should_save(self) -> bool:
+        pass
+
+    def get_folder_name(self) -> str:
+        pass
+
+    def save(self, folder: str) -> None:
+        pass
+
     def is_core(self) -> bool:
         """Whether the component is a core component or not.
 
@@ -80,6 +90,7 @@ class CoreComponent(BaseComponent, Protocol):
 
 
 class AbstractCoreComponent(CoreComponent):
+    NAME_PREFIX = "core_"
 
     @property
     def full_name(self) -> str:
@@ -87,6 +98,16 @@ class AbstractCoreComponent(CoreComponent):
 
     def is_core(self) -> bool:
         return True
+
+    @property
+    def should_save(self) -> bool:
+        return False
+
+    def get_folder_name(self) -> str:
+        return self.NAME_PREFIX + self.full_name
+
+    def save(self, folder: str) -> None:
+        pass
 
 
 @runtime_checkable

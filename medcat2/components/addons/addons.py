@@ -18,13 +18,6 @@ class AddonComponent(BaseComponent, Protocol):
     def is_core(self) -> bool:
         return False
 
-    @property
-    def should_save(self) -> bool:
-        pass
-
-    def save(self, folder: str) -> None:
-        pass
-
     def get_folder_name(self) -> str:
         return self.NAME_PREFIX + self.full_name
 
