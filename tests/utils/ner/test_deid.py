@@ -131,7 +131,7 @@ class DeIDModelTests(unittest.TestCase):
         self.assertEqual(self.deid_model.cat.cdb.cui2info["CONCEPT"].names,
                          {"concept"})
         tner = self.deid_model.cat._pipeline.get_component(
-            CoreComponentType.ner)
+            CoreComponentType.ner)._component
         self.assertIn("CONCEPT", tner.model.config.label2id)
         self.assertIn("CONCEPT", tner.tokenizer.label_map)
         self.assertIn("CONCEPT", tner.tokenizer.cui2name)
