@@ -54,7 +54,7 @@ class TypesRegistrationTests(unittest.TestCase):
             (types._CORE_REGISTRIES[types.CoreComponentType.linking],
              types._DEFAULT_LINKING),
         ]:
-            for comp_name, comp_info in def_lazy:
+            for comp_name, comp_info in def_lazy.items():
                 # unregister if already fully registered
                 if comp_name not in registry._lazy_defaults:
                     # i.e removed from lazy defaults
