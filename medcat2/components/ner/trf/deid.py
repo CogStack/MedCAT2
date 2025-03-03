@@ -137,5 +137,7 @@ class DeIdModel(NerModel):
     def create(cls, cdb: CDB, cnf: ConfigTransformersNER):
         cdb.config.components.ner.comp_name = TransformersNER.name
         cdb.config.components.ner.custom_cnf = cnf
+        # no-action linker
+        cdb.config.components.linking.comp_name = 'no_action'
         cat = CAT(cdb=cdb, vocab=None, config=cdb.config)
         return cls(cat)
