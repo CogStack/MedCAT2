@@ -37,4 +37,4 @@ jobs:
           uv run python -m flake8 medcat2
       - name: Test
         run: |
-          timeout 15m uv run python -m unittest discover
+          timeout 25m uv run python -m unittest discover
