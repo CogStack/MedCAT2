@@ -24,8 +24,7 @@ from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.storage.serialisers import (
     serialise, AvailableSerialisers, deserialise)
 from medcat2.preprocessors.cleaners import NameDescriptor
-from medcat2.components.types import (
-    register_core_component, CoreComponentType, AbstractCoreComponent)
+from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.vocab import Vocab
 
 from transformers import (
@@ -674,7 +673,3 @@ class TransformersNERComponent:
 def func_has_kwarg(func: Callable, keyword: str):
     sig = inspect.signature(func)
     return keyword in sig.parameters
-
-
-register_core_component(
-    CoreComponentType.ner, TransformersNER.name, TransformersNER)
