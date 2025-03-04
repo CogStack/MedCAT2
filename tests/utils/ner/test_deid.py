@@ -99,6 +99,7 @@ def _train_model_once() -> tuple[tuple[Any, Any, Any], deid.DeIdModel]:
         mpn = model.cat.save_model_pack(dir_name, make_archive=False)
         model = deid.DeIdModel.load_model_pack(mpn)
         print("Loaded model off disk")
+    model.trf_ner._component.training_arguments.save_strategy = 'no'
     return retval, model
 
 
