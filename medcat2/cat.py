@@ -216,7 +216,8 @@ class CAT(AbstractSerialisable):
 
     def save_model_pack(
             self, target_folder: str, pack_name: str = DEFAULT_PACK_NAME,
-            serialiser_type: Union[str, AvailableSerialisers] = 'dill'
+            serialiser_type: Union[str, AvailableSerialisers] = 'dill',
+            make_archive: bool = True,
             ) -> str:
         """Save model pack.
 
@@ -227,6 +228,8 @@ class CAT(AbstractSerialisable):
                 Defaults to DEFAULT_PACK_NAME.
             serialiser_type (Union[str, AvailableSerialisers], optional):
                 The serialiser type. Defaults to 'dill'.
+            make_archive (bool):
+                Whether to make the arhive /.zip file. Defaults to True.
 
         Returns:
             str: The final model pack path.
