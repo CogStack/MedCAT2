@@ -41,10 +41,7 @@ class NerModel:
         Returns:
             Tuple[Any, Any, Any]: df, examples, dataset
         """
-        ner_comp = self.cat._pipeline.get_component(CoreComponentType.ner)
-        if not isinstance(ner_comp, TransformersNER):
-            raise ValueError(f"Incorrect NER component: {ner_comp.full_name}")
-        return ner_comp._component.train(json_path, *args, **kwargs)
+        return self.trf_ner._component.train(json_path, *args, **kwargs)
 
     def __call__(self, text: Optional[str], *args, **kwargs
                  ) -> Optional[MutableDocument]:
@@ -96,11 +93,15 @@ class NerModel:
             with_random_init (bool): Whether to use the random init strategy
                 for the new concepts. Defaults to False.
         """
+        self.trf_ner._component.expand_model_with_concepts(
+            cui2preferred_name, use_avg_init=not with_random_init)
+
+    @property
+    def trf_ner(self) -> TransformersNER:
         ner_comp = self.cat._pipeline.get_component(CoreComponentType.ner)
         if not isinstance(ner_comp, TransformersNER):
             raise ValueError(f"Incorrect NER component: {ner_comp.full_name}")
-        ner_comp._component.expand_model_with_concepts(
-            cui2preferred_name, use_avg_init=not with_random_init)
+        return ner_comp
 
     @property
     def config(self) -> Config:
