@@ -66,32 +66,31 @@ tokenizer = create_tokenizer(
     cnf.general.diacritics, cnf.preprocessing.max_document_length)
 
 
-def _add_model(cls):
+def _create_model() -> deid.DeIdModel:
     cdb = make_or_update_cdb(TRAIN_DATA, _get_def_cdb())
     config = transformers_ner.ConfigTransformersNER()
     config.general.test_size = 0.1  # Usually set this to 0.1-0.2
     config.general.chunking_overlap_window = None
-    cls._ner = transformers_ner.TransformersNER(
+    _ner = transformers_ner.TransformersNER(
         cdb=cdb, config=config, base_tokenizer=tokenizer)
-    cls.ner = cls._ner._component
-    cls.ner.training_arguments.num_train_epochs = 1  # Use 5-10 normally
+    ner = _ner._component
+    ner.training_arguments.num_train_epochs = 1  # Use 5-10 normally
     # As we are NOT training on a GPU that can, we'll set it to 1
-    cls.ner.training_arguments.per_device_train_batch_size = 1
+    ner.training_arguments.per_device_train_batch_size = 1
     # No need for acc
-    cls.ner.training_arguments.gradient_accumulation_steps = 1
-    cls.ner.training_arguments.per_device_eval_batch_size = 1
+    ner.training_arguments.gradient_accumulation_steps = 1
+    ner.training_arguments.per_device_eval_batch_size = 1
     # For the metric to be used for best model we pick Recall here,
     # as for deid that is most important
-    cls.ner.training_arguments.metric_for_best_model = 'eval_recall'
-    cls.deid_model = deid.DeIdModel.create(cdb, config)
+    ner.training_arguments.metric_for_best_model = 'eval_recall'
+    return deid.DeIdModel.create(cdb, config)
 
 
-def train_model_once(model: deid.DeIdModel,
-                     _trained: List[Tuple[Tuple[Any, Any, Any],
+def train_model_once(_trained: List[Tuple[Tuple[Any, Any, Any],
                                           deid.DeIdModel]] = []
                      ) -> Tuple[Tuple[Any, Any, Any], deid.DeIdModel]:
     if not _trained:
-        print("Start training model")
+        model = _create_model()
         retval = model.train(TRAIN_DATA)
         # mpp = 'temp/deid_multiprocess/dumps/temp_model_save'
         # NOTE: it seems that after training the model leaves
@@ -112,7 +111,7 @@ class DeIDModelTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        _add_model(cls)
+        cls.deid_model = _create_model()
 
     @classmethod
     def tearDownClass(cls):
@@ -120,7 +119,7 @@ class DeIDModelTests(unittest.TestCase):
             shutil.rmtree(cls.save_folder)
 
     def test_training(self):
-        df, examples, dataset = train_model_once(self.deid_model)[0]
+        df, examples, dataset = train_model_once()[0]
         self.assertIsNotNone(df)
         self.assertIsNotNone(examples)
         self.assertIsNotNone(dataset)
@@ -164,8 +163,7 @@ class DeIDModelWorks(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        _add_model(cls)
-        cls.deid_model = train_model_once(cls.deid_model)[1]
+        cls.deid_model = train_model_once()[1]
 
     def tearDown(self):
         if os.path.exists(self.save_folder):
