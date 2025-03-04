@@ -436,7 +436,12 @@ class TransformersNERComponent:
             for callback in trainer_callbacks:
                 trainer.add_callback(callback(trainer))
 
-        trainer.train()
+        # TODO: remove
+        import cProfile
+        with cProfile.Profile() as profiler:
+            trainer.train()
+        print("PROFILED")
+        profiler.print_stats()
 
         # Save the training time
         self.config.general.last_train_on = datetime.now().timestamp()
