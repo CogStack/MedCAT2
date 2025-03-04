@@ -244,7 +244,9 @@ class CAT(AbstractSerialisable):
         # components
         self._pipeline.save_components(model_pack_path)
         # zip everything
-        shutil.make_archive(model_pack_path, 'zip', root_dir=model_pack_path)
+        if make_archive:
+            shutil.make_archive(model_pack_path, 'zip',
+                                root_dir=model_pack_path)
         return model_pack_path
 
     @classmethod
