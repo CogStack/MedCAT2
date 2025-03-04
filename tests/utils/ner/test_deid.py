@@ -10,7 +10,7 @@ from medcat2.tokenizing.tokens import MutableDocument
 from medcat2.config.config import Config
 from medcat2.cdb.cdb import CDB
 
-from typing import Any, List, Tuple
+from typing import Any
 import os
 import tempfile
 import shutil
@@ -86,24 +86,27 @@ def _create_model() -> deid.DeIdModel:
     return deid.DeIdModel.create(cdb, config)
 
 
-def train_model_once(_trained: List[Tuple[Tuple[Any, Any, Any],
-                                          deid.DeIdModel]] = []
-                     ) -> Tuple[Tuple[Any, Any, Any], deid.DeIdModel]:
-    if not _trained:
-        model = _create_model()
-        retval = model.train(TRAIN_DATA)
-        # mpp = 'temp/deid_multiprocess/dumps/temp_model_save'
-        # NOTE: it seems that after training the model leaves
-        #       it in a state where it can no longer be used
-        #       for multiprocessing. So in order to avoid that
-        #       we save the model on disk and load it agains
-        with tempfile.TemporaryDirectory() as dir_name:
-            print("Saving model on disk")
-            mpn = model.cat.save_model_pack(dir_name)
-            model = deid.DeIdModel.load_model_pack(mpn)
-            print("Loaded model off disk")
-        _trained.append((retval, model))
-    return _trained[0]
+def _train_model_once() -> tuple[tuple[Any, Any, Any], deid.DeIdModel]:
+    model = _create_model()
+    retval = model.train(TRAIN_DATA)
+    # mpp = 'temp/deid_multiprocess/dumps/temp_model_save'
+    # NOTE: it seems that after training the model leaves
+    #       it in a state where it can no longer be used
+    #       for multiprocessing. So in order to avoid that
+    #       we save the model on disk and load it agains
+    with tempfile.TemporaryDirectory() as dir_name:
+        print("Saving model on disk")
+        mpn = model.cat.save_model_pack(dir_name)
+        model = deid.DeIdModel.load_model_pack(mpn)
+        print("Loaded model off disk")
+    return retval, model
+
+
+_TRAINED_MODEL_AND_INFO = _train_model_once()
+
+
+def train_model_once() -> tuple[tuple[Any, Any, Any], deid.DeIdModel]:
+    return _TRAINED_MODEL_AND_INFO
 
 
 class DeIDModelTests(unittest.TestCase):
