@@ -96,7 +96,7 @@ def _train_model_once() -> tuple[tuple[Any, Any, Any], deid.DeIdModel]:
     #       we save the model on disk and load it agains
     with tempfile.TemporaryDirectory() as dir_name:
         print("Saving model on disk")
-        mpn = model.cat.save_model_pack(dir_name)
+        mpn = model.cat.save_model_pack(dir_name, make_archive=False)
         model = deid.DeIdModel.load_model_pack(mpn)
         print("Loaded model off disk")
     return retval, model
