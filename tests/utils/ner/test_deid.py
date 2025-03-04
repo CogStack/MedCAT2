@@ -91,6 +91,7 @@ def train_model_once(model: deid.DeIdModel,
                                           deid.DeIdModel]] = []
                      ) -> Tuple[Tuple[Any, Any, Any], deid.DeIdModel]:
     if not _trained:
+        print("Start training model")
         retval = model.train(TRAIN_DATA)
         # mpp = 'temp/deid_multiprocess/dumps/temp_model_save'
         # NOTE: it seems that after training the model leaves
