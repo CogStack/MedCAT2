@@ -244,7 +244,7 @@ class Document:
             raise ValueError(f"Unknown index: {index}")
 
     def get_tokens(self, start_index: int, end_index: int
-                   ) -> Union[MutableEntity, list[MutableToken]]:
+                   ) -> list[MutableToken]:
         tkns = []
         for tkn in self:
             if (tkn.base.char_index >= start_index and

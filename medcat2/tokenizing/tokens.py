@@ -1,4 +1,4 @@
-from typing import Protocol, Optional, Iterator, overload, Union, Any, Type
+from typing import Protocol, Optional, Iterator, overload, Any, Type
 
 
 class BaseToken(Protocol):
@@ -384,16 +384,16 @@ class MutableDocument(Protocol):
         pass
 
     def get_tokens(self, start_index: int, end_index: int
-                   ) -> Union[MutableEntity, list[MutableToken]]:
-        """Get the token that spands the specified character indices.
+                   ) -> list[MutableToken]:
+        """Get the tokens that span the specified character indices.
 
         Args:
             start_index (int): The starting character index.
             end_index (int): The ending character index.
 
         Returns:
-            Union[MutableEntity, list[MutableToken]]:
-                The entity (if defined) or the list of tokens.
+            list[MutableToken]:
+                The list of tokens.
         """
         pass
 
