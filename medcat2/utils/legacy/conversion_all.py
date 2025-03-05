@@ -4,12 +4,15 @@ import logging
 from typing import Optional
 
 from medcat2.cat import CAT
+from medcat2.components.types import CoreComponentType
+from medcat2.storage.serialisers import AvailableSerialisers
+from medcat2.components.linking.no_action_linker import NoActionLinker
 
 from medcat2.utils.legacy.convert_cdb import get_cdb_from_old
 from medcat2.utils.legacy.convert_config import get_config_from_old
 from medcat2.utils.legacy.convert_vocab import get_vocab_from_old
 from medcat2.utils.legacy.convert_meta_cat import get_meta_cat_from_old
-from medcat2.storage.serialisers import AvailableSerialisers
+from medcat2.utils.legacy.convert_deid import get_trf_ner_from_old
 
 
 logger = logging.getLogger(__name__)
@@ -40,7 +43,7 @@ class Converter:
     @property
     def expected_files_in_folder(self):
         """The base names of the required files in a folder for a v1 model."""
-        return [self.cdb_name, self.vocab_name, ]
+        return [self.cdb_name, ]
 
     def _validate(self):
         for fn in self.expected_files_in_folder:
@@ -62,8 +65,12 @@ class Converter:
         """
         cdb = get_cdb_from_old(
             os.path.join(self.old_model_folder, self.cdb_name))
-        vocab = get_vocab_from_old(
-            os.path.join(self.old_model_folder, self.vocab_name))
+        vocab_path = os.path.join(self.old_model_folder, self.vocab_name)
+        if os.path.exists(vocab_path):
+            vocab = get_vocab_from_old(vocab_path)
+        else:
+            # e.g in case of DeID
+            vocab = None
         cnf_path = os.path.join(self.old_model_folder, self.config_name)
         if os.path.exists(cnf_path):
             config = get_config_from_old(cnf_path)
@@ -80,6 +87,40 @@ class Converter:
         ]
         for mc in meta_cats:
             cat.add_addon(mc)
+
+        # DeID / TransformersNER
+        trf_ners = [
+            get_trf_ner_from_old(
+                os.path.join(self.old_model_folder, subfolder),
+                cat._pipeline.tokenizer)
+            for subfolder in os.listdir(self.old_model_folder)
+            if subfolder.startswith("trf_")
+        ]
+        if len(trf_ners) > 1:
+            raise ValueError("Cannot use more than 1 tranformers NER. "
+                             f"Got {len(trf_ners)}")
+        if trf_ners:
+            logger.info("Found a Transformers based NER component "
+                        "- probably for DeID")
+            trf_ner = trf_ners[0]
+            config.components.ner.comp_name = trf_ner.name
+            # replace component in pipeline
+            # get the index of component in list
+            index = next((c_num for c_num, comp in
+                          enumerate(cat._pipeline._components)
+                          if comp.get_type() is CoreComponentType.ner))
+            # set / change / replace the NER component
+            logger.info(f"Changing the NER component in the pipe to {trf_ner}")
+            cat._pipeline._components[index] = trf_ner
+            # replace linker to no-action linker
+            config.components.linking.comp_name = 'no_action'
+            index_link = next(
+                (c_num for c_num, comp in enumerate(cat._pipeline._components)
+                 if comp.get_type() is CoreComponentType.linking))
+            # set / change / replace Linker to no-action linker
+            logger.info("Changing the linking component in the pipe to a "
+                        "no-action linker")
+            cat._pipeline._components[index_link] = NoActionLinker()
 
         if self.new_model_folder:
             logger.info("Saving converted model to '%s'",
