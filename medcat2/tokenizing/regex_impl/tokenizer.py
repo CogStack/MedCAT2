@@ -245,10 +245,6 @@ class Document:
 
     def get_tokens(self, start_index: int, end_index: int
                    ) -> Union[MutableEntity, list[MutableToken]]:
-        for ent in self.all_ents:
-            if (ent.base.start_index == start_index and
-                    ent.base.end_index == end_index):
-                return ent
         tkns = []
         for tkn in self:
             if (tkn.base.char_index >= start_index and
