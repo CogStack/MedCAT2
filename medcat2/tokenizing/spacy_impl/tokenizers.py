@@ -39,7 +39,7 @@ class SpacyTokenizer(BaseTokenizer):
     def __init__(self, spacy_model_name: str,
                  spacy_disabled_components: list[str],
                  use_diacritics: bool,
-                 max_document_lenth: int,
+                 max_document_length: int,
                  tokenizer_getter: Callable[[Language, bool], Tokenizer
                                             ] = spacy_split_all,
                  stopwords: Optional[set[str]] = None,):
@@ -51,7 +51,7 @@ class SpacyTokenizer(BaseTokenizer):
         self._nlp = spacy.load(spacy_model_name,
                                disable=spacy_disabled_components)
         self._nlp.tokenizer = tokenizer_getter(self._nlp, use_diacritics)
-        self._nlp.max_length = max_document_lenth
+        self._nlp.max_length = max_document_length
 
     def create_entity(self, doc: MutableDocument,
                       token_start_index: int, token_end_index: int,

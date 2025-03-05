@@ -1,5 +1,6 @@
 from typing import Iterator, Any, Optional
 from typing_extensions import TypedDict
+from collections import Counter
 
 
 class MedCATTrainerExportAnnotation(TypedDict):
@@ -122,3 +123,10 @@ def get_nr_of_annotations(doc: MedCATTrainerExportDocument) -> int:
         int: The number of annotations within the document.
     """
     return len(doc['annotations'])
+
+
+def count_anns_per_concept(export: MedCATTrainerExport) -> dict[str, int]:
+    counts: dict[str, int] = Counter()
+    for _, _, ann in iter_anns(export):
+        counts[ann['cui']] += 1
+    return dict(counts)

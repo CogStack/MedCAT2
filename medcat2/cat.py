@@ -15,6 +15,7 @@ from medcat2.utils.fileutils import ensure_folder_if_parent
 from medcat2.pipeline.pipeline import Pipeline
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.data.entities import Entity, Entities, OnlyCUIEntities
+from medcat2.components.types import AbstractCoreComponent
 from medcat2.components.addons.addons import AddonComponent
 
 
@@ -215,7 +216,8 @@ class CAT(AbstractSerialisable):
 
     def save_model_pack(
             self, target_folder: str, pack_name: str = DEFAULT_PACK_NAME,
-            serialiser_type: Union[str, AvailableSerialisers] = 'dill'
+            serialiser_type: Union[str, AvailableSerialisers] = 'dill',
+            make_archive: bool = True,
             ) -> str:
         """Save model pack.
 
@@ -226,6 +228,8 @@ class CAT(AbstractSerialisable):
                 Defaults to DEFAULT_PACK_NAME.
             serialiser_type (Union[str, AvailableSerialisers], optional):
                 The serialiser type. Defaults to 'dill'.
+            make_archive (bool):
+                Whether to make the arhive /.zip file. Defaults to True.
 
         Returns:
             str: The final model pack path.
@@ -237,10 +241,12 @@ class CAT(AbstractSerialisable):
         ensure_folder_if_parent(model_pack_path)
         # serialise
         serialise(serialiser_type, self, model_pack_path)
-        # addons
-        self._pipeline.save_addons(model_pack_path)
+        # components
+        self._pipeline.save_components(model_pack_path)
         # zip everything
-        shutil.make_archive(model_pack_path, 'zip', root_dir=model_pack_path)
+        if make_archive:
+            shutil.make_archive(model_pack_path, 'zip',
+                                root_dir=model_pack_path)
         return model_pack_path
 
     @classmethod
@@ -268,7 +274,10 @@ class CAT(AbstractSerialisable):
                     model_pack_path)
         # NOTE: ignoring addons since they will be loaded later / separately
         cat = deserialise(model_pack_path, model_load_path=model_pack_path,
-                          ignore_folders_prefix={AddonComponent.NAME_PREFIX})
+                          ignore_folders_prefix={
+                            AddonComponent.NAME_PREFIX,
+                            # NOTE: will be loaded manually
+                            AbstractCoreComponent.NAME_PREFIX})
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         # NOTE: Some CDB attributes will have been set manually

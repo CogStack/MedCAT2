@@ -190,15 +190,16 @@ class Pipeline:
     def add_addon(self, addon: AddonComponent) -> None:
         self._addons.append(addon)
 
-    def save_addons(self, folder_path: str) -> None:
-        for addon in self._addons:
-            if addon.should_save:
-                addon_folder = os.path.join(
-                    folder_path, addon.get_folder_name())
-                logger.info("Saving addon '%s' to '%s'",
-                            addon.full_name, addon_folder)
-                os.mkdir(addon_folder)
-                addon.save(addon_folder)
+    def save_components(self, folder_path: str) -> None:
+        saveables = self._components + self._addons
+        for component in saveables:
+            if component.should_save:
+                target_folder = os.path.join(
+                    folder_path, component.get_folder_name())
+                logger.info("Saving component '%s' to '%s'",
+                            component.full_name, target_folder)
+                os.mkdir(target_folder)
+                component.save(target_folder)
 
     def iter_addons(self) -> Iterable[AddonComponent]:
         yield from self._addons

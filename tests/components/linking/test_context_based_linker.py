@@ -35,6 +35,7 @@ class FakeCDB:
 
 
 class LinkingInitTests(ComponentInitTests, unittest.TestCase):
+    expected_def_components = 2
     comp_type = types.CoreComponentType.linking
     default_cls = context_based_linker.Linker
     module = context_based_linker

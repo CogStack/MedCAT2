@@ -120,16 +120,11 @@ class TestTrainSplitter:
 
     def _should_add_to_test(self, _cnts: dict[str, int]) -> bool:
         # Did we get more than 30% of concepts for any CUI with >=10 cnt
-        for cui, v in _cnts.items():
-            if ((v + self.test_cnts.get(cui, 0))
-                    / self.cnts[cui] <= self.MAX_TEST_FRACTION):
-                continue
-            if self.cnts[cui] < self.MIN_CNT_FOR_TEST:
-                continue
-            # We only care for concepts if count >= 10, else they will be
-            # ignored during the test phase (for all metrics and similar)
-            return False
-        return True
+        return any(
+            self.cnts[cui] >= 10 and
+            (v + self.test_cnts.get(cui, 0)) / self.cnts[cui] < 0.3
+            for cui, v in _cnts.items()
+        )
 
 
 def make_mc_train_test(data: MedCATTrainerExport,

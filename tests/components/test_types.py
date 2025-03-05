@@ -37,7 +37,11 @@ class TypesRegistrationTests(unittest.TestCase):
 
     def tearDown(self):
         for registry in types._CORE_REGISTRIES.values():
-            registry.unregister_all_components()
+            for comp_name, _ in registry.list_components():
+                comp_cls = registry.get_component(comp_name)
+                cls_path = comp_cls.__module__ + "." + comp_cls.__name__
+                if not cls_path.startswith("medcat2."):
+                    registry.unregister_component(comp_name)
         # register defaults
         for registry, def_lazy in [
             (types._CORE_REGISTRIES[types.CoreComponentType.tagging],
@@ -50,7 +54,14 @@ class TypesRegistrationTests(unittest.TestCase):
             (types._CORE_REGISTRIES[types.CoreComponentType.linking],
              types._DEFAULT_LINKING),
         ]:
-            registry._lazy_defaults.update(def_lazy)
+            for comp_name, comp_info in def_lazy.items():
+                # unregister if already fully registered
+                if comp_name not in registry._lazy_defaults:
+                    # i.e removed from lazy defaults
+                    registry.unregister_component(comp_name)
+                    # and only register if not already registered
+                    # as lazy default
+                    registry._lazy_defaults[comp_name] = comp_info
 
     def test_registered_is_core_component(self):
         self.assertIsInstance(self.registered, types.CoreComponent)
@@ -69,6 +80,7 @@ class TypesRegistrationTests(unittest.TestCase):
     def test_lists_registered_component(self):
         comps = types.get_registered_components(self.COMP_TYPE)
         self.assertEqual(len(comps), 1 + self._DEF_COMPS)
-        comp_name, comp_cls = comps[0]
-        self.assertEqual(comp_name, self.COMP_NAME)
-        self.assertEqual(comp_cls, self.BCC.__name__)
+        self.assertTrue(any(comp_name == self.COMP_NAME
+                            for comp_name, _ in comps))
+        self.assertTrue(any(comp_cls == self.BCC.__name__
+                            for _, comp_cls in comps))
