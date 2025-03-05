@@ -8,6 +8,7 @@ from medcat2.vocab import Vocab
 
 
 class NoActionLinker(AbstractCoreComponent):
+    name = 'no_action'
 
     def get_type(self):
         return CoreComponentType.linking
