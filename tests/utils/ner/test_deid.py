@@ -71,8 +71,8 @@ def _create_model() -> deid.DeIdModel:
     config = transformers_ner.ConfigTransformersNER()
     config.general.test_size = 0.1  # Usually set this to 0.1-0.2
     config.general.chunking_overlap_window = None
-    _ner = transformers_ner.TransformersNER(
-        cdb=cdb, config=config, base_tokenizer=tokenizer)
+    model = deid.DeIdModel.create(cdb, config)
+    _ner = model.trf_ner
     ner = _ner._component
     ner.training_arguments.num_train_epochs = 1  # Use 5-10 normally
     # As we are NOT training on a GPU that can, we'll set it to 1
@@ -83,7 +83,7 @@ def _create_model() -> deid.DeIdModel:
     # For the metric to be used for best model we pick Recall here,
     # as for deid that is most important
     ner.training_arguments.metric_for_best_model = 'eval_recall'
-    return deid.DeIdModel.create(cdb, config)
+    return model
 
 
 def _train_model_once() -> tuple[tuple[Any, Any, Any], deid.DeIdModel]:
