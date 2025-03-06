@@ -7,7 +7,7 @@ import logging
 
 import dill as _dill
 
-from medcat2.storage.serialisables import Serialisable
+from medcat2.storage.serialisables import Serialisable, ManualSerialisable
 from medcat2.storage.serialisables import get_all_serialisable_members
 from medcat2.storage.schema import load_schema, save_schema
 from medcat2.storage.schema import DEFAULT_SCHEMA_FILE, IllegalSchemaException
@@ -96,6 +96,10 @@ class Serialiser(ABC):
                 If there's multiple parts with the same name or
                 a file already exists.
         """
+        if isinstance(obj, ManualSerialisable):
+            logger.info("Serialising obj '%s' manually", type(obj).__name__)
+            obj.serialise_to(target_folder)
+            return
         ser_parts, raw_parts = get_all_serialisable_members(obj)
         for part, name in ser_parts:
             basename = name
