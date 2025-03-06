@@ -256,3 +256,20 @@ class ManualSerialisableTests(unittest.TestCase):
             serialisers.serialise(self.ser_type, self.dummy, temp_dir)
             loaded = serialisers.deserialise(temp_dir)
         self.assertEqual(self.dummy, loaded)
+
+
+class PartlyManuallySerialisableTests(unittest.TestCase):
+    SER_TYPE = serialisers.AvailableSerialisers.dill
+    PAYLOAD = "Some payload"
+    OBJ = DummyClassWithDefValues(attr1=DummyManualSerialisable(PAYLOAD))
+
+    def test_dummy_file_can_save(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            serialisers.serialise(self.SER_TYPE, self.OBJ, temp_dir)
+
+    def test_dummy_file_can_save_and_load(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            serialisers.serialise(self.SER_TYPE, self.OBJ, temp_dir)
+            loaded = serialisers.deserialise(temp_dir)
+        self.assertEqual(self.OBJ, loaded)
+        self.assertEqual(self.OBJ.attr1, loaded.attr1)
