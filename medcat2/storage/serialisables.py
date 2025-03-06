@@ -165,6 +165,7 @@ class AbstractSerialisable:
         return True
 
 
+@runtime_checkable
 class ManualSerialisable(Serialisable, Protocol):
 
     def serialise_to(self, folder_path: str) -> None:
