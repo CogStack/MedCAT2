@@ -54,13 +54,16 @@ class Serialiser(ABC):
         """
         pass
 
+    def get_ser_type_file(self, folder: str) -> str:
+        return os.path.join(folder, SER_TYPE_FILE)
+
     def save_ser_type_file(self, folder: str) -> None:
         """Save the serialiser type into the specified folder.
 
         Args:
             folder (str): The folder to use.
         """
-        file_path = os.path.join(folder, SER_TYPE_FILE)
+        file_path = self.get_ser_type_file(folder)
         self.ser_type.write_to(file_path)
 
     def check_ser_type(self, folder: str) -> None:
