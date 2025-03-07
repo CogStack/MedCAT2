@@ -22,7 +22,7 @@ class Converter:
     """Converts v1 models to v2 models."""
     cdb_name = 'cdb.dat'
     vocab_name = 'vocab.dat'
-    config_name = 'config.dat'
+    config_name = 'config.json'
 
     def __init__(self, medcat1_model_pack_path: str,
                  new_model_pack_path: Optional[str],
