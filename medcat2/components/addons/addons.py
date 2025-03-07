@@ -1,14 +1,15 @@
-from typing import Callable, Protocol, Any
+from typing import Callable, Protocol, Any, runtime_checkable
 
 from medcat2.components.types import BaseComponent, MutableEntity
 from medcat2.utils.registry import Registry
 from medcat2.config.config import ComponentConfig
 
 
+@runtime_checkable
 class AddonComponent(BaseComponent, Protocol):
     """Base/abstract addon component class."""
     NAME_PREFIX: str = "addon_"
-    NAME_SPLITTER: str = "_"
+    NAME_SPLITTER: str = "."
     config: ComponentConfig
 
     @property
