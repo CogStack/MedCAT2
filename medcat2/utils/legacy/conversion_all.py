@@ -103,6 +103,12 @@ class Converter:
             logger.info("Found a Transformers based NER component "
                         "- probably for DeID")
             trf_ner = trf_ners[0]
+            # update the TrfNER-loaded CDB with the correct config
+            trf_ner._component.cdb.config = config
+            # update the config with the correct NER custom config
+            trf_cnf = trf_ner._component.config
+            config.components.ner.custom_cnf = trf_cnf
+            # update the component name
             config.components.ner.comp_name = trf_ner.name
             # replace component in pipeline
             # get the index of component in list
