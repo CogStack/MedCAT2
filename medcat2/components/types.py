@@ -24,7 +24,7 @@ class BaseComponent(Protocol):
         pass
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str:
         """The name of the component."""
         pass
 
@@ -88,16 +88,6 @@ class AbstractCoreComponent(CoreComponent):
 
     def is_core(self) -> bool:
         return True
-
-    @property
-    def should_save(self) -> bool:
-        return False
-
-    def get_folder_name(self) -> str:
-        return self.NAME_PREFIX + self.get_type().name
-
-    def save(self, folder: str) -> None:
-        pass
 
 
 @runtime_checkable

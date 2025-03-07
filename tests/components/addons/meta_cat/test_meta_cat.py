@@ -56,8 +56,8 @@ class MetaCATBaseTests(unittest.TestCase):
         cls.tokenizer = cls.TOKENIZER_CLS()
         mc_tokenizer = TokenizerWrapperBERT(
             AutoTokenizer.from_pretrained('prajjwal1/bert-tiny'))
-        cls.meta_cat = meta_cat.MetaCATAddon(
-            cls.cnf, cls.tokenizer, None, tokenizer=mc_tokenizer)
+        cls.meta_cat = meta_cat.MetaCATAddon.create_new(
+            cls.cnf, cls.tokenizer, tokenizer=mc_tokenizer)
 
 
 class MetaCATTests(MetaCATBaseTests):

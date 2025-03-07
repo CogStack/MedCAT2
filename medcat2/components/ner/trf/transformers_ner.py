@@ -90,6 +90,9 @@ class TransformersNER(AbstractCoreComponent):
 
     # for manual serialisability
 
+    def get_folder_name(self) -> str:
+        return self.NAME_PREFIX + self.get_type().name
+
     def serialise_to(self, folder_path: str) -> None:
         self.save(folder_path)
 
