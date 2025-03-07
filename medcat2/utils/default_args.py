@@ -65,6 +65,9 @@ def set_components_defaults(cdb: CDB, vocab: Optional[Vocab],
             continue
         comp_cls = get_component_creator(CoreComponentType[comp_name],
                                          comp_cnf.comp_name)
+        if not isinstance(comp_cls, type):
+            # i.e get CompCls from CompCls.create_new
+            comp_cls = comp_cls.__self__  # type: ignore
         if hasattr(comp_cls, 'get_init_args'):
             comp_cnf.init_args = comp_cls.get_init_args(tokenizer, cdb, vocab,
                                                         model_load_path)
