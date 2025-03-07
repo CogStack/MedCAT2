@@ -57,7 +57,15 @@ class Registry(Generic[P]):
                      self._type.__name__, component_name, module_name,
                      class_name)
         module_in = importlib.import_module(module_name)
-        cls = getattr(module_in, class_name)
+        if "." in class_name:
+            cls_name, method_name = class_name.split(".")
+        else:
+            cls_name, method_name = class_name, None
+        cls = getattr(module_in, cls_name)
+        if method_name is not None:
+            logger.debug("Using creator method %s.%s", cls_name, method_name)
+            # use a creator method
+            cls = getattr(cls, method_name)
         self.register(component_name, cast(Callable[..., P], cls))
 
     def register_all_defaults(self) -> None:
