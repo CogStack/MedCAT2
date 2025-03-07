@@ -27,7 +27,6 @@ from medcat2.storage.serialisables import SerialisingStrategy
 from medcat2.preprocessors.cleaners import NameDescriptor
 from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.vocab import Vocab
-from medcat2.utils.defaults import COMPONENTS_FOLDER
 
 from transformers import (
     Trainer, AutoModelForTokenClassification, AutoTokenizer)
@@ -49,17 +48,30 @@ class TransformersNER(AbstractCoreComponent):
 
     def __init__(self, cdb: CDB,
                  base_tokenizer: BaseTokenizer,
+                 component: 'TransformersNERComponent',
                  config: Optional[ConfigTransformersNER] = None,
-                 training_arguments=None,
-                 model_load_path: Optional[str] = None) -> None:
-        if model_load_path:
-            full_path = os.path.join(
-                model_load_path, COMPONENTS_FOLDER, self.get_folder_name())
-            self._component = _load_component(cdb, full_path, base_tokenizer)
-        else:
-            self._component = TransformersNERComponent(
-                cdb, base_tokenizer, config, training_arguments,
-                model_load_path)
+                 training_arguments=None,) -> None:
+        self._component = component
+
+    @classmethod
+    def create_new(cls, cdb: CDB, base_tokenizer: BaseTokenizer,
+                   config: Optional[ConfigTransformersNER] = None,
+                   training_arguments=None) -> 'TransformersNER':
+        comp = TransformersNERComponent(
+                cdb, base_tokenizer, config, training_arguments)
+        return cls(cdb=cdb, base_tokenizer=base_tokenizer,
+                   config=config, training_arguments=training_arguments,
+                   component=comp)
+
+    @classmethod
+    def load_existing(cls, cdb: CDB, base_tokenizer: BaseTokenizer,
+                      load_path: str, training_arguments=None,
+                      config: Optional[ConfigTransformersNER] = None,
+                      ) -> 'TransformersNER':
+        comp = _load_component(cdb, load_path, base_tokenizer)
+        return cls(cdb=cdb, base_tokenizer=base_tokenizer,
+                   config=config, training_arguments=training_arguments,
+                   component=comp)
 
     def get_type(self):
         return CoreComponentType.ner
@@ -73,8 +85,7 @@ class TransformersNER(AbstractCoreComponent):
     @classmethod
     def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
-        return {'cdb': cdb, 'base_tokenizer': tokenizer,
-                'model_load_path': model_load_path}
+        return {'cdb': cdb, 'base_tokenizer': tokenizer}
 
     @property
     def should_save(self) -> bool:
@@ -99,7 +110,7 @@ class TransformersNER(AbstractCoreComponent):
     @classmethod
     def deserialise_from(cls, folder_path: str, **init_kwargs
                          ) -> 'TransformersNER':
-        return cls(**init_kwargs)
+        return cls.load_existing(load_path=folder_path, **init_kwargs)
 
     def get_strategy(self) -> SerialisingStrategy:
         return SerialisingStrategy.MANUAL
@@ -198,8 +209,7 @@ class TransformersNERComponent:
     def __init__(self, cdb: CDB,
                  base_tokenizer: BaseTokenizer,
                  config: Optional[ConfigTransformersNER] = None,
-                 training_arguments=None,
-                 model_load_path: Optional[str] = None) -> None:
+                 training_arguments=None) -> None:
         self.base_tokenizer = base_tokenizer
         self.cdb = cdb
         if config is None:

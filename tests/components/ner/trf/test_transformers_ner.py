@@ -14,7 +14,7 @@ class TransformersNERTestS(TestCase):
     def setUpClass(cls):
         cdb = FakeCDB(Config())
         tokenizer = FakeTokenizer()
-        cls.tner = transformers_ner.TransformersNER(cdb, tokenizer)
+        cls.tner = transformers_ner.TransformersNER.create_new(cdb, tokenizer)
 
     def test_is_manually_serialisable(self):
         self.assertIsInstance(self.tner, ManualSerialisable)
