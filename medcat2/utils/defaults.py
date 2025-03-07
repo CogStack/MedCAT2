@@ -3,6 +3,8 @@ from multiprocessing import cpu_count
 
 
 DEFAULT_SPACY_MODEL = 'en_core_web_md'
+DEFAULT_PACK_NAME = "medcat2_model_pack"
+COMPONENTS_FOLDER = "saved_components"
 
 
 # defaults for config

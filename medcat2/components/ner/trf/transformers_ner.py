@@ -23,9 +23,11 @@ from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.storage.serialisers import (
     serialise, AvailableSerialisers, deserialise)
+from medcat2.storage.serialisables import SerialisingStrategy
 from medcat2.preprocessors.cleaners import NameDescriptor
 from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.vocab import Vocab
+from medcat2.utils.defaults import COMPONENTS_FOLDER
 
 from transformers import (
     Trainer, AutoModelForTokenClassification, AutoTokenizer)
@@ -51,7 +53,8 @@ class TransformersNER(AbstractCoreComponent):
                  training_arguments=None,
                  model_load_path: Optional[str] = None) -> None:
         if model_load_path:
-            full_path = os.path.join(model_load_path, self.get_folder_name())
+            full_path = os.path.join(
+                model_load_path, COMPONENTS_FOLDER, self.get_folder_name())
             self._component = _load_component(cdb, full_path, base_tokenizer)
         else:
             self._component = TransformersNERComponent(
@@ -65,28 +68,56 @@ class TransformersNER(AbstractCoreComponent):
     def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         # NOTE: TrfNER-specific config is at config.components.ner.custom_cnf
-        return [cdb, tokenizer]
+        return []
 
     @classmethod
     def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
-        return {'model_load_path': model_load_path}
+        return {'cdb': cdb, 'base_tokenizer': tokenizer,
+                'model_load_path': model_load_path}
 
     @property
     def should_save(self) -> bool:
         return True
 
-    def save(self, folder: str) -> None:
+    def save(self, folder: str, overwrite: bool = False) -> None:
         _save_component(self._component,
-                        folder, serialiser=self._def_serialiser)
+                        folder, serialiser=self._def_serialiser,
+                        overwrite=overwrite)
 
     def __call__(self, doc: MutableDocument) -> MutableDocument:
         return self._component(doc)
 
+    # for manual serialisability
+
+    def serialise_to(self, folder_path: str) -> None:
+        self.save(folder_path)
+
+    @classmethod
+    def deserialise_from(cls, folder_path: str, **init_kwargs
+                         ) -> 'TransformersNER':
+        return cls(**init_kwargs)
+
+    def get_strategy(self) -> SerialisingStrategy:
+        return SerialisingStrategy.MANUAL
+
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def include_properties(cls) -> list[str]:
+        return []
+
 
 def _save_component(
         comp: 'TransformersNERComponent', save_dir_path: str,
-        serialiser: AvailableSerialisers = AvailableSerialisers.dill
+        serialiser: AvailableSerialisers = AvailableSerialisers.dill,
+        overwrite: bool = False,
         ) -> None:
     """Save all components of this class to a file
 
@@ -106,7 +137,7 @@ def _save_component(
     folder = os.path.join(save_dir_path, 'cat_config')
     if not os.path.exists(folder):
         os.mkdir(folder)
-    serialise(serialiser, comp.config, folder)
+    serialise(serialiser, comp.config, folder, overwrite=overwrite)
 
     # Save the model
     comp.model.save_pretrained(save_dir_path)
@@ -115,7 +146,7 @@ def _save_component(
     folder = os.path.join(save_dir_path, 'CDB')
     if not os.path.exists(folder):
         os.mkdir(folder)
-    serialise(serialiser, comp.cdb, folder)
+    serialise(serialiser, comp.cdb, folder, overwrite=overwrite)
 
 
 def _load_component(cdb: CDB, save_dir_path: str,
@@ -443,7 +474,8 @@ class TransformersNERComponent:
 
         # Save everything
         _save_component(self, save_dir_path=os.path.join(
-            self.training_arguments.output_dir, 'final_model'))
+            self.training_arguments.output_dir, 'final_model'),
+            overwrite=True)
 
         # Run an eval step and return metrics
         p = trainer.predict(encoded_dataset['test'])  # type: ignore

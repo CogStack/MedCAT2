@@ -4,6 +4,7 @@ import os
 import shutil
 import logging
 
+from medcat2.utils.defaults import DEFAULT_PACK_NAME, COMPONENTS_FOLDER
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
 from medcat2.config.config import Config
@@ -20,9 +21,6 @@ from medcat2.components.addons.addons import AddonComponent
 
 
 logger = logging.getLogger(__name__)
-
-
-DEFAULT_PACK_NAME = "medcat2_model_pack"
 
 
 class CAT(AbstractSerialisable):
@@ -239,10 +237,12 @@ class CAT(AbstractSerialisable):
         model_pack_path = os.path.join(target_folder, pack_name)
         # ensure target folder and model pack folder exist
         ensure_folder_if_parent(model_pack_path)
-        # serialise
+        # serialise")
         serialise(serialiser_type, self, model_pack_path)
         # components
-        self._pipeline.save_components(model_pack_path)
+        components_folder = os.path.join(
+            model_pack_path, COMPONENTS_FOLDER)
+        self._pipeline.save_components(serialiser_type, components_folder)
         # zip everything
         if make_archive:
             shutil.make_archive(model_pack_path, 'zip',
@@ -277,7 +277,12 @@ class CAT(AbstractSerialisable):
                           ignore_folders_prefix={
                             AddonComponent.NAME_PREFIX,
                             # NOTE: will be loaded manually
-                            AbstractCoreComponent.NAME_PREFIX})
+                            AbstractCoreComponent.NAME_PREFIX,
+                            # components will be loaded semi-manually
+                            # within the creation of pipe
+                            COMPONENTS_FOLDER})
+        # NOTE: deserialising of components that need serialised
+        #       will be dealt with upon pipeline creation automatically
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         # NOTE: Some CDB attributes will have been set manually

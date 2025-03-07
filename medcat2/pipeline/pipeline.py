@@ -1,17 +1,23 @@
-from typing import Optional, Any, Type, Iterable
+from typing import Optional, Any, Iterable, Union
 import logging
 import os
 
+from medcat2.utils.defaults import COMPONENTS_FOLDER
 from medcat2.tokenizing.tokenizers import BaseTokenizer, create_tokenizer
-from medcat2.components.types import (CoreComponentType, create_core_component,
-                                      CoreComponent)
+from medcat2.components.types import (
+    CoreComponentType, create_core_component, CoreComponent, BaseComponent,
+    AbstractCoreComponent)
 from medcat2.components.addons.addons import AddonComponent, create_addon
 from medcat2.tokenizing.tokens import (MutableDocument, MutableEntity,
                                        MutableToken)
+from medcat2.storage.serialisers import (
+    AvailableSerialisers, serialise, deserialise)
+from medcat2.storage.serialisables import Serialisable
 from medcat2.vocab import Vocab
 from medcat2.cdb import CDB
 from medcat2.config import Config
 from medcat2.config.config import ComponentConfig
+from medcat2.config.config_meta_cat import ConfigMetaCAT
 from medcat2.utils.default_args import (set_tokenizer_defaults,
                                         set_components_defaults,
                                         set_addon_defaults)
@@ -55,10 +61,10 @@ class DelegatingTokenizer(BaseTokenizer):
     def get_init_kwargs(cls, config: Config) -> dict[str, Any]:
         return {}
 
-    def get_doc_class(self) -> Type[MutableDocument]:
+    def get_doc_class(self) -> type[MutableDocument]:
         return self.tokenizer.get_doc_class()
 
-    def get_entity_class(self) -> Type[MutableEntity]:
+    def get_entity_class(self) -> type[MutableEntity]:
         return self.tokenizer.get_entity_class()
 
 
@@ -83,7 +89,7 @@ class Pipeline:
         set_addon_defaults(cdb, vocab, self._tokenizer, model_load_path)
         # NOTE: this only sets the default arguments if the
         #       a specific default component is used
-        self._init_components()
+        self._init_components(model_load_path)
 
     @property
     def tokenizer(self) -> BaseTokenizer:
@@ -122,15 +128,108 @@ class Pipeline:
                 comp_type, comp_name) from type_error
         return comp
 
-    def _init_components(self) -> None:
+    def _get_loaded_components_paths(self, model_load_path: Optional[str]
+                                     ) -> tuple[dict[str, str],
+                                                dict[tuple[str, str], str]]:
+        loaded_core_component_paths: dict[str, str] = {}
+        loaded_addon_component_paths: dict[tuple[str, str], str] = {}
+        if not model_load_path:
+            return loaded_core_component_paths, loaded_addon_component_paths
+        components_folder = os.path.join(
+            model_load_path, COMPONENTS_FOLDER)
+        if not os.path.exists(components_folder):
+            return loaded_core_component_paths, loaded_addon_component_paths
+        for folder_name in os.listdir(components_folder):
+            cur_folder_path = os.path.join(
+                components_folder, folder_name)
+            if folder_name.startswith(AbstractCoreComponent.NAME_PREFIX):
+                loaded_core_component_paths[
+                    folder_name[len(AbstractCoreComponent.NAME_PREFIX):]
+                    ] = cur_folder_path
+            elif folder_name.startswith(AddonComponent.NAME_PREFIX):
+                addon_folder_name = folder_name[
+                    len(AddonComponent.NAME_PREFIX):]
+                addon_type, addon_name = addon_folder_name.split(
+                    AddonComponent.NAME_SPLITTER, 1)
+                loaded_addon_component_paths[
+                    (addon_type, addon_name)] = cur_folder_path
+            else:
+                raise ValueError()
+        return loaded_core_component_paths, loaded_addon_component_paths
+
+    def _load_saved_core_component(self, cct_name: str, comp_folder_path: str
+                                   ) -> CoreComponent:
+        logger.info("Using loaded component for '%s' for", cct_name)
+        cnf: ComponentConfig = getattr(self.config.components, cct_name)
+        if cnf.init_args:
+            raise IncorrectCoreComponent(
+                "Manually serialisable core components need to define all "
+                "their arguments as keyword arguments")
+        comp = deserialise(comp_folder_path, **cnf.init_kwargs)
+        if not isinstance(comp, CoreComponent):
+            raise IncorrectFolderUponLoad(
+                f"Did not find a CoreComponent at {comp_folder_path} "
+                f"when loading '{cct_name}'. Found "
+                f"'{type(comp)}' instead.")
+        if comp.get_type() != CoreComponentType[cct_name]:
+            raise IncorrectFolderUponLoad(
+                "Did not find the correct CoreComponent at "
+                f"{comp_folder_path} for '{cct_name}'. Found "
+                f"'{comp.get_type().name}' instead.")
+        return comp
+
+    def _init_components(self, model_load_path: Optional[str]) -> None:
+        (loaded_core_component_paths,
+         loaded_addon_component_paths) = self._get_loaded_components_paths(
+             model_load_path)
         for cct_name in self.config.components.comp_order:
-            comp = self._init_component(CoreComponentType[cct_name])
+            if cct_name in loaded_core_component_paths:
+                comp = self._load_saved_core_component(
+                    cct_name, loaded_core_component_paths.pop(cct_name))
+            else:
+                comp = self._init_component(CoreComponentType[cct_name])
             self._components.append(comp)
         for addon_cnf in self.config.components.addons:
-            addon = self._init_addon(addon_cnf)
+            addon = self._init_addon(addon_cnf, loaded_addon_component_paths)
             self._addons.append(addon)
 
-    def _init_addon(self, cnf: ComponentConfig):
+    def _get_loaded_addon_path(
+            self, cnf: ComponentConfig,
+            loaded_addon_component_paths: dict[tuple[str, str], str]
+            ) -> Optional[str]:
+        for key, folder in list(loaded_addon_component_paths.items()):
+            comp_name, subname = key
+            if comp_name != cnf.comp_name:
+                continue
+            if not isinstance(cnf, ConfigMetaCAT):
+                raise UnkownAddonConfig(cnf, ConfigMetaCAT)
+            if cnf.general.category_name == subname:
+                del loaded_addon_component_paths[key]
+                return folder
+        return None
+
+    def _load_addon(self, cnf: ComponentConfig, load_from: str
+                    ) -> AddonComponent:
+        if cnf.init_args:
+            raise IncorrectAddonLoaded(
+                "Manually serialisable addons need to define all their init "
+                "arguments as keyword arguments")
+        # config is implicitly required argument
+        addon = deserialise(load_from, **cnf.init_kwargs, cnf=cnf)
+        if not isinstance(addon, AddonComponent):
+            raise IncorrectAddonLoaded(
+                f"Expected {AddonComponent.__name__}, but goet "
+                f"{type(addon).__name__}")
+        return addon
+
+    def _init_addon(
+            self, cnf: ComponentConfig,
+            loaded_addon_component_paths: dict[tuple[str, str], str]
+            ) -> AddonComponent:
+        loaded_path = self._get_loaded_addon_path(
+            cnf, loaded_addon_component_paths)
+        if loaded_path:
+            return self._load_addon(cnf, loaded_path)
         return create_addon(cnf.comp_name, cnf,
                             *cnf.init_args, **cnf.init_kwargs)
 
@@ -190,16 +289,35 @@ class Pipeline:
     def add_addon(self, addon: AddonComponent) -> None:
         self._addons.append(addon)
 
-    def save_components(self, folder_path: str) -> None:
-        saveables = self._components + self._addons
-        for component in saveables:
-            if component.should_save:
-                target_folder = os.path.join(
-                    folder_path, component.get_folder_name())
-                logger.info("Saving component '%s' to '%s'",
-                            component.full_name, target_folder)
-                os.mkdir(target_folder)
-                component.save(target_folder)
+    def save_components(self,
+                        serialiser_type: Union[AvailableSerialisers, str],
+                        components_folder: str) -> None:
+        for component in self.iter_all_components():
+            if not isinstance(component, Serialisable):
+                continue
+            if not os.path.exists(components_folder):
+                os.mkdir(components_folder)
+            if isinstance(component, CoreComponent):
+                comp_folder = os.path.join(
+                    components_folder,
+                    AbstractCoreComponent.NAME_PREFIX +
+                    component.get_type().name)
+            elif isinstance(component, AddonComponent):
+                comp_folder = os.path.join(
+                    components_folder,
+                    f"{AddonComponent.NAME_PREFIX}{component.addon_type}"
+                    f"{AddonComponent.NAME_SPLITTER}{component.name}")
+            else:
+                raise ValueError(
+                    f"Unknown component: {type(component)} - does not appear "
+                    "to be a CoreComponent or an AddonComponent")
+            serialise(serialiser_type, component, comp_folder)
+
+    def iter_all_components(self) -> Iterable[BaseComponent]:
+        for component in self._components:
+            yield component
+        for addon in self._addons:
+            yield addon
 
     def iter_addons(self) -> Iterable[AddonComponent]:
         yield from self._addons
@@ -226,3 +344,30 @@ class IncorrectArgumentsForComponent(TypeError):
             f"`config.components.{comp_type.name}.init_kwargs`? "
             "When using a custom component, you need to specify the arguments"
             "required or construction manually.")
+
+
+class IncorrectCoreComponent(ValueError):
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class IncorrectFolderUponLoad(ValueError):
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class UnkownAddonConfig(ValueError):
+
+    def __init__(self, cnf: ComponentConfig,
+                 *existing_types: type[ComponentConfig]):
+        super().__init__(
+            f"Found unknown Addon config of type {type(cnf)}. "
+            f"Existing types: {[etype.__name__ for etype in existing_types]}")
+
+
+class IncorrectAddonLoaded(ValueError):
+
+    def __init__(self, *args):
+        super().__init__(*args)

@@ -142,8 +142,8 @@ class Serialiser(ABC):
         self.save_ser_type_file(target_folder)
 
     @classmethod
-    def deserialise_manually(cls, folder_path: str, man_cls_path: str
-                             ) -> Serialisable:
+    def deserialise_manually(cls, folder_path: str, man_cls_path: str,
+                             **init_kwargs) -> Serialisable:
         logger.info("Deserialising manually based on %s", man_cls_path)
         module_name, cls_name = man_cls_path.rsplit(".", 1)
         rel_module = importlib.import_module(module_name)
@@ -153,7 +153,7 @@ class Serialiser(ABC):
                 f"Cannot manually serialise {folder_path} "
                 "because the class used for manual serialisation "
                 f"({man_cls_path}) does not implement ManualSerialisable")
-        return man_cls.deserialise_from(folder_path)
+        return man_cls.deserialise_from(folder_path, **init_kwargs)
 
     def deserialise_all(self, folder_path: str,
                         ignore_folders_prefix: set[str] = set(),
@@ -349,7 +349,8 @@ def deserialise(folder_path: str,
     # if manually serialised, do manually deserialisation
     man_cls_path = Serialiser.get_manually_serialised_path(folder_path)
     if man_cls_path:
-        return Serialiser.deserialise_manually(folder_path, man_cls_path)
+        return Serialiser.deserialise_manually(folder_path, man_cls_path,
+                                               **init_kwargs)
     ser = get_serialiser_from_folder(folder_path)
     return ser.deserialise_all(
         folder_path, ignore_folders_prefix=ignore_folders_prefix,

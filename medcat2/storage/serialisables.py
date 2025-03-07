@@ -172,7 +172,8 @@ class ManualSerialisable(Serialisable, Protocol):
         pass
 
     @classmethod
-    def deserialise_from(cls, folder_path: str) -> 'ManualSerialisable':
+    def deserialise_from(cls, folder_path: str, **init_kwargs
+                         ) -> 'ManualSerialisable':
         pass
 
 

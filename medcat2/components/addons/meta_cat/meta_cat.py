@@ -10,6 +10,7 @@ from medcat2.utils.hasher import Hasher
 
 import torch
 from torch import nn, Tensor
+from medcat2.utils.defaults import COMPONENTS_FOLDER
 from medcat2.tokenizing.tokenizers import BaseTokenizer
 from medcat2.config.config_meta_cat import ConfigMetaCAT
 from medcat2.components.addons.meta_cat.ml_utils import (
@@ -20,7 +21,8 @@ from medcat2.components.addons.addons import AddonComponent
 from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
     TokenizerWrapperBase)
 from medcat2.storage.serialisers import serialise, deserialise
-from medcat2.storage.serialisables import AbstractSerialisable
+from medcat2.storage.serialisables import (
+    AbstractSerialisable, SerialisingStrategy)
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
@@ -70,8 +72,9 @@ class MetaCATAddon(AddonComponent):
         if model_load_path is None:
             self.mc = MetaCAT(tokenizer, embeddings=None, config=cnf)
         else:
-            self.mc = self.load(os.path.join(model_load_path,
-                                             self.get_folder_name()))
+            load_path = os.path.join(
+                model_load_path, COMPONENTS_FOLDER, self.get_folder_name())
+            self.mc = self.load(load_path)
         self._init_data_paths()
 
     @property
@@ -107,16 +110,13 @@ class MetaCATAddon(AddonComponent):
     def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         # NOTE: cnf is silent init parameter
-        return [tokenizer, model_load_path]
+        return []
 
     @classmethod
     def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
-        return {}
-
-    @property
-    def should_save(self) -> bool:
-        return True
+        return {'base_tokenizer': tokenizer,
+                'model_load_path': model_load_path}
 
     def load(self, folder_path: str) -> 'MetaCAT':
         mc_path, tokenizer_folder = self._get_meta_cat_and_tokenizer_paths(
@@ -173,6 +173,35 @@ class MetaCATAddon(AddonComponent):
         #       once for each MetaCAT and will get the same value.
         #       But it shouldn't be too much of an issue.
         return self.output_key, ent.get_addon_data(_META_ANNS_PATH)
+
+    # for ManualSerialisable:
+
+    def serialise_to(self, folder_path: str) -> None:
+        os.mkdir(folder_path)
+        self.save(folder_path)
+
+    @classmethod
+    def deserialise_from(cls, folder_path: str, **init_kwargs
+                         ) -> 'MetaCATAddon':
+        # NOTE: model load path sent by kwargs
+        addon = cls(**init_kwargs)
+        # addon.load()  # called automatically?
+        return addon
+
+    def get_strategy(self) -> SerialisingStrategy:
+        return SerialisingStrategy.MANUAL
+
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def include_properties(cls) -> list[str]:
+        return []
 
 
 class MetaCAT(AbstractSerialisable):
