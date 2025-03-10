@@ -20,7 +20,8 @@ from medcat2.components.addons.addons import AddonComponent
 from medcat2.components.addons.meta_cat.meta_cat_tokenizers import (
     TokenizerWrapperBase)
 from medcat2.storage.serialisers import serialise, deserialise
-from medcat2.storage.serialisables import AbstractSerialisable
+from medcat2.storage.serialisables import (
+    AbstractSerialisable, SerialisingStrategy)
 from medcat2.tokenizing.tokens import MutableDocument, MutableEntity
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
@@ -48,35 +49,67 @@ class MetaCATAddon(AddonComponent):
     output_key = 'meta_anns'
     config: ConfigMetaCAT
 
-    def __init__(self, cnf: ConfigMetaCAT, base_tokenizer: BaseTokenizer,
-                 model_load_path: Optional[str],
-                 tokenizer: Optional[TokenizerWrapperBase] = None):
+    def __init__(self, config: ConfigMetaCAT, base_tokenizer: BaseTokenizer,
+                 meta_cat: Optional['MetaCAT']) -> None:
+        self.config = config
         self.base_tokenizer = base_tokenizer
-        self._name = cnf.general.category_name
-        # NOTE: if tokenizer (Optional[TokenizerWrapperBase]) is provided
-        #       this is probably a new MetaCAT being created
-        #       otherwise, it should be loaded off disk
-        if tokenizer is None and model_load_path is None:
-            tokenizer = self._init_tokenizer(
-                cnf, model_load_path)
-        if tokenizer is None and model_load_path is None:
-            raise MisconfiguredMetaCATException(
-                "When initialising a MetaCAT, neither model load path nor "
-                "a tokenizer was provided. If loading off disk, the model "
-                "load path would be expected; when creating a new one, the "
-                "tokenizer should be provided"
-            )
-        self.config = cnf
-        if model_load_path is None:
-            self.mc = MetaCAT(tokenizer, embeddings=None, config=cnf)
-        else:
-            self.mc = self.load(os.path.join(model_load_path,
-                                             self.get_folder_name()))
+        self._mc = meta_cat
+        self._name = config.general.category_name
         self._init_data_paths()
 
     @property
-    def name(self) -> Optional[str]:
-        return self._name
+    def mc(self) -> 'MetaCAT':
+        if self._mc is None:
+            raise ValueError("Need to have specified MetaCAT")
+        return self._mc
+
+    @classmethod
+    def create_new(cls, config: ConfigMetaCAT, base_tokenizer: BaseTokenizer,
+                   tokenizer: TokenizerWrapperBase) -> 'MetaCATAddon':
+        """Factory method to create a new MetaCATAddon instance."""
+        meta_cat = MetaCAT(tokenizer, embeddings=None, config=config)
+        return cls(config, base_tokenizer, meta_cat)
+
+    @classmethod
+    def load_existing(cls, cnf: ConfigMetaCAT,
+                      base_tokenizer: BaseTokenizer,
+                      load_path: str) -> 'MetaCATAddon':
+        """Factory method to load an existing MetaCATAddon from disk."""
+        meta_cat = cls(cnf, base_tokenizer, None)  # Temporary instance
+        meta_cat._mc = meta_cat.load(load_path)
+        # meta_cat.mc.tokenizer = meta_cat._load_tokenizer(tokenizer_folder)
+        return meta_cat
+
+    # def __init__(self, cnf: ConfigMetaCAT, base_tokenizer: BaseTokenizer,
+    #              model_load_path: Optional[str],
+    #              tokenizer: Optional[TokenizerWrapperBase] = None):
+    #     self.base_tokenizer = base_tokenizer
+    #     self._name = cnf.general.category_name
+    #     # NOTE: if tokenizer (Optional[TokenizerWrapperBase]) is provided
+    #     #       this is probably a new MetaCAT being created
+    #     #       otherwise, it should be loaded off disk
+    #     if tokenizer is None and model_load_path is None:
+    #         tokenizer = self._init_tokenizer(
+    #             cnf, model_load_path)
+    #     if tokenizer is None and model_load_path is None:
+    #         raise MisconfiguredMetaCATException(
+    #             "When initialising a MetaCAT, neither model load path nor "
+    #             "a tokenizer was provided. If loading off disk, the model "
+    #             "load path would be expected; when creating a new one, the "
+    #             "tokenizer should be provided"
+    #         )
+    #     self.config = cnf
+    #     if model_load_path is None:
+    #         self.mc = MetaCAT(tokenizer, embeddings=None, config=cnf)
+    #     else:
+    #         load_path = os.path.join(
+    #             model_load_path, COMPONENTS_FOLDER, self.get_folder_name())
+    #         self.mc = self.load(load_path)
+    #     self._init_data_paths()
+
+    @property
+    def name(self) -> str:
+        return str(self._name)
 
     def _init_tokenizer(self, cnf: ConfigMetaCAT, pack_save_path: Optional[str]
                         ) -> Optional[TokenizerWrapperBase]:
@@ -107,16 +140,12 @@ class MetaCATAddon(AddonComponent):
     def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                       model_load_path: Optional[str]) -> list[Any]:
         # NOTE: cnf is silent init parameter
-        return [tokenizer, model_load_path]
+        return []
 
     @classmethod
     def get_init_kwargs(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,
                         model_load_path: Optional[str]) -> dict[str, Any]:
-        return {}
-
-    @property
-    def should_save(self) -> bool:
-        return True
+        return {'base_tokenizer': tokenizer}
 
     def load(self, folder_path: str) -> 'MetaCAT':
         mc_path, tokenizer_folder = self._get_meta_cat_and_tokenizer_paths(
@@ -139,7 +168,8 @@ class MetaCATAddon(AddonComponent):
                 tokenizer_folder, self.config.model.model_variant)
         return tokenizer
 
-    def _get_meta_cat_and_tokenizer_paths(self, folder_path: str
+    @classmethod
+    def _get_meta_cat_and_tokenizer_paths(cls, folder_path: str
                                           ) -> tuple[str, str]:
         return (os.path.join(folder_path, 'meta_cat'),
                 os.path.join(folder_path, "tokenizer"))
@@ -173,6 +203,33 @@ class MetaCATAddon(AddonComponent):
         #       once for each MetaCAT and will get the same value.
         #       But it shouldn't be too much of an issue.
         return self.output_key, ent.get_addon_data(_META_ANNS_PATH)
+
+    # for ManualSerialisable:
+
+    def serialise_to(self, folder_path: str) -> None:
+        os.mkdir(folder_path)
+        self.save(folder_path)
+
+    @classmethod
+    def deserialise_from(cls, folder_path: str, **init_kwargs
+                         ) -> 'MetaCATAddon':
+        # NOTE: model load path sent by kwargs
+        return cls.load_existing(load_path=folder_path, **init_kwargs)
+
+    def get_strategy(self) -> SerialisingStrategy:
+        return SerialisingStrategy.MANUAL
+
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def include_properties(cls) -> list[str]:
+        return []
 
 
 class MetaCAT(AbstractSerialisable):

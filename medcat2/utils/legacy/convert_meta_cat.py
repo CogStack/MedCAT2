@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, cast
 import os
 import json
 import logging
@@ -98,7 +98,7 @@ def get_meta_cat_from_old(old_path: str, tokenizer: BaseTokenizer
     """
     cnf = load_cnf(os.path.join(old_path, "config.json"))
     mc = _load_legacy(cnf, old_path)
-    addon = MetaCATAddon(cnf, tokenizer, model_load_path=None,
-                         tokenizer=mc.tokenizer)
-    addon.mc = mc
+    addon = MetaCATAddon.create_new(
+        cnf, tokenizer, tokenizer=cast(TokenizerWrapperBase, mc.tokenizer))
+    addon._mc = mc
     return addon

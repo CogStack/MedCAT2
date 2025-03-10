@@ -2,7 +2,9 @@ from typing import Optional
 import os
 from datetime import datetime
 
-from medcat2.storage.serialisables import Serialisable, AbstractSerialisable
+from medcat2.storage.serialisables import (
+    Serialisable, AbstractSerialisable, ManualSerialisable,
+    AbstractManualSerialisable)
 from medcat2.storage import serialisers
 from medcat2.cat import CAT
 from medcat2.cdb import CDB
@@ -207,3 +209,67 @@ def get_slightly_complex_cat() -> CAT:
 class CanSerialiseCATSlightlyComplex(SerialiserWorksTests):
     SERIALISABLE_INSTANCE = get_slightly_complex_cat()
     TARGET_CLASS = CAT
+
+
+class DummyManualSerialisable(AbstractManualSerialisable):
+    FN = "DUMMY_FILY"
+
+    def __init__(self, payload: str):
+        self.payload = payload
+
+    @classmethod
+    def fp(cls, folder_path: str) -> str:
+        return os.path.join(folder_path, cls.FN)
+
+    def serialise_to(self, folder_path: str) -> None:
+        with open(self.fp(folder_path), 'w') as f:
+            f.write(self.payload)
+
+    @classmethod
+    def deserialise_from(cls, folder_path: str) -> 'ManualSerialisable':
+        with open(cls.fp(folder_path)) as f:
+            payload = f.read()
+        return cls(payload=payload)
+
+    def __eq__(self, other):
+        if not isinstance(other, DummyManualSerialisable):
+            return False
+        return self.payload == other.payload
+
+
+class ManualSerialisableTests(unittest.TestCase):
+    ser_type = serialisers.AvailableSerialisers.dill
+    payload = "Some text..."
+
+    def setUp(self):
+        self.dummy = DummyManualSerialisable(payload=self.payload)
+
+    def test_dummy_class_appropriate(self):
+        self.assertIsInstance(self.dummy, ManualSerialisable)
+
+    def test_dummy_file_can_save(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            serialisers.serialise(self.ser_type, self.dummy, temp_dir)
+
+    def test_dummy_file_can_save_and_load(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            serialisers.serialise(self.ser_type, self.dummy, temp_dir)
+            loaded = serialisers.deserialise(temp_dir)
+        self.assertEqual(self.dummy, loaded)
+
+
+class PartlyManuallySerialisableTests(unittest.TestCase):
+    SER_TYPE = serialisers.AvailableSerialisers.dill
+    PAYLOAD = "Some payload"
+    OBJ = DummyClassWithDefValues(attr1=DummyManualSerialisable(PAYLOAD))
+
+    def test_dummy_file_can_save(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            serialisers.serialise(self.SER_TYPE, self.OBJ, temp_dir)
+
+    def test_dummy_file_can_save_and_load(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            serialisers.serialise(self.SER_TYPE, self.OBJ, temp_dir)
+            loaded = serialisers.deserialise(temp_dir)
+        self.assertEqual(self.OBJ, loaded)
+        self.assertEqual(self.OBJ.attr1, loaded.attr1)

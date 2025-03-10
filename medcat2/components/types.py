@@ -24,18 +24,8 @@ class BaseComponent(Protocol):
         pass
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str:
         """The name of the component."""
-        pass
-
-    @property
-    def should_save(self) -> bool:
-        pass
-
-    def get_folder_name(self) -> str:
-        pass
-
-    def save(self, folder: str) -> None:
         pass
 
     def is_core(self) -> bool:
@@ -99,16 +89,6 @@ class AbstractCoreComponent(CoreComponent):
     def is_core(self) -> bool:
         return True
 
-    @property
-    def should_save(self) -> bool:
-        return False
-
-    def get_folder_name(self) -> str:
-        return self.NAME_PREFIX + self.full_name
-
-    def save(self, folder: str) -> None:
-        pass
-
 
 @runtime_checkable
 class TrainableComponent(Protocol):
@@ -146,7 +126,7 @@ _DEFAULT_NER: dict[str, tuple[str, str]] = {
     "default": ("medcat2.components.ner.vocab_based_ner", "NER"),
     "dict": ("medcat2.components.ner.dict_based_ner", "NER"),
     "transformers_ner": ("medcat2.components.ner.trf.transformers_ner",
-                         "TransformersNER"),
+                         "TransformersNER.create_new"),
 }
 _DEFAULT_LINKING: dict[str, tuple[str, str]] = {
     "default": ("medcat2.components.linking.context_based_linker", "Linker"),

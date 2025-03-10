@@ -1,13 +1,15 @@
 from enum import Enum, auto
-from typing import Union, Type, Any
+from typing import Union, Type, Any, Optional
 import os
 from abc import ABC, abstractmethod
 from importlib import import_module
 import logging
+import re
+import importlib
 
 import dill as _dill
 
-from medcat2.storage.serialisables import Serialisable
+from medcat2.storage.serialisables import Serialisable, ManualSerialisable
 from medcat2.storage.serialisables import get_all_serialisable_members
 from medcat2.storage.schema import load_schema, save_schema
 from medcat2.storage.schema import DEFAULT_SCHEMA_FILE, IllegalSchemaException
@@ -17,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 SER_TYPE_FILE = '.serialised_by'
+MANUAL_SERIALISED_TAG = 'MANUALLY_SERIALISED:'
+MANUAL_SERIALISED_RE = re.compile(re.escape(MANUAL_SERIALISED_TAG) + "(.*)")
 
 
 class Serialiser(ABC):
@@ -54,14 +58,28 @@ class Serialiser(ABC):
         """
         pass
 
+    @classmethod
+    def get_ser_type_file(cls, folder: str) -> str:
+        return os.path.join(folder, SER_TYPE_FILE)
+
     def save_ser_type_file(self, folder: str) -> None:
         """Save the serialiser type into the specified folder.
 
         Args:
             folder (str): The folder to use.
         """
-        file_path = os.path.join(folder, SER_TYPE_FILE)
+        file_path = self.get_ser_type_file(folder)
         self.ser_type.write_to(file_path)
+
+    @classmethod
+    def get_manually_serialised_path(cls, folder: str) -> Optional[str]:
+        file_path = cls.get_ser_type_file(folder)
+        with open(file_path) as f:
+            contents = f.read()
+        matched = MANUAL_SERIALISED_RE.match(contents)
+        if matched is not None:
+            return matched.group(1)
+        return None
 
     def check_ser_type(self, folder: str) -> None:
         """Check that the folder contains data serialised by this serialiser.
@@ -96,6 +114,15 @@ class Serialiser(ABC):
                 If there's multiple parts with the same name or
                 a file already exists.
         """
+        if isinstance(obj, ManualSerialisable):
+            obj_cls = type(obj)
+            logger.info("Serialising obj '%s' manually", obj_cls.__name__)
+            obj.serialise_to(target_folder)
+            # write the serialised_by meta file
+            cls_path = obj_cls.__module__ + "." + obj_cls.__name__
+            with open(self.get_ser_type_file(target_folder), 'w') as f:
+                f.write(MANUAL_SERIALISED_TAG + cls_path)
+            return
         ser_parts, raw_parts = get_all_serialisable_members(obj)
         for part, name in ser_parts:
             basename = name
@@ -113,6 +140,20 @@ class Serialiser(ABC):
         schema_path = os.path.join(target_folder, DEFAULT_SCHEMA_FILE)
         save_schema(schema_path, obj.__class__, obj.get_init_attrs())
         self.save_ser_type_file(target_folder)
+
+    @classmethod
+    def deserialise_manually(cls, folder_path: str, man_cls_path: str,
+                             **init_kwargs) -> Serialisable:
+        logger.info("Deserialising manually based on %s", man_cls_path)
+        module_name, cls_name = man_cls_path.rsplit(".", 1)
+        rel_module = importlib.import_module(module_name)
+        man_cls = getattr(rel_module, cls_name)
+        if not issubclass(man_cls, ManualSerialisable):
+            raise ValueError(
+                f"Cannot manually serialise {folder_path} "
+                "because the class used for manual serialisation "
+                f"({man_cls_path}) does not implement ManualSerialisable")
+        return man_cls.deserialise_from(folder_path, **init_kwargs)
 
     def deserialise_all(self, folder_path: str,
                         ignore_folders_prefix: set[str] = set(),
@@ -135,6 +176,9 @@ class Serialiser(ABC):
         Returns:
             Serialisable: The resulting object.
         """
+        man_cls_path = self.get_manually_serialised_path(folder_path)
+        if man_cls_path:
+            return self.deserialise_manually(folder_path, man_cls_path)
         self.check_ser_type(folder_path)
         schema_path = os.path.join(folder_path, DEFAULT_SCHEMA_FILE)
         cls_path, init_attrs = load_schema(schema_path)
@@ -302,6 +346,11 @@ def deserialise(folder_path: str,
     Returns:
         Serialisable: The deserialised object.
     """
+    # if manually serialised, do manually deserialisation
+    man_cls_path = Serialiser.get_manually_serialised_path(folder_path)
+    if man_cls_path:
+        return Serialiser.deserialise_manually(folder_path, man_cls_path,
+                                               **init_kwargs)
     ser = get_serialiser_from_folder(folder_path)
     return ser.deserialise_all(
         folder_path, ignore_folders_prefix=ignore_folders_prefix,

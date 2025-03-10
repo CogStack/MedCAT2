@@ -26,4 +26,4 @@ def get_trf_ner_from_old(old_path: str, tokenizer: BaseTokenizer
     config = get_cnf(os.path.join(old_path, exp_cat_config_name))
     config.general.model_name = old_path
     cdb: CDB = get_cdb_from_old(os.path.join(old_path, exp_cdb_name))
-    return TransformersNER(cdb, tokenizer, config)
+    return TransformersNER.create_new(cdb, tokenizer, config)

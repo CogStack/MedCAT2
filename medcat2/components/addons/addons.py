@@ -1,14 +1,15 @@
-from typing import Callable, Protocol, Any
+from typing import Callable, Protocol, Any, runtime_checkable
 
 from medcat2.components.types import BaseComponent, MutableEntity
 from medcat2.utils.registry import Registry
 from medcat2.config.config import ComponentConfig
 
 
+@runtime_checkable
 class AddonComponent(BaseComponent, Protocol):
     """Base/abstract addon component class."""
     NAME_PREFIX: str = "addon_"
-    NAME_SPLITTER: str = "_"
+    NAME_SPLITTER: str = "."
     config: ComponentConfig
 
     @property
@@ -19,7 +20,8 @@ class AddonComponent(BaseComponent, Protocol):
         return False
 
     def get_folder_name(self) -> str:
-        return self.NAME_PREFIX + self.full_name
+        return (self.NAME_PREFIX + self.addon_type +
+                self.NAME_SPLITTER + self.name)
 
     @property
     def full_name(self) -> str:
@@ -35,7 +37,8 @@ class AddonComponent(BaseComponent, Protocol):
 
 
 _DEFAULT_ADDONS: dict[str, tuple[str, str]] = {
-    'meta_cat': ('medcat2.components.addons.meta_cat.meta_cat', 'MetaCATAddon')
+    'meta_cat': ('medcat2.components.addons.meta_cat.meta_cat',
+                 'MetaCATAddon.create_new')
 }
 
 # NOTE: type error due to non-concrete type

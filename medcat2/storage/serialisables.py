@@ -11,6 +11,12 @@ class SerialisingStrategy(Enum):
     the rest of .__dict__"""
     DICT_ONLY = auto()
     """Only include the object's .__dict__"""
+    MANUAL = auto()
+    """Use manual serialisation defined by the object itself.
+
+    NOTE: In this case, most of the logic defined within here will
+          likely be ignored.
+    """
 
     def _is_suitable_in_dict(self, attr_name: str,
                              attr: Any, obj: 'Serialisable') -> bool:
@@ -157,6 +163,36 @@ class AbstractSerialisable:
             if attr_value != other_value:
                 return False
         return True
+
+
+@runtime_checkable
+class ManualSerialisable(Serialisable, Protocol):
+
+    def serialise_to(self, folder_path: str) -> None:
+        pass
+
+    @classmethod
+    def deserialise_from(cls, folder_path: str, **init_kwargs
+                         ) -> 'ManualSerialisable':
+        pass
+
+
+class AbstractManualSerialisable:
+
+    def get_strategy(self) -> SerialisingStrategy:
+        return SerialisingStrategy.MANUAL
+
+    @classmethod
+    def get_init_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def ignore_attrs(cls) -> list[str]:
+        return []
+
+    @classmethod
+    def include_properties(cls) -> list[str]:
+        return []
 
 
 def name_all_serialisable_elements(target_list: Union[list, tuple],

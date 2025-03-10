@@ -2,7 +2,7 @@ from typing import runtime_checkable, Type, Any
 
 from medcat2.components.addons.meta_cat import meta_cat
 from medcat2.components.addons.addons import AddonComponent
-from medcat2.storage.serialisables import Serialisable
+from medcat2.storage.serialisables import Serialisable, ManualSerialisable
 from medcat2.storage.serialisers import serialise, AvailableSerialisers
 from medcat2.config.config_meta_cat import ConfigMetaCAT
 from medcat2.config.config import Config
@@ -56,14 +56,17 @@ class MetaCATBaseTests(unittest.TestCase):
         cls.tokenizer = cls.TOKENIZER_CLS()
         mc_tokenizer = TokenizerWrapperBERT(
             AutoTokenizer.from_pretrained('prajjwal1/bert-tiny'))
-        cls.meta_cat = meta_cat.MetaCATAddon(
-            cls.cnf, cls.tokenizer, None, tokenizer=mc_tokenizer)
+        cls.meta_cat = meta_cat.MetaCATAddon.create_new(
+            cls.cnf, cls.tokenizer, tokenizer=mc_tokenizer)
 
 
 class MetaCATTests(MetaCATBaseTests):
 
     def test_is_addon(self):
         self.assertIsInstance(self.meta_cat, runtime_checkable(AddonComponent))
+
+    def test_is_manually_serialisable(self):
+        self.assertIsInstance(self.meta_cat, ManualSerialisable)
 
     def test_is_serialisable_meta_cat(self):
         self.assertIsInstance(self.meta_cat.mc,
