@@ -3,7 +3,7 @@ import json
 
 from medcat2.data.mctexport import count_anns_per_concept
 from medcat2.cdb import CDB
-from medcat2.cdb.concepts import CUIInfo
+from medcat2.cdb.concepts import get_new_cui_info
 from medcat2.config.config import Config
 
 
@@ -45,9 +45,10 @@ def make_or_update_cdb(json_path: str, cdb: Optional[CDB] = None,
             # We are adding only what is needed
             cinfo = cdb.cui2info.get(cui, None)
             if cinfo is None:
-                cinfo = CUIInfo(cui=cui, preferred_name=cui, names={cui})
+                cinfo = get_new_cui_info(
+                    cui=cui, preferred_name=cui, names={cui})
                 cdb.cui2info[cui] = cinfo
             else:
-                cinfo.names = set([cui])
-                cinfo.preferred_name = cui
+                cinfo['names'] = set([cui])
+                cinfo['preferred_name'] = cui
     return cdb

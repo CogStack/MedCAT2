@@ -116,8 +116,8 @@ class CATCReationTests(CATIncludingTests):
         if cat is None:
             cat = cls.cat
         return {
-            cui: info.count_train for cui, info in cat.cdb.cui2info.items()
-            if info.count_train}
+            cui: info['count_train'] for cui, info in cat.cdb.cui2info.items()
+            if info['count_train']}
 
     def test_has_expected_training(self):
         self.assertEqual(self.get_cui2ct(), self.EXPECT_TRAIN)

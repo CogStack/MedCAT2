@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from medcat2.cdb import CDB
 from medcat2.config import Config
-from medcat2.cdb.concepts import NameInfo, CUIInfo
+from medcat2.cdb.concepts import get_new_cui_info, get_new_name_info
 from medcat2.utils.defaults import StatusTypes as ST
 from medcat2.utils.legacy.convert_config import get_config_from_nested_dict
 
@@ -90,7 +90,7 @@ def _add_cui_info(cdb: CDB, data: dict) -> CDB:
         type_ids = cui2type_ids.get(cui, {})
         prefname = cui2prefname.get(cui, None)
         av_conf = cui2av_conf.get(cui, 0.0)
-        info = CUIInfo(
+        info = get_new_cui_info(
             cui=cui, preferred_name=prefname, names=names, subnames=snames,
             type_ids=type_ids, tags=tags, count_train=count_train,
             context_vectors=vecs, average_confidence=av_conf,
@@ -110,7 +110,7 @@ def _add_name_info(cdb: CDB, data: dict) -> CDB:
     logger.info("Adding names from cui2names")
     # add from cui2names
     for cui_infos in cdb.cui2info.values():
-        all_names.update(cui_infos.names)
+        all_names.update(cui_infos['names'])
     logger.info("A total of %d names found after adding from cui2names",
                 len(all_names))
     name2cuis, name2cuis2status = data['name2cuis'], data['name2cuis2status']
@@ -122,8 +122,8 @@ def _add_name_info(cdb: CDB, data: dict) -> CDB:
         cuis2status.update(name2cuis2status.get(name, {}))
         cnt_train = name2cnt_train.get(name, 0)
         is_upper = name2is_upper.get(name, False)
-        info = NameInfo(name, cuis=cuis, per_cui_status=cuis2status,
-                        is_upper=is_upper, count_train=cnt_train)
+        info = get_new_name_info(name, cuis=cuis, per_cui_status=cuis2status,
+                                 is_upper=is_upper, count_train=cnt_train)
         cdb.name2info[name] = info
     return cdb
 

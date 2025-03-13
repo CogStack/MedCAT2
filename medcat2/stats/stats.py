@@ -10,7 +10,7 @@ from medcat2.data.mctexport import (
     MedCATTrainerExportDocument, MedCATTrainerExportAnnotation)
 # from medcat2.utils.matutils import intersect_nonempty_set
 from medcat2.config.config import LinkingFilters
-from medcat2.cdb.concepts import CUIInfo
+from medcat2.cdb.concepts import CUIInfo, get_new_cui_info
 from medcat2.tokenizing.tokens import MutableEntity, MutableDocument
 
 
@@ -299,14 +299,15 @@ class StatsBuilder:
             traceback.print_exc()
 
     def _empty(self, cui: str) -> CUIInfo:
-        return CUIInfo(cui=cui, preferred_name=cui, names=set((cui, )))
+        return get_new_cui_info(
+            cui=cui, preferred_name=cui, names=set((cui, )))
 
     def _get_or_empty(self, cui: str) -> CUIInfo:
         return self.cui2info.get(cui, self._empty(cui))
 
     def _get_pref_name(self, cui: str) -> str:
         info = self._get_or_empty(cui)
-        return info.preferred_name or list(info.names)[0]
+        return info['preferred_name'] or list(info['names'])[0]
 
     def unwrap(self) -> tuple[
         dict[str, int], dict[str, int], dict[str, int],

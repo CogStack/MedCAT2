@@ -127,7 +127,7 @@ class CAT(AbstractSerialisable):
         out_dict: Entity = {
             'pretty_name': self.cdb.get_name(cui),
             'cui': cui,
-            'type_ids': list(self.cdb.cui2info[cui].type_ids),
+            'type_ids': list(self.cdb.cui2info[cui]['type_ids']),
             'source_value': ent.base.text,
             'detected_name': str(ent.detected_name),
             'acc': ent.context_similarity,
@@ -237,7 +237,9 @@ class CAT(AbstractSerialisable):
         model_pack_path = os.path.join(target_folder, pack_name)
         # ensure target folder and model pack folder exist
         ensure_folder_if_parent(model_pack_path)
-        # serialise")
+        # serialise
+        # NOTE: CDB prepared for save to improve load times (hopefully!)
+        # with self.cdb.prepare_for_save():
         serialise(serialiser_type, self, model_pack_path)
         # components
         components_folder = os.path.join(

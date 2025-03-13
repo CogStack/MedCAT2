@@ -84,7 +84,9 @@ def convert_context_vectors(cdb: CDB, matrix: np.ndarray) -> None:
         matrix (np.ndarray): The transformation matrix.
     """
     for cuiinfo in cdb.cui2info.values():
-        per_cui_dict = cuiinfo.context_vectors
+        if 'context_vectors' not in cuiinfo:
+            continue
+        per_cui_dict = cuiinfo['context_vectors']
         if per_cui_dict is None:
             continue
         for type_name, cur_vec in list(per_cui_dict.items()):

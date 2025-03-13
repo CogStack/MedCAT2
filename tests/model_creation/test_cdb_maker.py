@@ -116,59 +116,60 @@ class CDBMakerLoadTests(CDBMakerBaseTests):
 
     def test_cdb_names_correct(self):
         cui2names = {
-             cui: info.names for cui, info in self.cdb.cui2info.items()}
+             cui: info['names'] for cui, info in self.cdb.cui2info.items()}
         self.assertEqual(cui2names, self.EXPECTED_NAMES)
 
     def test_cdb_snames_correct(self):
         cui2snames = {
-             cui: info.subnames for cui, info in self.cdb.cui2info.items()}
+             cui: info['subnames'] for cui, info in self.cdb.cui2info.items()}
         self.assertEqual(cui2snames, self.EXPECTED_SNAMES)
 
     def test_cdb_name_to_cuis_correct(self):
         name2cuis = {
-             name: info.cuis for name, info in self.cdb.name2info.items()}
+             name: info['cuis'] for name, info in self.cdb.name2info.items()}
         self.assertEqual(name2cuis, self.EXPECTED_NAME2CUIS)
 
     def test_cdb_cuis_has_no_tags(self):
-        cui2tags = {cui: info.tags for cui, info in self.cdb.cui2info.items()
-                    if info.tags}
+        cui2tags = {cui: info['tags']
+                    for cui, info in self.cdb.cui2info.items()
+                    if info['tags']}
         self.assertEqual(cui2tags, self.EXPECTED_TAGS)
 
     def test_cdb_cui_to_preferred_name_correct(self):
         cui2preferred_name = {
-             cui: info.preferred_name
+             cui: info['preferred_name']
              for cui, info in self.cdb.cui2info.items()
-             if info.preferred_name
+             if info['preferred_name']
         }
         self.assertEqual(cui2preferred_name, self.EXPECTED_PREFNAMES)
 
     def test_cdb_cui_to_context_vectors_correct(self):
         cui2context_vectors = {
-             cui: info.context_vectors
+             cui: info['context_vectors']
              for cui, info in self.cdb.cui2info.items()
-             if info.context_vectors is not None
+             if info['context_vectors'] is not None
         }
         self.assertEqual(cui2context_vectors, self.EXPECTED_CONTEXT_VECTORS)
 
     def test_cdb_cui_to_count_train_output(self):
         cui2count_train = {
-             cui: info.count_train
+             cui: info['count_train']
              for cui, info in self.cdb.cui2info.items()
-             if info.count_train > 0}
+             if info['count_train'] > 0}
         self.assertEqual(cui2count_train, self.EXPECTED_COUNT_TRAIN)
 
     def test_cdb_name_to_cui_to_status_output(self):
         name2cuis2status = {
-             name: dict(**info.per_cui_status)
+             name: dict(**info['per_cui_status'])
              for name, info in self.cdb.name2info.items()
-             if info.per_cui_status
+             if info['per_cui_status']
         }
         self.maxDiff = None
         self.assertEqual(name2cuis2status, self.EXP_NAME2CUIS2STATUS)
 
     def test_cdb_cui_to_type_ids_output(self):
         cui2type_ids = {
-             cui: info.type_ids for cui, info in self.cdb.cui2info.items()
+             cui: info['type_ids'] for cui, info in self.cdb.cui2info.items()
         }
         self.assertEqual(cui2type_ids, self.EXPECTED_TYPE_IDS)
 
@@ -284,14 +285,14 @@ class CDBMakerContextVectorsAdditionTests(CDBMakerEditTestsBase):
                 for cntx_type in cvs:
                     vectors[cntx_type] = np.random.rand(cls.VEC_DIM)
                 cinfo = cls.cdb.cui2info[cui]
-                to_update = cinfo.context_vectors
+                to_update = cinfo['context_vectors']
                 lr = get_lr_linking(cls.config.components.linking,
-                                    cinfo.count_train)
+                                    cinfo['count_train'])
                 if to_update:
                     update_context_vectors(
                         to_update, cui, vectors, lr, negative=False)
                 else:
-                    cinfo.context_vectors = vectors
+                    cinfo['context_vectors'] = vectors
         cls.cinfo = cls.cdb.cui2info[cls.CONCEPT]
         cls.cdb._undirty()
 
@@ -299,7 +300,7 @@ class CDBMakerContextVectorsAdditionTests(CDBMakerEditTestsBase):
     #     self.assertEqual(self.cinfo.count_train, self.EXP_CNT_TRAIN)
 
     def test_has_correct_shape(self):
-        self.assertEqual(self.cinfo.context_vectors['long'].shape[0],
+        self.assertEqual(self.cinfo['context_vectors']['long'].shape[0],
                          self.VEC_DIM)
 
 
@@ -321,14 +322,14 @@ class CDBMakerContextVectorsAdditionNegTests(CDBMakerEditTestsBase):
                 for cntx_type in cvs:
                     vectors[cntx_type] = np.random.rand(cls.VEC_DIM)
                 cinfo = cls.cdb.cui2info[cui]
-                to_update = cinfo.context_vectors
+                to_update = cinfo['context_vectors']
                 lr = get_lr_linking(cls.config.components.linking,
-                                    cinfo.count_train)
+                                    cinfo['count_train'])
                 if to_update:
                     update_context_vectors(to_update, cui, vectors, lr,
                                            negative=True)
                 else:
-                    cinfo.context_vectors = vectors
+                    cinfo['context_vectors'] = vectors
         cls.cinfo = cls.cdb.cui2info[cls.CONCEPT]
         cls.cdb._undirty()
 
@@ -336,7 +337,7 @@ class CDBMakerContextVectorsAdditionNegTests(CDBMakerEditTestsBase):
     #     self.assertEqual(self.cinfo.count_train, self.EXP_CNT_TRAIN)
 
     def test_expected_vec_dim(self):
-        vec = self.cinfo.context_vectors['long']
+        vec = self.cinfo['context_vectors']['long']
         self.assertEqual(vec.shape[0], self.VEC_DIM)
 
 

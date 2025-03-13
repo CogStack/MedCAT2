@@ -5,6 +5,8 @@ from typing import Callable, Any, Dict
 import tempfile
 import json
 
+import numpy as np
+
 from medcat2.utils.cdb_state import (
     captured_state_cdb, CDBState, copy_cdb_state)
 from medcat2.storage.serialisers import deserialise
@@ -51,6 +53,24 @@ class StateTests(unittest.TestCase):
             v = getattr(cdb, k)
             callback(k, v)
 
+    def assertDictWithNdarrayEqual(self, dict1: dict, dict2: dict):
+        self.assertEqual(dict1.keys(), dict2.keys())
+        for key in dict1:
+            val1, val2 = dict1[key], dict2[key]
+            if isinstance(val1, np.ndarray):
+                self.assertTrue(
+                    np.array_equal(val1, val2),
+                    f"Arrays at {key} are not equal: {val1} vs {val2}")
+            elif isinstance(val1, dict):
+                self.assertDictWithNdarrayEqual(val1, val2)
+            else:
+                self.assertEqual(
+                    val1, val2,
+                    f"Values at {key} are not equal: {val1} vs {val2}")
+
+    def assertStateEqual(self, state1: CDBState, state2: CDBState):
+        self.assertDictWithNdarrayEqual(state1, state2)
+
 
 class StateSavedTests(StateTests):
     on_disk = False
@@ -81,7 +101,7 @@ class StateSavedTests(StateTests):
                 self.assertFalse(v)
 
     def test_state_restored(self):
-        self.assertEqual(self.initial_state, self.restored_state)
+        self.assertStateEqual(self.initial_state, self.restored_state)
 
 
 class StateSavedOnDiskTests(StateSavedTests):
@@ -134,4 +154,4 @@ class StateRestoredAfterTrain(StateWithTrainingTests):
         self.assertNotEqual(self.initial_state, self.after_train_state)
 
     def test_restored_state_same(self):
-        self.assertDictEqual(self.initial_state, self.restored_state)
+        self.assertStateEqual(self.initial_state, self.restored_state)

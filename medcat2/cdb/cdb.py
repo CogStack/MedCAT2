@@ -1,7 +1,10 @@
 from typing import Iterable, Any
+# from contextlib import contextmanager
 
 from medcat2.storage.serialisables import AbstractSerialisable
 from medcat2.cdb.concepts import CUIInfo, NameInfo, TypeInfo
+from medcat2.cdb.concepts import get_new_cui_info, get_new_name_info
+from medcat2.cdb.concepts import reset_cui_training
 from medcat2.utils.defaults import default_weighted_average, StatusTypes as ST
 from medcat2.preprocessors.cleaners import NameDescriptor
 from medcat2.config import Config
@@ -33,7 +36,7 @@ class CDB(AbstractSerialisable):
         logger.info("Resetting subnames")
         self._subnames.clear()
         for info in self.cui2info.values():
-            self._subnames.update(info.subnames)
+            self._subnames.update(info['subnames'])
         self.has_changed_names = False
         self.is_dirty = False
 
@@ -68,8 +71,8 @@ class CDB(AbstractSerialisable):
         if cui not in self.cui2info:
             return name
         cui_info = self.cui2info[cui]
-        pref_name = cui_info.preferred_name
-        names = cui_info.names
+        pref_name = cui_info['preferred_name']
+        names = cui_info['names']
         if pref_name:
             name = pref_name
         elif names:
@@ -137,18 +140,18 @@ class CDB(AbstractSerialisable):
         cui_info = self.cui2info[cui]
         for name, in_name_info in names.items():
             # add name and synonyms
-            cui_info.names.add(name)
-            cui_info.subnames.update(in_name_info.snames)
+            cui_info['names'].add(name)
+            cui_info['subnames'].update(in_name_info.snames)
 
             if name not in self.name2info:
-                self.name2info[name] = NameInfo(name=name, cuis=set())
+                self.name2info[name] = get_new_name_info(name=name, cuis=set())
             # Add whether concept is uppercase
             name_info = self.name2info[name]
-            name_info.is_upper = in_name_info.is_upper
-            name_info.cuis.add(cui)
-            if (cui not in name_info.cuis or
+            name_info['is_upper'] = in_name_info.is_upper
+            name_info['cuis'].add(cui)
+            if (cui not in name_info['cuis'] or
                     name_status == ST.PRIMARY_STATUS_NO_DISAMB):
-                name_info.per_cui_status[cui] = name_status
+                name_info['per_cui_status'][cui] = name_status
 
             # Add tokens to token counts
             for token in in_name_info.tokens:
@@ -165,17 +168,17 @@ class CDB(AbstractSerialisable):
         cui_info = self.cui2info[cui]
         # Use original_names as the base check because they must be added
         orig_names: set[str] = set([v.raw_name for v in names.values()])
-        if cui_info.original_names is None:
+        if cui_info['original_names'] is None:
             if ontologies:
-                cui_info.in_other_ontology['ontologies'] = ontologies
-            cui_info.original_names = orig_names
+                cui_info['in_other_ontology']['ontologies'] = ontologies
+            cui_info['original_names'] = orig_names
         else:
             # Update existing ones
             if ontologies:
-                cui_info.in_other_ontology['ontologies'].update(ontologies)
-            cui_info.original_names.update(orig_names)
+                cui_info['in_other_ontology']['ontologies'].update(ontologies)
+            cui_info['original_names'].update(orig_names)
         if description:
-            cui_info.description = description
+            cui_info['description'] = description
 
         for type_id in type_ids:
             # Add type_id2cuis link
@@ -238,23 +241,23 @@ class CDB(AbstractSerialisable):
         # Add CUI to the required dictionaries
         if cui not in self.cui2info:
             # Create placeholders
-            cui_info = CUIInfo(cui=cui, preferred_name='',
-                               type_ids=type_ids)
+            cui_info = get_new_cui_info(
+                cui=cui, preferred_name='', type_ids=type_ids)
             self.cui2info[cui] = cui_info
         else:
             cui_info = self.cui2info[cui]
             # If the CUI is already in update the type_ids
-            cui_info.type_ids.update(type_ids)
+            cui_info['type_ids'].update(type_ids)
 
         # Add names to the required dictionaries
         self._add_concept_names(cui, names, name_status)
 
-        if name_status == 'P' and not cui_info.preferred_name:
+        if name_status == 'P' and not cui_info['preferred_name']:
             raw_names = [ini.raw_name for ini in names.values()]
             # TODO: which raw name?
             # previous implementation used the somewhat arbitrary last raw name
             rni = -1
-            cui_info.preferred_name = raw_names[rni]
+            cui_info['preferred_name'] = raw_names[rni]
 
         # Add other fields if full_build
         if full_build:
@@ -270,9 +273,9 @@ class CDB(AbstractSerialisable):
         supervised/online learning.
         """
         for cui_info in self.cui2info.values():
-            cui_info.reset_training()
+            reset_cui_training(cui_info)
         for name_info in self.name2info.values():
-            name_info.count_train = 0
+            name_info['count_train'] = 0
         self.is_dirty = True
 
     def _remove_names(self, cui: str, names: Iterable[str]) -> None:
@@ -293,15 +296,15 @@ class CDB(AbstractSerialisable):
         for name in names:
             if name in self.name2info:
                 info = self.name2info[name]
-                if cui in info.cuis:
-                    info.cuis.remove(cui)
-                if len(info.cuis) == 0:
+                if cui in info['cuis']:
+                    info['cuis'].remove(cui)
+                if len(info['cuis']) == 0:
                     del self.name2info[name]
 
             # Remove from name2cuis2status
             if name in self.name2info:
                 info = self.name2info[name]
-                cuis2status = info.per_cui_status
+                cuis2status = info['per_cui_status']
                 if cui in cuis2status:
                     _ = cuis2status.pop(cui)
                 if len(cuis2status) == 0:
@@ -311,7 +314,7 @@ class CDB(AbstractSerialisable):
             # Set to disamb always if name2cuis2status is now only one CUI
             if name in self.name2info:
                 info = self.name2info[name]
-                cuis2status = info.per_cui_status
+                cuis2status = info['per_cui_status']
                 if len(cuis2status) == 1:
                     for _cui in cuis2status:
                         if cuis2status[_cui] == 'A':

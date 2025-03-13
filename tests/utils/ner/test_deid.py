@@ -132,7 +132,7 @@ class DeIDModelTests(unittest.TestCase):
         self.deid_model.add_new_concepts({'CONCEPT': "Concept"},
                                          with_random_init=True)
         self.assertTrue("CONCEPT" in self.deid_model.cat.cdb.cui2info)
-        self.assertEqual(self.deid_model.cat.cdb.cui2info["CONCEPT"].names,
+        self.assertEqual(self.deid_model.cat.cdb.cui2info["CONCEPT"]['names'],
                          {"concept"})
         tner = self.deid_model.cat._pipeline.get_component(
             CoreComponentType.ner)._component

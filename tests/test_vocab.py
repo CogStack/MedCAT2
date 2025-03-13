@@ -52,7 +52,6 @@ class VocabCreationTests(unittest.TestCase):
 
     def test_can_overwrite_word(self):
         word = self.word3.copy()  # allows to overwrite
-        # print("WORD", word)
         self.vocab.add_word(**word)
         word_cp = word.copy()
         word_cp["vec"] = 2 * word["vec"]

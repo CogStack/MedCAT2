@@ -23,7 +23,6 @@ class NoInitNER(types.AbstractCoreComponent):
     name = 'no-init-ner'
 
     def __call__(self, doc):
-        print("CALL NO INIT")
         return doc
 
     def get_type(self):
@@ -50,7 +49,6 @@ class WithInitNER(types.AbstractCoreComponent):
         self.cdb = cdb
 
     def __call__(self, doc):
-        print("CALL W INIT")
         return doc
 
     def get_type(self):
