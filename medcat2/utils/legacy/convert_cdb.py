@@ -67,6 +67,7 @@ NAME2KEYS = {'name2cuis', 'name2cuis2status', 'name2count_train',
 CUI2KEYS = {'cui2names', 'cui2snames', 'cui2context_vectors',
             'cui2count_train', 'cui2info', 'cui2tags', 'cui2type_ids',
             'cui2preferred_name', 'cui2average_confidence', }
+TO_RENAME = {'vocab': 'token_counts'}
 
 
 def _add_cui_info(cdb: CDB, data: dict) -> CDB:
@@ -128,6 +129,11 @@ def _add_name_info(cdb: CDB, data: dict) -> CDB:
     return cdb
 
 
+def update_names(cdb: CDB, data: dict):
+    for name_from, name_to in TO_RENAME.items():
+        setattr(cdb, name_to, data[name_from])
+
+
 def convert_data(all_data: dict) -> CDB:
     """Convert the raw v1 data into a CDB.
 
@@ -141,6 +147,7 @@ def convert_data(all_data: dict) -> CDB:
     cdb = CDB(Config())
     cdb = _add_cui_info(cdb, data)
     cdb = _add_name_info(cdb, data)
+    update_names(cdb, data)
     if 'config' in all_data:
         logger.info("Loading old style CDB with config included.")
         cdb.config = get_config_from_nested_dict(all_data['config'])
