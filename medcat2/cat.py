@@ -240,7 +240,10 @@ class CAT(AbstractSerialisable):
         # serialise
         # NOTE: CDB prepared for save to improve load times (hopefully!)
         # with self.cdb.prepare_for_save():
-        serialise(serialiser_type, self, model_pack_path)
+        # NOTE: preparation to make sure stuff is easily serialisable
+        #       these will be automatically fixed after CM and/or at undirty
+        with self.cdb.prepare_for_serialisation():
+            serialise(serialiser_type, self, model_pack_path)
         # components
         components_folder = os.path.join(
             model_pack_path, COMPONENTS_FOLDER)
