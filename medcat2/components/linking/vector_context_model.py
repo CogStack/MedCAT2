@@ -95,7 +95,7 @@ class ContextModel(AbstractSerialisable):
                                   tokens_center: list[MutableToken]
                                   ) -> Iterable[np.ndarray]:
         if cui is not None and self._should_change_name(cui):
-            new_name: str = random.choice(list(self.cui2info[cui].names))
+            new_name: str = random.choice(list(self.cui2info[cui]['names']))
             new_tokens_center = new_name.split(self.name_separator)
             return self._tokens2vecs(new_tokens_center)
         else:
@@ -170,10 +170,10 @@ class ContextModel(AbstractSerialisable):
         """
         cui_info = self.cui2info[cui]
 
-        cui_vectors = cui_info.context_vectors
+        cui_vectors = cui_info['context_vectors']
 
         train_threshold = self.config.train_count_threshold
-        if cui_vectors and cui_info.count_train >= train_threshold:
+        if cui_vectors and cui_info['count_train'] >= train_threshold:
             return get_similarity(cui_vectors, vectors,
                                   self.config.context_vector_weights,
                                   cui, self.cui2info)
@@ -188,7 +188,7 @@ class ContextModel(AbstractSerialisable):
             for i, (cui, sim) in enumerate(zip(cuis, similarities)):
                 if sim <= 0:
                     continue
-                status = self.name2info[name].per_cui_status[cui]
+                status = self.name2info[name]['per_cui_status'][cui]
                 if status in ST.PRIMARY_STATUS:
                     new_sim = sim * (1 + self.config.prefer_primary_name)
                     similarities[i] = min(0.99, new_sim)
@@ -199,7 +199,7 @@ class ContextModel(AbstractSerialisable):
         if self.config.prefer_frequent_concepts > 0:
             logger.debug("Preferring frequent concepts")
             #  Prefer frequent concepts
-            cnts = [self.cui2info[cui].count_train for cui in cuis]
+            cnts = [self.cui2info[cui]['count_train'] for cui in cuis]
             m = min(cnts) or 1
             pref_freq = self.config.prefer_frequent_concepts
             scales = [np.log10(cnt/m) * pref_freq if cnt > 10 else 0
@@ -261,29 +261,30 @@ class ContextModel(AbstractSerialisable):
             return
         vectors = self.get_context_vectors(entity, doc, cui=cui)
         cui_info = self.cui2info[cui]
-        lr = get_lr_linking(self.config, cui_info.count_train)
-        if not cui_info.context_vectors:
-            cui_info.context_vectors = vectors
+        lr = get_lr_linking(self.config, cui_info['count_train'])
+        if not cui_info['context_vectors']:
+            cui_info['context_vectors'] = vectors
         else:
             update_context_vectors(
-                cui_info.context_vectors, cui, vectors, lr, negative=negative
-            )
+                cui_info['context_vectors'], cui, vectors, lr,
+                negative=negative)
         if not negative:
-            cui_info.count_train += 1
+            cui_info['count_train'] += 1
         # Debug
         logger.debug("Updating CUI: %s with negative=%s", cui, negative)
 
         if not negative:
             # Update the name count, if possible
             if entity.detected_name:
-                self.name2info[entity.detected_name].count_train += 1
+                self.name2info[entity.detected_name]['count_train'] += 1
 
             if self.config.calculate_dynamic_threshold:
                 # Update average confidence for this CUI
                 sim = self.similarity(cui, entity, doc)
                 new_conf = get_updated_average_confidence(
-                    cui_info.average_confidence, cui_info.count_train, sim)
-                cui_info.average_confidence = new_conf
+                    cui_info['average_confidence'],
+                    cui_info['count_train'], sim)
+                cui_info['average_confidence'] = new_conf
 
         if negative:
             # Change the status of the name so that it has
@@ -291,7 +292,7 @@ class ContextModel(AbstractSerialisable):
             for name in names:
                 if name not in self.name2info:
                     continue
-                per_cui_status = self.name2info[name].per_cui_status
+                per_cui_status = self.name2info[name]['per_cui_status']
                 cui_status = per_cui_status[cui]
                 if cui_status == ST.PRIMARY_STATUS_NO_DISAMB:
                     # Set this name to always be disambiguated, even
@@ -309,18 +310,19 @@ class ContextModel(AbstractSerialisable):
         if not negative and self.config.devalue_linked_concepts:
             # Find what other concepts can be disambiguated against this
             _other_cuis_chain = chain(*[
-                self.name2info[name].cuis
-                for name in self.cui2info[cui].names])
+                self.name2info[name]['cuis']
+                for name in self.cui2info[cui]['names']])
             # Remove the cui of the current concept
             _other_cuis = set(_other_cuis_chain) - {cui}
 
             for _cui in _other_cuis:
                 info = self.cui2info[_cui]
-                if not info.context_vectors:
-                    info.context_vectors = vectors
+                if not info['context_vectors']:
+                    info['context_vectors'] = vectors
                 else:
-                    update_context_vectors(info.context_vectors, cui, vectors,
-                                           lr, negative=True)
+                    update_context_vectors(
+                        info['context_vectors'], cui, vectors, lr,
+                        negative=True)
 
             logger.debug("Devalued via names.\n\tBase cui: %s \n\t"
                          "To be devalued: %s\n", cui, _other_cuis)
@@ -345,12 +347,12 @@ class ContextModel(AbstractSerialisable):
                          cui, len(inds))
 
         cui_info = self.cui2info[cui]
-        lr = get_lr_linking(self.config, cui_info.count_train)
+        lr = get_lr_linking(self.config, cui_info['count_train'])
         # Do the update for all context types
-        if not cui_info.context_vectors:
-            cui_info.context_vectors = vectors
+        if not cui_info['context_vectors']:
+            cui_info['context_vectors'] = vectors
         else:
-            update_context_vectors(cui_info.context_vectors, cui, vectors,
+            update_context_vectors(cui_info['context_vectors'], cui, vectors,
                                    lr, negative=True)
 
 
@@ -390,7 +392,7 @@ def get_similarity(cur_vectors: dict[str, np.ndarray],
         sim += w * s
         logger.debug("Similarity for CUI: %s, Count: %s, Context Type: %.10s, "
                      "Weight: %s.2f, Similarity: %s.3f, S*W: %s.3f",
-                     cui, cui2info[cui].count_train, vec_type, w, s, s*w)
+                     cui, cui2info[cui]['count_train'], vec_type, w, s, s*w)
     return sim
 
 

@@ -23,7 +23,7 @@ def annotate_name(tokenizer: BaseTokenizer, name: str,
     # and where this name fits a name in the cdb.
     # All standard name entity recognition models will not set this.
     entity.detected_name = name
-    entity.link_candidates = list(cdb.name2info[name].cuis)
+    entity.link_candidates = list(cdb.name2info[name]['cuis'])
     entity.id = len(doc.all_ents)
     entity.confidence = -1  # This does not calculate confidence
     # Append the entity to the document
@@ -71,7 +71,7 @@ def maybe_annotate_name(tokenizer: BaseTokenizer, name: str,
     # words that have a different meaning.
     if config.components.ner.check_upper_case_names:
         # Check whether name is completely uppercase in CDB.
-        is_upper = (cdb.name2info[name].is_upper
+        is_upper = (cdb.name2info[name]['is_upper']
                     if name in cdb.name2info else False)
         if is_upper:
             # Check whether tokens are also in uppercase. If tokens

@@ -76,7 +76,7 @@ class Linker(AbstractCoreComponent):
             name_info = self.cdb.name2info.get(name, None)
             if not name_info:
                 return
-            if name_info.per_cui_status[cuis[0]] == ST.MUST_DISAMBIGATE:
+            if name_info['per_cui_status'][cuis[0]] == ST.MUST_DISAMBIGATE:
                 return
             self._train(cui=cuis[0], entity=entity, doc=doc)
             entity.cui = cuis[0]
@@ -87,7 +87,7 @@ class Linker(AbstractCoreComponent):
                 name_info = self.cdb.name2info.get(name, None)
                 if not name_info:
                     continue
-                if name_info.per_cui_status[cui] not in ST.PRIMARY_STATUS:
+                if name_info['per_cui_status'][cui] not in ST.PRIMARY_STATUS:
                     continue
                 # if self.cdb.name2cuis2status[name][cui] in {'P', 'PD'}:
                 self._train(cui=cui, entity=entity, doc=doc)
@@ -118,7 +118,7 @@ class Linker(AbstractCoreComponent):
         if len(name) < cnf_l.disamb_length_limit:
             do_disambiguate = True
         elif (len(cuis) == 1 and
-                name_info.per_cui_status[cuis[0]] in ST.DO_DISAMBUGATION):
+                name_info['per_cui_status'][cuis[0]] in ST.DO_DISAMBUGATION):
             do_disambiguate = True
         elif len(cuis) > 1:
             do_disambiguate = True
@@ -141,7 +141,7 @@ class Linker(AbstractCoreComponent):
         if th_type == 'static':
             return context_similarity >= threshold
         if th_type == 'dynamic':
-            conf = self.cdb.cui2info[cui].average_confidence
+            conf = self.cdb.cui2info[cui]['average_confidence']
             return context_similarity >= conf * threshold
         return False
 

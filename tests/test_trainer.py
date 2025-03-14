@@ -216,7 +216,8 @@ class TrainFromScratchTests(FromSratchBase):
     def test_can_train_unsupervised(self):
         for cui, _ in self.all_concepts:
             with self.subTest(cui):
-                self.assertGreater(self.model.cdb.cui2info[cui].count_train, 0)
+                self.assertGreater(
+                    self.model.cdb.cui2info[cui]['count_train'], 0)
 
 
 class TrainFromScratchSupervisedTests(TrainFromScratchTests):
@@ -228,7 +229,7 @@ class TrainFromScratchSupervisedTests(TrainFromScratchTests):
     def setUpClass(cls):
         super().setUpClass()
         cls.cnts_before = {
-            cui: info.count_train
+            cui: info['count_train']
             for cui, info in cls.model.cdb.cui2info.items()
         }
         cls.model.trainer.train_supervised_raw(
@@ -244,4 +245,4 @@ class TrainFromScratchSupervisedTests(TrainFromScratchTests):
         for cui, prev_count in self.cnts_before.items():
             with self.subTest(cui):
                 info = self.model.cdb.cui2info[cui]
-                self.assertGreater(info.count_train, prev_count)
+                self.assertGreater(info['count_train'], prev_count)

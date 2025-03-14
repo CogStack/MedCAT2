@@ -1,100 +1,88 @@
-from typing import Optional, Any
+from typing import Optional, Any, TypedDict
 from dataclasses import dataclass, field
 from collections import defaultdict
 
 import numpy as np
 
 from medcat2.utils.defaults import StatusTypes as ST
-from medcat2.storage.serialisables import SerialisingStrategy
 
 
-@dataclass
-class CUIInfo:
-    """Represents all the per concept information."""
+class CUIInfo(TypedDict):
     cui: str  # NOTE: we _could_ get away without to save on memory
     preferred_name: str
-    names: set[str] = field(default_factory=set)
-    subnames: set[str] = field(default_factory=set)
-    type_ids: set[str] = field(default_factory=set)
+    names: set[str]
+    subnames: set[str]
+    type_ids: set[str]
     # optional parts start here
-    description: Optional[str] = None
-    original_names: Optional[set[str]] = None
-    tags: list[str] = field(default_factory=list)
-    group: Optional[str] = None
-    in_other_ontology: dict[str, Any] = field(default_factory=dict)
+    description: Optional[str]
+    original_names: Optional[set[str]]
+    tags: list[str]
+    group: Optional[str]
+    in_other_ontology: dict[str, Any]
     # stuff related to training starts here
-    count_train: int = 0  # TODO: separate supervised and unsupervised
-    context_vectors: Optional[dict[str, np.ndarray]] = None
-    average_confidence: float = 0.0
-
-    def reset_training(self) -> None:
-        """Reset the traininng for this concept.
-
-        This involves removing the context vectors, setting the
-        training count to 0, and setting average confidence to 0.
-        """
-        self.context_vectors = None
-        self.count_train = 0
-        self.average_confidence = 0
-
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, CUIInfo):
-            return False
-        for ann_key in self.__annotations__:
-            v1, v2 = getattr(self, ann_key), getattr(other, ann_key)
-            if ann_key != 'context_vectors':
-                if v1 != v2:
-                    return False
-                continue
-            if v1 is None and v2 is None:
-                continue
-            if v1.keys() != v2.keys():
-                return False
-            for k in v1:
-                sv1, sv2 = v1[k], v2[k]
-                if not np.all(sv1 == sv2):
-                    return False
-        return True
-
-    # Serialisable
-
-    def get_strategy(self) -> SerialisingStrategy:
-        # NOTE: has no serialisable
-        return SerialisingStrategy.DICT_ONLY
-
-    @classmethod
-    def get_init_attrs(cls) -> list[str]:
-        return list(__annotations__.keys())
-
-    @classmethod
-    def ignore_attrs(cls) -> list[str]:
-        return []
+    # TODO: separate supervised and unsupervised
+    count_train: int
+    context_vectors: Optional[dict[str, np.ndarray]]
+    average_confidence: float
 
 
-@dataclass
-class NameInfo:
-    """Represents all the info regarding a name."""
+def get_new_cui_info(cui: str, preferred_name: str,
+                     names: set[str] = set(), subnames: set[str] = set(),
+                     type_ids: set[str] = set(),
+                     description: Optional[str] = None,
+                     original_names: Optional[set[str]] = None,
+                     tags: list[str] = list(), group: Optional[str] = None,
+                     in_other_ontology: dict[str, Any] = dict(),
+                     count_train: int = 0,
+                     context_vectors: Optional[dict[str, np.ndarray]] = None,
+                     average_confidence: float = 0.0) -> CUIInfo:
+    return {
+        'cui': cui,
+        'preferred_name': preferred_name,
+        'names': names or names.copy(),
+        'subnames': subnames or subnames.copy(),
+        'type_ids': type_ids or type_ids.copy(),
+        'description': description,
+        'original_names': original_names,
+        'tags': tags or tags.copy(),
+        'group': group,
+        'in_other_ontology': in_other_ontology or in_other_ontology.copy(),
+        'count_train': count_train,
+        'context_vectors': context_vectors,
+        'average_confidence': average_confidence
+    }
+
+
+def reset_cui_training(cui_info: CUIInfo) -> None:
+    cui_info['context_vectors'] = None
+    cui_info['count_train'] = 0
+    cui_info['average_confidence'] = 0
+
+
+def get_defdict():
+    return defaultdict(lambda: ST.AUTOMATIC)
+
+
+class NameInfo(TypedDict):
     name: str  # NOTE: we _could_ get away without to save on memory
-    cuis: set[str]  # = field(default_factory=set)
-    per_cui_status: defaultdict[str, str] = field(
-        default_factory=lambda: defaultdict(lambda: ST.AUTOMATIC))
-    is_upper: bool = False
+    cuis: set[str]
+    per_cui_status: defaultdict[str, str]
+    is_upper: bool
     # stuff related to training starts here
-    count_train: int = 0
+    count_train: int
 
-    # Serialisable
 
-    def get_strategy(self) -> SerialisingStrategy:
-        # NOTE: has no serialisable
-        return SerialisingStrategy.DICT_ONLY
-
-    @classmethod
-    def get_init_attrs(cls) -> list[str]:
-        return list(__annotations__.keys())
-
-    @classmethod
-    def ignore_attrs(cls) -> list[str]:
-        return []
+def get_new_name_info(name: str, cuis: set[str] = set(),
+                      per_cui_status: defaultdict[str, str] = get_defdict(),
+                      is_upper: bool = False,
+                      count_train: int = 0) -> NameInfo:
+    return {
+        'name': name,
+        'cuis': cuis or cuis.copy(),
+        'per_cui_status': per_cui_status or per_cui_status.copy(),
+        'is_upper': is_upper,
+        'count_train': count_train
+    }
 
 
 @dataclass
