@@ -22,12 +22,8 @@ SpacyToken.set_extension('is_punctuation', default=False, force=True)
 
 class Token:
 
-    def __init__(self, delegate: SpacyToken) -> None:
+    def __init__(self, delegate: SpacyToken, is_new: bool = True) -> None:
         self._delegate = delegate
-        # defaults
-        if self.norm is None:
-            # force spacy to init ''
-            self.norm = ''
 
     @property
     def is_punctuation(self) -> bool:
@@ -47,7 +43,7 @@ class Token:
 
     @property
     def norm(self) -> str:
-        return self._delegate._.norm
+        return self._delegate._.norm or ''
 
     @norm.setter
     def norm(self, new_val: str) -> None:
