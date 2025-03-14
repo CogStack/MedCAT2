@@ -59,12 +59,8 @@ def reset_cui_training(cui_info: CUIInfo) -> None:
     cui_info['average_confidence'] = 0
 
 
-def get_auto_status():
-    return ST.AUTOMATIC
-
-
 def get_defdict():
-    return defaultdict(get_auto_status)
+    return defaultdict(lambda: ST.AUTOMATIC)
 
 
 class NameInfo(TypedDict):
