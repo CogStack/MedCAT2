@@ -94,10 +94,6 @@ class MutableToken(Protocol):
         """Optional tag (e.g) for normalization."""
         pass
 
-    def should_include(self) -> bool:
-        """Whether the token should be included."""
-        pass
-
     @property
     def norm(self) -> str:
         """The normalised text."""
