@@ -65,13 +65,17 @@ class ContextModel(AbstractSerialisable):
         end_ind = entity.base.end_index
 
         _left_tokens = doc[max(0, start_ind-size):start_ind]
-        tokens_left = [tkn for tkn in _left_tokens if tkn.should_include()]
+        tokens_left = [tkn for tkn in _left_tokens if
+                       tkn.to_skip and tkn.base.is_stop and
+                       not tkn.base.is_digit and not tkn.is_punctuation]
         # Reverse because the first token should be the one closest to center
         tokens_left.reverse()
         tokens_center: list[MutableToken] = list(
             cast(Iterable[MutableToken], entity))
         _right_tokens = doc[end_ind+1:end_ind + 1 + size]
-        tokens_right = [tkn for tkn in _right_tokens if tkn.should_include()]
+        tokens_right = [tkn for tkn in _right_tokens if
+                        tkn.to_skip and tkn.base.is_stop and
+                        not tkn.base.is_digit and not tkn.is_punctuation]
 
         return tokens_left, tokens_center, tokens_right
 
