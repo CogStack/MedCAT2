@@ -1,5 +1,6 @@
 from typing import Optional
 from multiprocessing import cpu_count
+from functools import lru_cache
 
 
 DEFAULT_SPACY_MODEL = 'en_core_web_md'
@@ -7,7 +8,7 @@ DEFAULT_PACK_NAME = "medcat2_model_pack"
 COMPONENTS_FOLDER = "saved_components"
 
 
-# defaults for config
+@lru_cache(maxsize=100)
 def default_weighted_average(step: int, factor: float = 0.0004) -> float:
     return max(0.1, 1 - (step ** 2 * factor))
 
