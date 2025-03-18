@@ -8,12 +8,8 @@ COMPONENTS_FOLDER = "saved_components"
 
 
 # defaults for config
-def weighted_average(step: int, factor: float) -> float:
+def default_weighted_average(step: int, factor: float = 0.0004) -> float:
     return max(0.1, 1 - (step ** 2 * factor))
-
-
-def default_weighted_average(step: int) -> float:
-    return weighted_average(step, factor=0.0004)
 
 
 def workers(workers_override: Optional[int] = None) -> int:
