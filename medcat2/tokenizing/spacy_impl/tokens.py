@@ -22,7 +22,7 @@ SpacyToken.set_extension('is_punctuation', default=False, force=True)
 
 class Token:
 
-    def __init__(self, delegate: SpacyToken, is_new: bool = True) -> None:
+    def __init__(self, delegate: SpacyToken) -> None:
         self._delegate = delegate
 
     @property
