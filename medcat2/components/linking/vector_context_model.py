@@ -46,6 +46,7 @@ class ContextModel(AbstractSerialisable):
 
     def get_context_tokens(self, entity: MutableEntity, doc: MutableDocument,
                            size: int,
+                           per_doc_valid_token_cache: 'PerDocumentTokenCache',
                            ) -> tuple[list[MutableToken],
                                       list[MutableToken],
                                       list[MutableToken]]:
@@ -56,6 +57,8 @@ class ContextModel(AbstractSerialisable):
             entity (BaseEntity): The entity to look for.
             doc (BaseDocument): The document look in.
             size (int): The size of the entity.
+            per_doc_valid_token_cache (PerDocumentTokenCache):
+                Per document cache for token validation.
 
         Returns:
             tuple[list[BaseToken], list[BaseToken], list[BaseToken]]:
@@ -65,13 +68,15 @@ class ContextModel(AbstractSerialisable):
         end_ind = entity.base.end_index
 
         _left_tokens = doc[max(0, start_ind-size):start_ind]
-        tokens_left = [tkn for tkn in _left_tokens if tkn.should_include()]
+        tokens_left = [tkn for tkn in _left_tokens if
+                       per_doc_valid_token_cache[tkn]]
         # Reverse because the first token should be the one closest to center
         tokens_left.reverse()
         tokens_center: list[MutableToken] = list(
             cast(Iterable[MutableToken], entity))
         _right_tokens = doc[end_ind+1:end_ind + 1 + size]
-        tokens_right = [tkn for tkn in _right_tokens if tkn.should_include()]
+        tokens_right = [tkn for tkn in _right_tokens if
+                        per_doc_valid_token_cache[tkn]]
 
         return tokens_left, tokens_center, tokens_right
 
@@ -103,7 +108,8 @@ class ContextModel(AbstractSerialisable):
 
     def get_context_vectors(self, entity: MutableEntity,
                             doc: MutableDocument,
-                            cui: Optional[str] = None
+                            per_doc_valid_token_cache: 'PerDocumentTokenCache',
+                            cui: Optional[str] = None,
                             ) -> dict[str, np.ndarray]:
         """Given an entity and the document it will return the context
         representation for the given entity.
@@ -111,6 +117,8 @@ class ContextModel(AbstractSerialisable):
         Args:
             entity (BaseEntity): The entity to look for.
             doc (BaseDocument): The document to look in.
+            per_doc_valid_token_cache (PerDocumentTokenCache):
+                Per documnet cache for token validation
             cui (Optional[str]): The CUI or None if not specified.
 
         Returns:
@@ -121,7 +129,7 @@ class ContextModel(AbstractSerialisable):
         context_vector_sizes = self.config.context_vector_sizes
         for context_type, window_size in context_vector_sizes.items():
             tokens_left, tokens_center, tokens_right = self.get_context_tokens(
-                entity, doc, window_size)
+                entity, doc, window_size, per_doc_valid_token_cache)
 
             values: list[np.ndarray] = []
             # Add left
@@ -140,7 +148,8 @@ class ContextModel(AbstractSerialisable):
                 vectors[context_type] = value
         return vectors
 
-    def similarity(self, cui: str, entity: MutableEntity, doc: MutableDocument
+    def similarity(self, cui: str, entity: MutableEntity, doc: MutableDocument,
+                   per_doc_valid_token_cache: 'PerDocumentTokenCache'
                    ) -> float:
         """Calculate the similarity between the learnt context for this CUI
         and the context in the given `doc`.
@@ -149,11 +158,14 @@ class ContextModel(AbstractSerialisable):
             cui (str): The CUI.
             entity (BaseEntity): The entity to look for.
             doc (BaseDocument): The document to look in.
+            per_doc_valid_token_cache (PerDocumentTokenCache):
+                Per document cache for valid tokens
 
         Returns:
             float: The similarity.
         """
-        vectors = self.get_context_vectors(entity, doc)
+        vectors = self.get_context_vectors(
+            entity, doc, per_doc_valid_token_cache)
         sim = self._similarity(cui, vectors)
 
         return sim
@@ -210,8 +222,11 @@ class ContextModel(AbstractSerialisable):
                              for sim, scale in zip(old_sims, scales)]
 
     def disambiguate(self, cuis: list[str], entity: MutableEntity, name: str,
-                     doc: MutableDocument) -> tuple[Optional[str], float]:
-        vectors = self.get_context_vectors(entity, doc)
+                     doc: MutableDocument,
+                     per_doc_valid_token_cache: 'PerDocumentTokenCache'
+                     ) -> tuple[Optional[str], float]:
+        vectors = self.get_context_vectors(
+            entity, doc, per_doc_valid_token_cache)
         filters = self.config.filters
 
         # If it is trainer we want to filter concepts before disambiguation
@@ -239,7 +254,8 @@ class ContextModel(AbstractSerialisable):
             return None, 0
 
     def train(self, cui: str, entity: MutableEntity, doc: MutableDocument,
-              negative: bool = False, names: Union[list[str], dict] = []
+              per_doc_valid_token_cache: 'PerDocumentTokenCache',
+              negative: bool = False, names: Union[list[str], dict] = [],
               ) -> None:
         """Update the context representation for this CUI, given it's correct
         location (entity) in a document (doc).
@@ -248,6 +264,8 @@ class ContextModel(AbstractSerialisable):
             cui (str): The CUI to train.
             entity (BaseEntity): The entity we're at.
             doc (BaseDocument): The document within which we're working.
+            per_doc_valid_token_cache (PerDocumentTokenCache):
+                Per document cache for token validation.
             negative (bool): Whether or not the example is negative.
                 Defaults to False.
             names (list[str]/dict):
@@ -259,7 +277,8 @@ class ContextModel(AbstractSerialisable):
             logger.warning("The provided entity for cui <%s> was empty, "
                            "nothing to train", cui)
             return
-        vectors = self.get_context_vectors(entity, doc, cui=cui)
+        vectors = self.get_context_vectors(
+            entity, doc, per_doc_valid_token_cache, cui=cui)
         cui_info = self.cui2info[cui]
         lr = get_lr_linking(self.config, cui_info['count_train'])
         if not cui_info['context_vectors']:
@@ -280,7 +299,8 @@ class ContextModel(AbstractSerialisable):
 
             if self.config.calculate_dynamic_threshold:
                 # Update average confidence for this CUI
-                sim = self.similarity(cui, entity, doc)
+                sim = self.similarity(
+                    cui, entity, doc, per_doc_valid_token_cache)
                 new_conf = get_updated_average_confidence(
                     cui_info['average_confidence'],
                     cui_info['count_train'], sim)
@@ -354,6 +374,20 @@ class ContextModel(AbstractSerialisable):
         else:
             update_context_vectors(cui_info['context_vectors'], cui, vectors,
                                    lr, negative=True)
+
+
+class PerDocumentTokenCache(dict[MutableToken, bool]):
+
+    def __getitem__(self, key: MutableToken):
+        index = key.base.index
+        if index not in self:
+            val = (not key.to_skip and not key.base.is_stop and
+                   not key.base.is_digit and not key.is_punctuation)
+            # NOTE: internally just using the token index
+            self[index] = val  # type: ignore
+            return val
+        # NOTE: internally just using the token index
+        return super().__getitem__(index)  # type: ignore
 
 
 def get_lr_linking(config: Linking, cui_count: int) -> float:

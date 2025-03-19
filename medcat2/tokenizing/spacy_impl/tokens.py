@@ -24,10 +24,6 @@ class Token:
 
     def __init__(self, delegate: SpacyToken) -> None:
         self._delegate = delegate
-        # defaults
-        if self.norm is None:
-            # force spacy to init ''
-            self.norm = ''
 
     @property
     def is_punctuation(self) -> bool:
@@ -47,7 +43,7 @@ class Token:
 
     @property
     def norm(self) -> str:
-        return self._delegate._.norm
+        return self._delegate._.norm or ''
 
     @norm.setter
     def norm(self, new_val: str) -> None:
@@ -100,10 +96,6 @@ class Token:
     @property
     def index(self) -> int:
         return self._delegate.i
-
-    def should_include(self) -> bool:
-        return (not self.to_skip and not self.is_stop and
-                not self.is_digit and not self.is_punctuation)
 
     def __str__(self):
         return "M2W[T]:" + str(self._delegate)

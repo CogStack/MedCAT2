@@ -47,6 +47,10 @@ class BaseToken(Protocol):
         """The text with tailing whitespace (where applicable)."""
         pass
 
+    @property
+    def is_digit(self) -> bool:
+        """Whether the token represents a digit."""
+
 
 class MutableToken(Protocol):
     """The mutable part of a token.
@@ -88,10 +92,6 @@ class MutableToken(Protocol):
     @property
     def tag(self) -> Optional[str]:
         """Optional tag (e.g) for normalization."""
-        pass
-
-    def should_include(self) -> bool:
-        """Whether the token should be included."""
         pass
 
     @property

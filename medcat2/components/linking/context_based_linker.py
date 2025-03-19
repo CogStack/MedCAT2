@@ -4,7 +4,8 @@ from typing import Iterator, Optional, Union, Any
 
 from medcat2.components.types import CoreComponentType, AbstractCoreComponent
 from medcat2.tokenizing.tokens import MutableEntity, MutableDocument
-from medcat2.components.linking.vector_context_model import ContextModel
+from medcat2.components.linking.vector_context_model import (
+    ContextModel, PerDocumentTokenCache)
 from medcat2.cdb import CDB
 from medcat2.vocab import Vocab
 from medcat2.config import Config
@@ -48,18 +49,22 @@ class Linker(AbstractCoreComponent):
         return CoreComponentType.linking
 
     def _train(self, cui: str, entity: MutableEntity, doc: MutableDocument,
+               per_doc_valid_token_cache:  PerDocumentTokenCache,
                add_negative: bool = True) -> None:
         name = "{} - {}".format(entity.detected_name, cui)
         # TODO - bring back subsample after?
         # Always train
-        self.context_model.train(cui, entity, doc, negative=False)
+        self.context_model.train(
+            cui, entity, doc, per_doc_valid_token_cache, negative=False)
         if (add_negative and
                 self.config.components.linking.negative_probability
                 >= random.random()):
             self.context_model.train_using_negative_sampling(cui)
         self.train_counter[name] = self.train_counter.get(name, 0) + 1
 
-    def _process_entity_train(self, doc: MutableDocument, entity: MutableEntity
+    def _process_entity_train(self, doc: MutableDocument,
+                              entity: MutableEntity,
+                              per_doc_valid_token_cache: PerDocumentTokenCache,
                               ) -> Iterator[MutableEntity]:
         cnf_l = self.config.components.linking
         # Check does it have a detected name
@@ -78,7 +83,8 @@ class Linker(AbstractCoreComponent):
                 return
             if name_info['per_cui_status'][cuis[0]] == ST.MUST_DISAMBIGATE:
                 return
-            self._train(cui=cuis[0], entity=entity, doc=doc)
+            self._train(cui=cuis[0], entity=entity, doc=doc,
+                        per_doc_valid_token_cache=per_doc_valid_token_cache)
             entity.cui = cuis[0]
             entity.context_similarity = 1
             yield entity
@@ -90,7 +96,9 @@ class Linker(AbstractCoreComponent):
                 if name_info['per_cui_status'][cui] not in ST.PRIMARY_STATUS:
                     continue
                 # if self.cdb.name2cuis2status[name][cui] in {'P', 'PD'}:
-                self._train(cui=cui, entity=entity, doc=doc)
+                self._train(
+                    cui=cui, entity=entity, doc=doc,
+                    per_doc_valid_token_cache=per_doc_valid_token_cache)
                 # It should not be possible that one name is 'P' for
                 # two CUIs, but it can happen - and we do not care.
                 entity.cui = cui
@@ -100,12 +108,15 @@ class Linker(AbstractCoreComponent):
     def _train_on_doc(self, doc: MutableDocument) -> Iterator[MutableEntity]:
         # Run training
         for entity in doc.all_ents:
-            yield from self._process_entity_train(doc, entity)
+            yield from self._process_entity_train(
+                doc, entity, PerDocumentTokenCache())
 
-    def _process_entity_nt_w_name(self, doc: MutableDocument,
-                                  entity: MutableEntity,
-                                  cuis: list[str], name: str
-                                  ) -> tuple[Optional[str], float]:
+    def _process_entity_nt_w_name(
+            self, doc: MutableDocument,
+            entity: MutableEntity,
+            cuis: list[str], name: str,
+            per_doc_valid_token_cache: PerDocumentTokenCache
+            ) -> tuple[Optional[str], float]:
         cnf_l = self.config.components.linking
         # NOTE: there used to be the condition
         # but if there are cuis, and it's an entity - surely, there's a match?
@@ -125,12 +136,12 @@ class Linker(AbstractCoreComponent):
 
         if do_disambiguate:
             cui, context_similarity = self.context_model.disambiguate(
-                cuis, entity, name, doc)
+                cuis, entity, name, doc, per_doc_valid_token_cache)
         else:
             cui = cuis[0]
             if self.config.components.linking.always_calculate_similarity:
                 context_similarity = self.context_model.similarity(
-                    cui, entity, doc)
+                    cui, entity, doc, per_doc_valid_token_cache)
             else:
                 context_similarity = 1  # Direct link, no care for similarity
         return cui, context_similarity
@@ -145,9 +156,11 @@ class Linker(AbstractCoreComponent):
             return context_similarity >= conf * threshold
         return False
 
-    def _process_entity_inference(self, doc: MutableDocument,
-                                  entity: MutableEntity
-                                  ) -> Iterator[MutableEntity]:
+    def _process_entity_inference(
+            self, doc: MutableDocument,
+            entity: MutableEntity,
+            per_doc_valid_token_cache: PerDocumentTokenCache
+            ) -> Iterator[MutableEntity]:
         # Check does it have a detected concepts
         cuis = entity.link_candidates
         if not cuis:
@@ -156,11 +169,11 @@ class Linker(AbstractCoreComponent):
         name = entity.detected_name
         if name is not None:
             cui, context_similarity = self._process_entity_nt_w_name(
-                doc, entity, cuis, name)
+                doc, entity, cuis, name, per_doc_valid_token_cache)
         else:
             # No name detected, just disambiguate
             cui, context_similarity = self.context_model.disambiguate(
-                cuis, entity, 'unk-unk', doc)
+                cuis, entity, 'unk-unk', doc, per_doc_valid_token_cache)
 
         # Add the annotation if it exists and if above threshold and in filters
         cnf_l = self.config.components.linking
@@ -172,9 +185,11 @@ class Linker(AbstractCoreComponent):
             yield entity
 
     def _inference(self, doc: MutableDocument) -> Iterator[MutableEntity]:
+        per_doc_valid_token_cache = PerDocumentTokenCache()
         for entity in doc.all_ents:
             logger.debug("Linker started with entity: %s", entity.base.text)
-            yield from self._process_entity_inference(doc, entity)
+            yield from self._process_entity_inference(
+                doc, entity, per_doc_valid_token_cache)
 
     def __call__(self, doc: MutableDocument) -> MutableDocument:
         # Reset main entities, will be recreated later
@@ -218,7 +233,8 @@ class Linker(AbstractCoreComponent):
                 Optionally used to update the `status` of a name-cui
                 pair in the CDB.
         """
-        self.context_model.train(cui, entity, doc, negative, names)
+        pdc = PerDocumentTokenCache()
+        self.context_model.train(cui, entity, doc, pdc, negative, names)
 
     @classmethod
     def get_init_args(cls, tokenizer: BaseTokenizer, cdb: CDB, vocab: Vocab,

@@ -100,10 +100,6 @@ class Token:
     def index(self) -> int:
         return self._token_index
 
-    def should_include(self) -> bool:
-        return (not self.to_skip and not self.is_stop and
-                not self.is_digit and not self.is_punctuation)
-
     def __str__(self):
         return "RE[T]:" + self.text
 
