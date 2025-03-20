@@ -85,10 +85,10 @@ def _add_cui_info(cdb: CDB, data: dict) -> CDB:
     for cui in all_cuis:
         names = cui2names.get(cui, set())
         snames = cui2snames.get(cui, set())
-        vecs = cui2cv.get(cui, {})
+        vecs = cui2cv.get(cui, None)
         count_train = cui2ct.get(cui, 0)
-        tags = cui2tags.get(cui, [])
-        type_ids = cui2type_ids.get(cui, {})
+        tags = cui2tags.get(cui, None)
+        type_ids = cui2type_ids.get(cui, None)
         prefname = cui2prefname.get(cui, None)
         av_conf = cui2av_conf.get(cui, 0.0)
         info = get_new_cui_info(

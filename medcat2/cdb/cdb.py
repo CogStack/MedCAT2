@@ -175,7 +175,10 @@ class CDB(AbstractSerialisable):
             name_info['cuis'].add(cui)
             if (cui not in name_info['cuis'] or
                     name_status == ST.PRIMARY_STATUS_NO_DISAMB):
-                name_info['per_cui_status'][cui] = name_status
+                status_map = name_info['per_cui_status']
+                if status_map is None:
+                    status_map = name_info['per_cui_status'] = get_defdict()
+                status_map[cui] = name_status
 
             # Add tokens to token counts
             for token in in_name_info.tokens:
@@ -194,12 +197,15 @@ class CDB(AbstractSerialisable):
         orig_names: set[str] = set([v.raw_name for v in names.values()])
         if cui_info['original_names'] is None:
             if ontologies:
-                cui_info['in_other_ontology']['ontologies'] = ontologies
+                cui_info['in_other_ontology'] = ontologies
             cui_info['original_names'] = orig_names
         else:
             # Update existing ones
             if ontologies:
-                cui_info['in_other_ontology']['ontologies'].update(ontologies)
+                ontos = cui_info['in_other_ontology']
+                if ontos is None:
+                    ontos = cui_info['in_other_ontology'] = set()
+                ontos.update(ontologies)
             cui_info['original_names'].update(orig_names)
         if description:
             cui_info['description'] = description

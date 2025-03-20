@@ -1,4 +1,4 @@
-from typing import Optional, Any, TypedDict
+from typing import Optional, TypedDict
 from dataclasses import dataclass, field
 from collections import defaultdict
 
@@ -16,9 +16,9 @@ class CUIInfo(TypedDict):
     # optional parts start here
     description: Optional[str]
     original_names: Optional[set[str]]
-    tags: list[str]
+    tags: Optional[list[str]]
     group: Optional[str]
-    in_other_ontology: dict[str, Any]
+    in_other_ontology: Optional[set[str]]
     # stuff related to training starts here
     # TODO: separate supervised and unsupervised
     count_train: int
@@ -27,12 +27,14 @@ class CUIInfo(TypedDict):
 
 
 def get_new_cui_info(cui: str, preferred_name: str,
-                     names: set[str] = set(), subnames: set[str] = set(),
+                     names: set[str] = set(),
+                     subnames: set[str] = set(),
                      type_ids: set[str] = set(),
                      description: Optional[str] = None,
                      original_names: Optional[set[str]] = None,
-                     tags: list[str] = list(), group: Optional[str] = None,
-                     in_other_ontology: dict[str, Any] = dict(),
+                     tags: Optional[list[str]] = None,
+                     group: Optional[str] = None,
+                     in_other_ontology: Optional[set[str]] = None,
                      count_train: int = 0,
                      context_vectors: Optional[dict[str, np.ndarray]] = None,
                      average_confidence: float = 0.0) -> CUIInfo:
@@ -44,9 +46,9 @@ def get_new_cui_info(cui: str, preferred_name: str,
         'type_ids': type_ids or type_ids.copy(),
         'description': description,
         'original_names': original_names,
-        'tags': tags or tags.copy(),
+        'tags': tags,
         'group': group,
-        'in_other_ontology': in_other_ontology or in_other_ontology.copy(),
+        'in_other_ontology': in_other_ontology,
         'count_train': count_train,
         'context_vectors': context_vectors,
         'average_confidence': average_confidence
