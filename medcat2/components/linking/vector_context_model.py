@@ -330,7 +330,7 @@ class ContextModel(AbstractSerialisable):
         if not negative and self.config.devalue_linked_concepts:
             # Find what other concepts can be disambiguated against this
             _other_cuis_chain = chain(*[
-                self.name2info[name]['cuis']
+                self.name2info[name]['per_cui_status'].keys()
                 for name in self.cui2info[cui]['names']])
             # Remove the cui of the current concept
             _other_cuis = set(_other_cuis_chain) - {cui}

@@ -60,20 +60,18 @@ def reset_cui_training(cui_info: CUIInfo) -> None:
 
 class NameInfo(TypedDict):
     name: str  # NOTE: we _could_ get away without to save on memory
-    cuis: set[str]
     per_cui_status: dict[str, str]
     is_upper: bool
     # stuff related to training starts here
     count_train: int
 
 
-def get_new_name_info(name: str, cuis: set[str] = set(),
+def get_new_name_info(name: str,
                       per_cui_status: dict[str, str] = {},
                       is_upper: bool = False,
                       count_train: int = 0) -> NameInfo:
     return {
         'name': name,
-        'cuis': cuis or cuis.copy(),
         'per_cui_status': per_cui_status or per_cui_status.copy(),
         'is_upper': is_upper,
         'count_train': count_train

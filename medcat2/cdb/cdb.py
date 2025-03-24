@@ -143,17 +143,17 @@ class CDB(AbstractSerialisable):
             cui_info['subnames'].update(in_name_info.snames)
 
             if name not in self.name2info:
-                self.name2info[name] = get_new_name_info(name=name, cuis=set())
+                self.name2info[name] = get_new_name_info(name=name)
             # Add whether concept is uppercase
             name_info = self.name2info[name]
             name_info['is_upper'] = in_name_info.is_upper
-            name_info['cuis'].add(cui)
-            if (cui not in name_info['cuis'] or
-                    name_status == ST.PRIMARY_STATUS_NO_DISAMB):
-                status_map = name_info['per_cui_status']
-                if status_map is None:
-                    status_map = name_info['per_cui_status'] = {}
+            status_map = name_info['per_cui_status']
+            if cui not in status_map:
                 status_map[cui] = name_status
+            elif name_status == ST.PRIMARY_STATUS_NO_DISAMB:
+                # if this is primary, overwrite old status
+                status_map[cui] = name_status
+            # if already in status map and other status, leave it be
 
             # Add tokens to token counts
             for token in in_name_info.tokens:
@@ -301,9 +301,9 @@ class CDB(AbstractSerialisable):
         for name in names:
             if name in self.name2info:
                 info = self.name2info[name]
-                if cui in info['cuis']:
-                    info['cuis'].remove(cui)
-                if len(info['cuis']) == 0:
+                if cui in info['per_cui_status']:
+                    del info['per_cui_status'][cui]
+                if len(info['per_cui_status']) == 0:
                     del self.name2info[name]
 
             # Remove from name2cuis2status

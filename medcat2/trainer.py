@@ -438,7 +438,7 @@ class Trainer:
             for n in names:
                 if n not in self.cdb.name2info:
                     continue
-                cuis.extend(self.cdb.name2info[n]['cuis'])
+                cuis.extend(self.cdb.name2info[n]['per_cui_status'].keys())
 
         # Remove name from all CUIs
         for c in cuis:
@@ -533,11 +533,11 @@ class Trainer:
 
             if not negative and devalue_others:
                 # Find all cuis
-                cuis = set()
+                cuis: set[str] = set()
                 for n in names:
                     if n in self.cdb.name2info:
                         info = self.cdb.name2info[n]
-                        cuis.update(info['cuis'])
+                        cuis.update(info['per_cui_status'].keys())
                 # Remove the cui for which we just added positive training
                 if cui in cuis:
                     cuis.remove(cui)

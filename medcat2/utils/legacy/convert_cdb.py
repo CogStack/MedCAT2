@@ -114,17 +114,18 @@ def _add_name_info(cdb: CDB, data: dict) -> CDB:
         all_names.update(cui_infos['names'])
     logger.info("A total of %d names found after adding from cui2names",
                 len(all_names))
-    name2cuis, name2cuis2status = data['name2cuis'], data['name2cuis2status']
+    # NOTE: name2cuis has the same cuis as name2cuis2status
+    #       so v2 only uses the latter since it provides extra information
+    name2cuis2status = data['name2cuis2status']
     name2cnt_train = data['name2count_train']
     name2is_upper = data['name_isupper']
     for name in all_names:
-        cuis = set(name2cuis.get(name, []))
         cuis2status: dict[str, str] = {}
         _cuis2status = name2cuis2status.get(name, {})
         cuis2status.update(_cuis2status)
         cnt_train = name2cnt_train.get(name, 0)
         is_upper = name2is_upper.get(name, False)
-        info = get_new_name_info(name, cuis=cuis, per_cui_status=cuis2status,
+        info = get_new_name_info(name, per_cui_status=cuis2status,
                                  is_upper=is_upper, count_train=cnt_train)
         cdb.name2info[name] = info
     return cdb
