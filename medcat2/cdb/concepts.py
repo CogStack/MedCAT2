@@ -1,10 +1,7 @@
 from typing import Optional, TypedDict
 from dataclasses import dataclass, field
-from collections import defaultdict
 
 import numpy as np
-
-from medcat2.utils.defaults import StatusTypes as ST
 
 
 class CUIInfo(TypedDict):
@@ -61,21 +58,17 @@ def reset_cui_training(cui_info: CUIInfo) -> None:
     cui_info['average_confidence'] = 0
 
 
-def get_defdict():
-    return defaultdict(lambda: ST.AUTOMATIC)
-
-
 class NameInfo(TypedDict):
     name: str  # NOTE: we _could_ get away without to save on memory
     cuis: set[str]
-    per_cui_status: defaultdict[str, str]
+    per_cui_status: dict[str, str]
     is_upper: bool
     # stuff related to training starts here
     count_train: int
 
 
 def get_new_name_info(name: str, cuis: set[str] = set(),
-                      per_cui_status: defaultdict[str, str] = get_defdict(),
+                      per_cui_status: dict[str, str] = {},
                       is_upper: bool = False,
                       count_train: int = 0) -> NameInfo:
     return {
