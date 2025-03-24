@@ -194,8 +194,8 @@ class CDBMakerNameAdditionTests(CDBMakerEditTestsBase):
     CONCEPT = 'C0000239'
     NAME_STATUS = 'p'
     # EXPECTATION
-    # plus one from second~csv which is not counted originally
-    NUM_EXPECTED_NAMES = len(CDBMakerLoadTests.EXP_NAME2CUIS2STATUS) + 2
+    # only the added one as extra
+    NUM_EXPECTED_NAMES = len(CDBMakerLoadTests.EXP_NAME2CUIS2STATUS) + 1
     NAME2PREPARE = 'MY: new,-_! Name.'
     EXP_ORIG_NAMES = {'MY: new,-_! Name.', 'Second csv'}
     EXP_NAMES = {'my~:~new~name~.'}
@@ -233,8 +233,8 @@ class CDBMakerNameAdditionTests(CDBMakerEditTestsBase):
 
 
 class CDBMakerNameRemovalTests(CDBMakerEditTestsBase):
-    # plus one from second~csv which is not counted originally
-    EXP_NUM_NAME2CUIS2STATUS = len(CDBMakerLoadTests.EXP_NAME2CUIS2STATUS) + 1
+    # NOTE: the number remains the same since it's first added, then removed
+    EXP_NUM_NAME2CUIS2STATUS = len(CDBMakerLoadTests.EXP_NAME2CUIS2STATUS)
 
     @classmethod
     def setUpClass(cls):
