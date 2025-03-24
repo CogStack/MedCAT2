@@ -32,8 +32,8 @@ class CDBConversionTest(unittest.TestCase):
                 with self.subTest(f"{cui}: {name}"):
                     self.assertIn(name, self.cdb.name2info)
 
-    def test_all_name_cuis_in_cuis(self):
+    def test_all_name_cuis_in_per_cui_status(self):
         for name, nameinfo in self.cdb.name2info.items():
-            for cui in nameinfo['cuis']:
+            for cui in nameinfo['per_cui_status']:
                 with self.subTest(f"{name}: {cui}"):
                     self.assertIn(cui, self.cdb.cui2info)

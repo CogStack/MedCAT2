@@ -1,6 +1,7 @@
 import unittest
 
 from medcat2.cdb import concepts
+from medcat2.utils.defaults import StatusTypes
 
 
 class CUIInfoTests(unittest.TestCase):
@@ -42,10 +43,13 @@ class NameInfoTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.info = concepts.get_new_name_info(name=cls.name, cuis=cls.cuis)
+        cls.info = concepts.get_new_name_info(name=cls.name,
+                                              per_cui_status={
+                                                  cui: StatusTypes.AUTOMATIC
+                                                  for cui in cls.cuis})
 
     def test_def_cuistatus_is_automatic(self):
         for cui in self.cuis:
             with self.subTest(cui):
                 status = self.info['per_cui_status'][cui]
-                self.assertEqual(status, concepts.ST.AUTOMATIC)
+                self.assertEqual(status, StatusTypes.AUTOMATIC)
