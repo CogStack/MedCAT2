@@ -1,11 +1,9 @@
 from typing import Iterable, Any
-from contextlib import contextmanager
-from collections import defaultdict
 
 from medcat2.storage.serialisables import AbstractSerialisable
 from medcat2.cdb.concepts import CUIInfo, NameInfo, TypeInfo
 from medcat2.cdb.concepts import get_new_cui_info, get_new_name_info
-from medcat2.cdb.concepts import reset_cui_training, get_defdict
+from medcat2.cdb.concepts import reset_cui_training
 from medcat2.utils.defaults import default_weighted_average, StatusTypes as ST
 from medcat2.preprocessors.cleaners import NameDescriptor
 from medcat2.config import Config
@@ -33,30 +31,7 @@ class CDB(AbstractSerialisable):
     def get_init_attrs(cls) -> list[str]:
         return ['config']
 
-    @contextmanager
-    def prepare_for_serialisation(self):
-        # NOTE: per_cui_status uses a `defaultdict`
-        #       and because of that, loading it takes a while
-        #       so now we make these just regular `dict`s
-        for name_info in self.name2info.values():
-            name_info['per_cui_status'] = dict(name_info['per_cui_status'])
-        yield
-        # and now we undo it
-        self._make_per_cui_status_defaultdict()
-
-    def _make_per_cui_status_defaultdict(self):
-        for name_info in self.name2info.values():
-            pcs = name_info['per_cui_status']
-            name_info['per_cui_status'] = get_defdict()
-            name_info['per_cui_status'].update(pcs)
-
     def _undirty(self):
-        if self.name2info and isinstance(
-            # if has something and is not a defaultdict
-            # i.e after model load
-                next(iter(self.name2info.values())
-                     )['per_cui_status'], defaultdict):
-            self._make_per_cui_status_defaultdict()
         logger.info("Resetting subnames")
         self._subnames.clear()
         for info in self.cui2info.values():
@@ -168,14 +143,17 @@ class CDB(AbstractSerialisable):
             cui_info['subnames'].update(in_name_info.snames)
 
             if name not in self.name2info:
-                self.name2info[name] = get_new_name_info(name=name, cuis=set())
+                self.name2info[name] = get_new_name_info(name=name)
             # Add whether concept is uppercase
             name_info = self.name2info[name]
             name_info['is_upper'] = in_name_info.is_upper
-            name_info['cuis'].add(cui)
-            if (cui not in name_info['cuis'] or
-                    name_status == ST.PRIMARY_STATUS_NO_DISAMB):
-                name_info['per_cui_status'][cui] = name_status
+            status_map = name_info['per_cui_status']
+            if cui not in status_map:
+                status_map[cui] = name_status
+            elif name_status == ST.PRIMARY_STATUS_NO_DISAMB:
+                # if this is primary, overwrite old status
+                status_map[cui] = name_status
+            # if already in status map and other status, leave it be
 
             # Add tokens to token counts
             for token in in_name_info.tokens:
@@ -194,12 +172,15 @@ class CDB(AbstractSerialisable):
         orig_names: set[str] = set([v.raw_name for v in names.values()])
         if cui_info['original_names'] is None:
             if ontologies:
-                cui_info['in_other_ontology']['ontologies'] = ontologies
+                cui_info['in_other_ontology'] = ontologies
             cui_info['original_names'] = orig_names
         else:
             # Update existing ones
             if ontologies:
-                cui_info['in_other_ontology']['ontologies'].update(ontologies)
+                ontos = cui_info['in_other_ontology']
+                if ontos is None:
+                    ontos = cui_info['in_other_ontology'] = set()
+                ontos.update(ontologies)
             cui_info['original_names'].update(orig_names)
         if description:
             cui_info['description'] = description
@@ -320,9 +301,9 @@ class CDB(AbstractSerialisable):
         for name in names:
             if name in self.name2info:
                 info = self.name2info[name]
-                if cui in info['cuis']:
-                    info['cuis'].remove(cui)
-                if len(info['cuis']) == 0:
+                if cui in info['per_cui_status']:
+                    del info['per_cui_status'][cui]
+                if len(info['per_cui_status']) == 0:
                     del self.name2info[name]
 
             # Remove from name2cuis2status

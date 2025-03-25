@@ -238,12 +238,7 @@ class CAT(AbstractSerialisable):
         # ensure target folder and model pack folder exist
         ensure_folder_if_parent(model_pack_path)
         # serialise
-        # NOTE: CDB prepared for save to improve load times (hopefully!)
-        # with self.cdb.prepare_for_save():
-        # NOTE: preparation to make sure stuff is easily serialisable
-        #       these will be automatically fixed after CM and/or at undirty
-        with self.cdb.prepare_for_serialisation():
-            serialise(serialiser_type, self, model_pack_path)
+        serialise(serialiser_type, self, model_pack_path)
         # components
         components_folder = os.path.join(
             model_pack_path, COMPONENTS_FOLDER)

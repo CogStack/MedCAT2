@@ -59,23 +59,23 @@ class CDBMakerLoadTests(CDBMakerBaseTests):
     EXP_NAME2CUIS2STATUS = {
         'virus': {
             'C0000039': 'P',
-            # 'C0000139': 'A'
+            'C0000139': 'A'
         },
         'virus~m': {
-            # 'C0000039': 'A',
+            'C0000039': 'A',
             'C0000139': 'P'
         },
         'virus~k': {
-            # 'C0000039': 'A',
+            'C0000039': 'A',
             'C0000139': 'P'
         },
         'virus~z': {
-            # 'C0000039': 'A',
+            'C0000039': 'A',
             'C0000139': 'P'
         },
-        # 'second~csv': {
-        #     'C0000239': 'A'
-        # }
+        'second~csv': {
+            'C0000239': 'A'
+        }
     }
     EXPECTED_TYPE_IDS = {
         'C0000039': {'T234', 'T109', 'T123'},
@@ -126,7 +126,8 @@ class CDBMakerLoadTests(CDBMakerBaseTests):
 
     def test_cdb_name_to_cuis_correct(self):
         name2cuis = {
-             name: info['cuis'] for name, info in self.cdb.name2info.items()}
+             name: info['per_cui_status'].keys()
+             for name, info in self.cdb.name2info.items()}
         self.assertEqual(name2cuis, self.EXPECTED_NAME2CUIS)
 
     def test_cdb_cuis_has_no_tags(self):
@@ -193,8 +194,8 @@ class CDBMakerNameAdditionTests(CDBMakerEditTestsBase):
     CONCEPT = 'C0000239'
     NAME_STATUS = 'p'
     # EXPECTATION
-    # plus one from second~csv which is not counted originally
-    NUM_EXPECTED_NAMES = len(CDBMakerLoadTests.EXP_NAME2CUIS2STATUS) + 2
+    # only the added one as extra
+    NUM_EXPECTED_NAMES = len(CDBMakerLoadTests.EXP_NAME2CUIS2STATUS) + 1
     NAME2PREPARE = 'MY: new,-_! Name.'
     EXP_ORIG_NAMES = {'MY: new,-_! Name.', 'Second csv'}
     EXP_NAMES = {'my~:~new~name~.'}
@@ -232,8 +233,8 @@ class CDBMakerNameAdditionTests(CDBMakerEditTestsBase):
 
 
 class CDBMakerNameRemovalTests(CDBMakerEditTestsBase):
-    # plus one from second~csv which is not counted originally
-    EXP_NUM_NAME2CUIS2STATUS = len(CDBMakerLoadTests.EXP_NAME2CUIS2STATUS) + 1
+    # NOTE: the number remains the same since it's first added, then removed
+    EXP_NUM_NAME2CUIS2STATUS = len(CDBMakerLoadTests.EXP_NAME2CUIS2STATUS)
 
     @classmethod
     def setUpClass(cls):

@@ -23,7 +23,7 @@ def annotate_name(tokenizer: BaseTokenizer, name: str,
     # and where this name fits a name in the cdb.
     # All standard name entity recognition models will not set this.
     entity.detected_name = name
-    entity.link_candidates = list(cdb.name2info[name]['cuis'])
+    entity.link_candidates = list(cdb.name2info[name]['per_cui_status'])
     entity.id = len(doc.all_ents)
     entity.confidence = -1  # This does not calculate confidence
     # Append the entity to the document

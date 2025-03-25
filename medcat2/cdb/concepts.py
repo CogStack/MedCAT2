@@ -1,10 +1,7 @@
-from typing import Optional, Any, TypedDict
+from typing import Optional, TypedDict
 from dataclasses import dataclass, field
-from collections import defaultdict
 
 import numpy as np
-
-from medcat2.utils.defaults import StatusTypes as ST
 
 
 class CUIInfo(TypedDict):
@@ -16,9 +13,9 @@ class CUIInfo(TypedDict):
     # optional parts start here
     description: Optional[str]
     original_names: Optional[set[str]]
-    tags: list[str]
+    tags: Optional[list[str]]
     group: Optional[str]
-    in_other_ontology: dict[str, Any]
+    in_other_ontology: Optional[set[str]]
     # stuff related to training starts here
     # TODO: separate supervised and unsupervised
     count_train: int
@@ -27,12 +24,14 @@ class CUIInfo(TypedDict):
 
 
 def get_new_cui_info(cui: str, preferred_name: str,
-                     names: set[str] = set(), subnames: set[str] = set(),
+                     names: set[str] = set(),
+                     subnames: set[str] = set(),
                      type_ids: set[str] = set(),
                      description: Optional[str] = None,
                      original_names: Optional[set[str]] = None,
-                     tags: list[str] = list(), group: Optional[str] = None,
-                     in_other_ontology: dict[str, Any] = dict(),
+                     tags: Optional[list[str]] = None,
+                     group: Optional[str] = None,
+                     in_other_ontology: Optional[set[str]] = None,
                      count_train: int = 0,
                      context_vectors: Optional[dict[str, np.ndarray]] = None,
                      average_confidence: float = 0.0) -> CUIInfo:
@@ -44,9 +43,9 @@ def get_new_cui_info(cui: str, preferred_name: str,
         'type_ids': type_ids or type_ids.copy(),
         'description': description,
         'original_names': original_names,
-        'tags': tags or tags.copy(),
+        'tags': tags,
         'group': group,
-        'in_other_ontology': in_other_ontology or in_other_ontology.copy(),
+        'in_other_ontology': in_other_ontology,
         'count_train': count_train,
         'context_vectors': context_vectors,
         'average_confidence': average_confidence
@@ -59,26 +58,20 @@ def reset_cui_training(cui_info: CUIInfo) -> None:
     cui_info['average_confidence'] = 0
 
 
-def get_defdict():
-    return defaultdict(lambda: ST.AUTOMATIC)
-
-
 class NameInfo(TypedDict):
     name: str  # NOTE: we _could_ get away without to save on memory
-    cuis: set[str]
-    per_cui_status: defaultdict[str, str]
+    per_cui_status: dict[str, str]
     is_upper: bool
     # stuff related to training starts here
     count_train: int
 
 
-def get_new_name_info(name: str, cuis: set[str] = set(),
-                      per_cui_status: defaultdict[str, str] = get_defdict(),
+def get_new_name_info(name: str,
+                      per_cui_status: dict[str, str] = {},
                       is_upper: bool = False,
                       count_train: int = 0) -> NameInfo:
     return {
         'name': name,
-        'cuis': cuis or cuis.copy(),
         'per_cui_status': per_cui_status or per_cui_status.copy(),
         'is_upper': is_upper,
         'count_train': count_train
