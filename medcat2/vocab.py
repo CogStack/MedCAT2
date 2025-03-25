@@ -248,8 +248,7 @@ class Vocab(AbstractSerialisable):
         vec_slots = cast(
             list[int], np.searchsorted(self.cum_probs, random_vals).tolist())
         # so we need to translate these back to word indices
-        # inds = list(map(self._index_list.__getitem__, vec_slots))
-        inds = vec_slots
+        inds = list(map(self._index_list.__getitem__, vec_slots))
 
         if ignore_punct_and_num:
             # Do not return anything that does not have letters in it
