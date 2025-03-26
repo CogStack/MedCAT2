@@ -74,7 +74,7 @@ class NER(AbstractCoreComponent):
                 Spacy document with detected entities.
         """
         if self.cdb.has_changed_names:
-            self.cdb._undirty()
+            self.cdb._reset_subnames()
             self._rebuild_automaton()
         text = doc.base.text.lower()
         for end_idx, raw_name in self.automaton.iter(text):
