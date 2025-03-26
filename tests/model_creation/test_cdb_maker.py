@@ -211,7 +211,7 @@ class CDBMakerNameAdditionTests(CDBMakerEditTestsBase):
     def setUpClass(cls):
         super().setUpClass()
         cls.add_name(cls.cdb)
-        cls.cdb._undirty()
+        cls.cdb._reset_subnames()
 
     def test_has_correct_num_of_names(self):
         self.assertEqual(len(self.cdb.name2info), self.NUM_EXPECTED_NAMES)
@@ -245,7 +245,7 @@ class CDBMakerNameRemovalTests(CDBMakerEditTestsBase):
                                    CDBMakerNameAdditionTests.NAME2PREPARE,
                                    cls.maker.pipeline.tokenizer_with_tag,
                                    {}, cls.pn_cnf_parts()))
-        cls.cdb._undirty()
+        cls.cdb._reset_subnames()
 
     def test_has_correct_number_of_names(self):
         self.assertEqual(len(self.cdb.name2info),
@@ -295,7 +295,7 @@ class CDBMakerContextVectorsAdditionTests(CDBMakerEditTestsBase):
                 else:
                     cinfo['context_vectors'] = vectors
         cls.cinfo = cls.cdb.cui2info[cls.CONCEPT]
-        cls.cdb._undirty()
+        cls.cdb._reset_subnames()
 
     # def test_addition_gets_correct_count_train(self):
     #     self.assertEqual(self.cinfo.count_train, self.EXP_CNT_TRAIN)
@@ -332,7 +332,7 @@ class CDBMakerContextVectorsAdditionNegTests(CDBMakerEditTestsBase):
                 else:
                     cinfo['context_vectors'] = vectors
         cls.cinfo = cls.cdb.cui2info[cls.CONCEPT]
-        cls.cdb._undirty()
+        cls.cdb._reset_subnames()
 
     # def test_epected_count_train(self):
     #     self.assertEqual(self.cinfo.count_train, self.EXP_CNT_TRAIN)
