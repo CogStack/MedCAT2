@@ -370,7 +370,9 @@ class Trainer:
                               total=len(docs),
                               desc='Document', leave=False):
             doc = docs[idx_doc]
-            mut_doc = self.caller(doc['text'])  # type: ignore
+            with temp_changed_config(self.config.components.linking,
+                                     'train', False):
+                mut_doc = self.caller(doc['text'])
 
             # Compatibility with old output where annotations are a list
             for ann in doc['annotations']:
