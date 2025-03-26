@@ -31,13 +31,12 @@ class CDB(AbstractSerialisable):
     def get_init_attrs(cls) -> list[str]:
         return ['config']
 
-    def _undirty(self):
+    def _reset_subnames(self):
         logger.info("Resetting subnames")
         self._subnames.clear()
         for info in self.cui2info.values():
             self._subnames.update(info['subnames'])
         self.has_changed_names = False
-        self.is_dirty = False
 
     def has_subname(self, name: str) -> bool:
         """Whether the CDB has the specified subname.
@@ -48,9 +47,9 @@ class CDB(AbstractSerialisable):
         Returns:
             bool: Whether the subname is present in this CDB.
         """
-        if (self.is_dirty or self.has_changed_names or
+        if (self.has_changed_names or
                 len(self._subnames) < len(self.name2info)):
-            self._undirty()
+            self._reset_subnames()
         return name in self._subnames
 
     def get_name(self, cui: str) -> str:
@@ -162,6 +161,7 @@ class CDB(AbstractSerialisable):
                 else:
                     self.token_counts[token] = 1
             self._subnames.update(cui_info['subnames'])
+            self.is_dirty = True
 
     def _add_full_build(self, cui: str, names: dict[str, NameDescriptor],
                         ontologies: set[str], description: str,
@@ -265,6 +265,7 @@ class CDB(AbstractSerialisable):
         # Add other fields if full_build
         if full_build:
             self._add_full_build(cui, names, ontologies, description, type_ids)
+        self.is_dirty = True
 
     def reset_training(self) -> None:
         """Will remove all training efforts - in other words all embeddings
