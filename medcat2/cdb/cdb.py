@@ -161,8 +161,7 @@ class CDB(AbstractSerialisable):
                     self.token_counts[token] += 1
                 else:
                     self.token_counts[token] = 1
-            self.has_changed_names = True
-            self.is_dirty = True
+            self._subnames.update(cui_info['subnames'])
 
     def _add_full_build(self, cui: str, names: dict[str, NameDescriptor],
                         ontologies: set[str], description: str,
@@ -242,7 +241,6 @@ class CDB(AbstractSerialisable):
                            "particular name", cui,
                            self.config.cdb_maker.min_letters_required)
             return
-        will_change_names = any(name not in self.name2info for name in names)
         # Add CUI to the required dictionaries
         if cui not in self.cui2info:
             # Create placeholders
@@ -267,9 +265,6 @@ class CDB(AbstractSerialisable):
         # Add other fields if full_build
         if full_build:
             self._add_full_build(cui, names, ontologies, description, type_ids)
-        if will_change_names:
-            self.has_changed_names = True
-        self.is_dirty = True
 
     def reset_training(self) -> None:
         """Will remove all training efforts - in other words all embeddings
