@@ -60,8 +60,6 @@ class StatsBuilder:
         Args:
             project (MedCATTrainerExportProject): The trainer export project.
         """
-        self.filters.cuis = set()
-
         project_name = cast(str, project.get('name'))
         project_id = cast(str, project.get('id'))
 
