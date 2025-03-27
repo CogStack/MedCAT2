@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import json
 from typing import Optional
+from collections import Counter
 
 from medcat2 import cat
 from medcat2.vocab import Vocab
@@ -140,17 +141,36 @@ class CATSupTrainingTests(CATUnsupTrainingTests):
     SUPERVISED_DATA_PATH = os.path.join(
         os.path.dirname(__file__), 'resources', 'supervised_mct_export.json'
     )
-    EXPECT_TRAIN = {'C01': 6, 'C02': 7, 'C03': 6, 'C04': 7, 'C05': 7}
+
+    @classmethod
+    def _get_cui_counts(cls) -> dict[str, int]:
+        counter = Counter()
+        data = cls._get_data()
+        for proj in data['projects']:
+            for doc in proj['documents']:
+                for ann in doc['annotations']:
+                    counter[ann['cui']] += 1
+        return counter
+
+    @classmethod
+    def _get_data(cls) -> dict:
+        with open(cls.SUPERVISED_DATA_PATH) as f:
+            return json.load(f)
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # copy from parent
+        cls.EXPECT_TRAIN = CATUnsupTrainingTests.EXPECT_TRAIN.copy()
+        cui_counts_in_data = cls._get_cui_counts()
+        # add extra CUIs in supervised training example
+        for cui, extra_cnt in cui_counts_in_data.items():
+            cls.EXPECT_TRAIN[cui] += extra_cnt
         cls._perform_training()
 
     @classmethod
     def _perform_training(cls):
-        with open(cls.SUPERVISED_DATA_PATH) as f:
-            data = json.load(f)
+        data = cls._get_data()
         cls.cat.trainer.train_supervised_raw(data)
 
 

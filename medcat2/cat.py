@@ -287,7 +287,7 @@ class CAT(AbstractSerialisable):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         # NOTE: Some CDB attributes will have been set manually
         #       after init so the CDB is likely "dirty"
-        cat.cdb._undirty()
+        cat.cdb._reset_subnames()
         return cat
 
     def __eq__(self, other: Any) -> bool:
