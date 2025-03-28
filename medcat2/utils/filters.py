@@ -24,5 +24,5 @@ def project_filters(filters: LinkingFilters,
         cuis = project.get('cuis', None)
         if cuis is None or not cuis:
             return nullcontext()
-        return temp_changed_config(filters, 'cuis', cuis)
+        return temp_changed_config(filters, 'cuis', set(cuis.split(",")))
     return temp_changed_config(filters, 'cuis', set())
