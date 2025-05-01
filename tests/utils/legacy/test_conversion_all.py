@@ -3,8 +3,6 @@ import os
 from medcat2.utils.legacy import conversion_all
 from medcat2.cat import CAT
 
-import shutil
-
 import unittest
 import unittest.mock
 
@@ -25,13 +23,6 @@ class ConversionFromZIPTests(unittest.TestCase):
             cls.converter = conversion_all.Converter(cls.MODEL_FOLDER, None)
         mock.assert_not_called()
         cls.cat = cls.converter.convert()
-
-    @classmethod
-    def tearDownClass(cls):
-        if cls.MODEL_FOLDER.endswith(".zip"):
-            folder = cls._model_folder_no_zip
-            if os.path.exists(folder) and not cls._folder_existed:
-                shutil.rmtree(folder)
 
     def test_creates_cat(self):
         self.assertIsInstance(self.cat, CAT)
