@@ -77,6 +77,8 @@ dependencies = [ # Optional
 dev = [
   "ruff~=0.1.7",
   "mypy",
+  "types-tqdm",
+  "types-setuptools",
   "types-PyYAML",
 ]
 spacy = [
