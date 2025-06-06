@@ -34,4 +34,10 @@ jobs:
           uv run ruff check medcat2 --preview
       - name: Test
         run: |
-          timeout 10m uv run python -m unittest discover
+          timeout 20m uv run python -m unittest discover
+      - name: Model regression
+        run: |
+          uv run bash tests/backwards_compatibility/run_current.sh
+      - name: Backwards compatibility
+        run: |
+          uv run bash tests/backwards_compatibility/check_backwards_compatibility.sh

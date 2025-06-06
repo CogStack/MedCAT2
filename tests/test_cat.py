@@ -18,6 +18,7 @@ from medcat2.components.addons.meta_cat.meta_cat import MetaCATAddon
 from medcat2.utils.defaults import AVOID_LEGACY_CONVERSION_ENVIRON
 
 import unittest
+import tempfile
 
 from . import EXAMPLE_MODEL_PACK_ZIP
 from . import V1_MODEL_PACK_PATH, UNPACKED_V1_MODEL_PACK_PATH
@@ -120,9 +121,20 @@ class CATIncludingTests(unittest.TestCase):
 
         cls.cdb: CDB = maker.prepare_csvs([cls.CDB_PREPROCESSED_PATH])
 
+        # usage monitoring
+        cls._temp_logs_folder = tempfile.TemporaryDirectory()
+        config.general.usage_monitor.enabled = True
+        config.general.usage_monitor.log_folder = cls._temp_logs_folder.name
+
         # CAT
         cls.cat = cat.CAT(cls.cdb, vocab)
         cls.cat.config.components.linking.train = False
+
+    def tearDown(self):
+        # remove existing contents / empty file log file
+        log_file_path = self.cat.usage_monitor.log_file
+        if os.path.exists(log_file_path):
+            os.remove(log_file_path)
 
 
 class CATCreationTests(CATIncludingTests):
@@ -149,7 +161,7 @@ class CATCreationTests(CATIncludingTests):
         self.assert_hashes_to(self.EXPECTED_HASH)
 
     def assert_hashes_to(self, exp_hash: str) -> None:
-        self.cat._versioning()
+        self.cat._versioning(None)
         new_hash = self.cat.config.meta.hash
         self.assertNotEqual(self.prev_hash, new_hash)
         self.assertEqual(new_hash, exp_hash)
@@ -157,8 +169,8 @@ class CATCreationTests(CATIncludingTests):
 
     def test_versioning_does_not_overpopulate_history(self):
         # run multiple times
-        self.cat._versioning()
-        self.cat._versioning()
+        self.cat._versioning(None)
+        self.cat._versioning(None)
         # and expect it not to append multiple times in the history
         # if there were multiple instances, the set would remove duplicates
         sorted_set = sorted(set(self.cat.config.meta.history))
@@ -187,7 +199,7 @@ class CATCreationTests(CATIncludingTests):
 
 
 class CatWithMetaCATTests(CATCreationTests):
-    EXPECTED_HASH = "04095f95f5f7c222"
+    EXPECTED_HASH = "9104103a2f191822"
     EXPECT_SAME_INSTANCES = True
 
     @classmethod
@@ -216,9 +228,34 @@ class CatWithMetaCATTests(CATCreationTests):
             # otherwise they should differ
             self.assertNotEqual(self.init_addons, addons_after)
 
+    def test_get_entities_gets_monitored(self,
+                                         text="Some text"):
+        repeats = self.cat.config.general.usage_monitor.batch_size
+        # ensure something gets written to the file
+        for _ in range(repeats):
+            self.cat.get_entities(text)
+        log_file_path = self.cat.usage_monitor.log_file
+        self.assertTrue(os.path.exists(log_file_path))
+        with open(log_file_path) as f:
+            contents = f.readline()
+        self.assertTrue(contents)
+
+    def test_get_entities_logs_usage(
+            self,
+            text="The dog is sitting outside the house."):
+        # clear usage monitor buffer
+        self.cat.usage_monitor.log_buffer.clear()
+        self.cat.get_entities(text)
+        self.assertTrue(self.cat.usage_monitor.log_buffer)
+        self.assertEqual(len(self.cat.usage_monitor.log_buffer), 1)
+        line = self.cat.usage_monitor.log_buffer[0]
+        # the 1st element is the input text length
+        input_text_length = line.split(",")[1]
+        self.assertEqual(str(len(text)), input_text_length)
+
 
 class CatWithChangesMetaCATTests(CatWithMetaCATTests):
-    EXPECTED_HASH = "7206cc91ed3424ac"
+    EXPECTED_HASH = "28f20b1460960b1e"
     EXPECT_SAME_INSTANCES = False
 
     @classmethod
@@ -330,6 +367,19 @@ class CATWithDictNERSupTrainingTests(CATSupTrainingTests):
         self.assertEqual(len(ents), len(expected_cuis))
         self.assertEqual(set(ents.values()), set(expected_cuis))
 
+    def test_can_get_multiple_entities(self):
+        texts = [
+            "The fittest most fit of chronic kidney failure",
+            "The dog is sitting outside the house."
+        ]
+        ents = list(self.cat.get_entities_multi_texts(texts))
+        self.assertEqual(len(ents), len(texts))
+        # NOTE: text IDs are integers starting from 0
+        exp_ids = set(str(i) for i in range(len(texts)))
+        for ent_id_str, ent in ents:
+            with self.subTest(f"Entity: {ent_id_str} [{ent}]"):
+                self.assertIn(ent_id_str, exp_ids)
+
 
 class CATWithDocAddonTests(CATIncludingTests):
     EXAMPLE_TEXT = "Example text to tokenize"
@@ -433,3 +483,136 @@ class CATLegacyLoadTests(unittest.TestCase):
                 AVOID_LEGACY_CONVERSION_ENVIRON: "true"}, clear=True):
             with self.assertRaises(ValueError):
                 cat.CAT.load_model_pack(V1_MODEL_PACK_PATH)
+
+
+class CATSaveTests(CATIncludingTests):
+    DESCRIPTION = "Test CAT save functionality"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.temp_folder = tempfile.TemporaryDirectory()
+        cls.saved_path = cls.cat.save_model_pack(
+            cls.temp_folder.name, change_description=cls.DESCRIPTION)
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls.temp_folder.cleanup()
+
+    def test_can_save_model_pack(self):
+        self.assertTrue(os.path.exists(self.saved_path))
+
+    def test_model_adds_description(self):
+        self.assertIn(self.DESCRIPTION, self.cat.config.meta.description)
+
+
+class BatchingTests(unittest.TestCase):
+    NUM_TEXTS = 100
+    all_texts = [
+        f"Text {num:04d} -> " + "a" * num
+        for num in range(NUM_TEXTS)
+    ]
+    total_text_length = sum(len(text) for text in all_texts)
+
+    @classmethod
+    def setUpClass(cls):
+        cnf = Config()
+        cls.cat = cat.CAT(cdb=CDB(cnf), vocab=Vocab())
+
+    # per doc batching tests
+
+    def test_batching_gets_full(self):
+        batches = list(self.cat._generate_simple_batches(
+            iter(self.all_texts), batch_size=self.NUM_TEXTS,
+            only_cui=False))
+        self.assertEqual(len(batches), 1)
+        self.assertEqual(len(batches[0]), self.NUM_TEXTS)
+        # NOTE: the contents has the text and the index and the only_cui bool
+        #       so can't check equality directly
+        # self.assertEqual(batches[0], self.all_texts)
+
+    def test_batching_gets_in_sequence(self):
+        batches = list(self.cat._generate_simple_batches(
+            iter(self.all_texts), batch_size=self.NUM_TEXTS // 2,
+            only_cui=False))
+        self.assertEqual(len(batches), 2)
+        self.assertEqual(len(batches[0]), self.NUM_TEXTS // 2)
+        self.assertEqual(len(batches[1]), self.NUM_TEXTS // 2)
+        # self.assertEqual(batches[0] + batches[1], self.all_texts)
+
+    def test_batching_gets_all_1_at_a_time(self):
+        batches = list(self.cat._generate_simple_batches(
+            iter(self.all_texts), batch_size=1, only_cui=False))
+        self.assertEqual(len(batches), self.NUM_TEXTS)
+        for num, batch in enumerate(batches):
+            with self.subTest(f"Batch {num}"):
+                self.assertEqual(len(batch), 1)
+                # self.assertEqual(batch[0], f"Text {num}")
+
+    # per character batching tests
+
+    def test_batching_gets_full_char(self):
+        batches = list(self.cat._generate_batches_by_char_length(
+            iter(self.all_texts), batch_size_chars=self.total_text_length,
+            only_cui=False))
+        self.assertEqual(len(batches), 1)
+        # has all texts
+        self.assertEqual(sum(len(batch) for batch in batches), self.NUM_TEXTS)
+        # has all characters
+        self.assertEqual(sum(len(text[1]) for text in batches[0]),
+                         self.total_text_length)
+
+    def test_batching_gets_all_half_at_a_time(self):
+        exp_chars = int(0.7 * self.total_text_length)
+        batches = list(self.cat._generate_batches_by_char_length(
+            iter(self.all_texts), batch_size_chars=exp_chars,
+            only_cui=False))
+        # NOTE: should have 2 batches at 40% overlap
+        self.assertEqual(len(batches), 2)
+        # each batch should have less than expected characters
+        for batch_num, batch in enumerate(batches):
+            with self.subTest(f"Batch {batch_num}"):
+                cur_total_chars = sum(len(text[1]) for text in batch)
+                self.assertLessEqual(cur_total_chars, exp_chars)
+        # has all texts
+        self.assertEqual(sum(len(batch) for batch in batches), self.NUM_TEXTS)
+        # has all characters
+        self.assertEqual(sum(len(text[1])
+                             for batch in batches for text in batch),
+                         self.total_text_length)
+
+    # overal batching (i.e joint methods)
+
+    def test_cannot_set_both_neg(self):
+        with self.assertRaises(ValueError):
+            list(self.cat._generate_batches(
+                iter(self.all_texts), batch_size_chars=-1,
+                batch_size=-1, only_cui=False))
+
+    def test_cannot_set_both_pos(self):
+        with self.assertRaises(ValueError):
+            list(self.cat._generate_batches(
+                iter(self.all_texts), batch_size_chars=100,
+                batch_size=10, only_cui=False))
+
+    def test_can_do_char_based(self):
+        exp_chars = int(0.3 * self.total_text_length)
+        batches = list(self.cat._generate_batches(
+            iter(self.all_texts), batch_size_chars=exp_chars,
+            batch_size=-1, only_cui=False))
+        self.assertGreater(len(batches), 0)
+        batch_lens = [len(batch) for batch in batches]
+        # has different number of texts in some batches -> not doc based
+        self.assertGreater(max(batch_lens), min(batch_lens))
+
+    def test_can_set_batch_size_per_doc(self):
+        exp_batches = 10
+        batches = list(self.cat._generate_batches(
+            iter(self.all_texts), batch_size=exp_batches,
+            batch_size_chars=-1, only_cui=False))
+        self.assertGreater(len(batches), 0)
+        batch_lens = [len(batch) for batch in batches]
+        # has same number of texts in each batch -> doc based
+        self.assertEqual(max(batch_lens), min(batch_lens))
+        self.assertEqual(max(batch_lens), exp_batches)

@@ -1,6 +1,10 @@
-from typing import Optional, Union, Any, overload, Literal
+from typing import Optional, Union, Any, overload, Literal, Iterable, Iterator
+from typing import cast
 import os
 import json
+from datetime import date
+from concurrent.futures import ProcessPoolExecutor, as_completed, Future
+import itertools
 
 import shutil
 import logging
@@ -23,6 +27,7 @@ from medcat2.components.types import AbstractCoreComponent, HashableComponet
 from medcat2.components.addons.addons import AddonComponent
 from medcat2.utils.legacy.identifier import is_legacy_model_pack
 from medcat2.utils.defaults import AVOID_LEGACY_CONVERSION_ENVIRON
+from medcat2.utils.usage_monitoring import UsageMonitor
 
 
 logger = logging.getLogger(__name__)
@@ -51,6 +56,8 @@ class CAT(AbstractSerialisable):
 
         self._trainer: Optional[Trainer] = None
         self._pipeline = self._recreate_pipe(model_load_path)
+        self.usage_monitor = UsageMonitor(
+            self._get_hash, self.config.general.usage_monitor)
 
     def _recreate_pipe(self, model_load_path: Optional[str] = None
                        ) -> Pipeline:
@@ -75,7 +82,10 @@ class CAT(AbstractSerialisable):
         ]
 
     def __call__(self, text: str) -> Optional[MutableDocument]:
-        return self._pipeline.get_doc(text)
+        doc = self._pipeline.get_doc(text)
+        if self.usage_monitor.should_monitor:
+            self.usage_monitor.log_inference(len(text), len(doc.final_ents))
+        return doc
 
     def _ensure_not_training(self) -> None:
         """Method to ensure config is not set to train.
@@ -138,6 +148,188 @@ class CAT(AbstractSerialisable):
         if not doc:
             return {}
         return self._doc_to_out(doc, only_cui=only_cui)
+
+    def _mp_worker_func(
+            self,
+            texts_and_indices: list[tuple[str, str, bool]]
+            ) -> list[tuple[str, str, Union[dict, Entities, OnlyCUIEntities]]]:
+        return [
+            (text, text_index, self.get_entities(text, only_cui=only_cui))
+            for text, text_index, only_cui in texts_and_indices]
+
+    def _generate_batches_by_char_length(
+            self,
+            text_iter: Union[Iterator[str], Iterator[tuple[str, str]]],
+            batch_size_chars: int,
+            only_cui: bool,
+            ) -> Iterator[list[tuple[str, str, bool]]]:
+        docs: list[tuple[str, str, bool]] = []
+        char_count = 0
+        for i, _doc in enumerate(text_iter):
+            # NOTE: not sure why mypy is complaining here
+            doc = cast(
+                str, _doc[1] if isinstance(_doc, tuple) else _doc)
+            doc_index: str = _doc[0] if isinstance(_doc, tuple) else str(i)
+            clen = len(doc)
+            char_count += clen
+            if char_count > batch_size_chars:
+                yield docs
+                docs = []
+                char_count = clen
+            docs.append((doc_index, doc, only_cui))
+
+        if len(docs) > 0:
+            yield docs
+
+    def _generate_batches(
+            self,
+            text_iter: Union[Iterator[str], Iterator[tuple[str, str]]],
+            batch_size: int,
+            batch_size_chars: int,
+            only_cui: bool,
+            ) -> Iterator[list[tuple[str, str, bool]]]:
+        if batch_size_chars < 1 and batch_size < 1:
+            raise ValueError("Either `batch_size` or `batch_size_chars` "
+                             "must be greater than 0.")
+        if batch_size > 0 and batch_size_chars > 0:
+            raise ValueError(
+                "Cannot specify both `batch_size` and `batch_size_chars`. "
+                "Please use one of them.")
+        if batch_size_chars > 0:
+            return self._generate_batches_by_char_length(
+                text_iter, batch_size_chars, only_cui)
+        else:
+            return self._generate_simple_batches(
+                text_iter, batch_size, only_cui)
+
+    def _generate_simple_batches(
+            self,
+            text_iter: Union[Iterator[str], Iterator[tuple[str, str]]],
+            batch_size: int,
+            only_cui: bool,
+            ) -> Iterator[list[tuple[str, str, bool]]]:
+        text_index = 0
+        while True:
+            # Take a small batch from the iterator
+            batch = list(itertools.islice(text_iter, batch_size))
+            if not batch:
+                break
+            # NOTE: typing is correct:
+            #        - if str, then (str, int, bool)
+            #        - if tuple, then (str, int, bool)
+            #       but for some reason mypy complains
+            yield [
+                (text, str(text_index + i), only_cui)  # type: ignore
+                if isinstance(text, str) else
+                (text[1], text[0], only_cui)
+                for i, text in enumerate(batch)
+            ]
+            text_index += len(batch)
+
+    def _mp_one_batch_per_process(
+            self,
+            executor: ProcessPoolExecutor,
+            batch_iter: Iterator[list[tuple[str, str, bool]]],
+            external_processes: int
+            ) -> Iterator[tuple[str, Union[dict, Entities, OnlyCUIEntities]]]:
+        futures: list[Future] = []
+        # submit batches, one for each external processes
+        for _ in range(external_processes):
+            try:
+                batch = next(batch_iter)
+                futures.append(
+                    executor.submit(self._mp_worker_func, batch))
+            except StopIteration:
+                break
+        # Main process works on next batch while workers are busy
+        main_batch: Optional[list[tuple[str, str, bool]]]
+        try:
+            main_batch = next(batch_iter)
+            main_results = self._mp_worker_func(main_batch)
+
+            # Yield main process results immediately
+            for result in main_results:
+                yield result[1], result[2]
+
+        except StopIteration:
+            main_batch = None
+        # since the main process did around the same amount of work
+        # we would expect all subprocess to have finished by now
+        # so we're going to wait for them to finish, yield their results,
+        # and subsequently submit the next batch to keep them busy
+        for _ in range(external_processes):
+            # Wait for any future to complete
+            done_future = next(as_completed(futures))
+            futures.remove(done_future)
+
+            # Yield all results from this batch
+            for result in done_future.result():
+                yield result[1], result[2]
+
+            # Submit next batch to keep workers busy
+            try:
+                batch = next(batch_iter)
+                futures.append(
+                    executor.submit(self._mp_worker_func, batch))
+            except StopIteration:
+                # NOTE: if there's nothing to batch, we've got nothing
+                #       to submit in terms of new work to the workers,
+                #       but we may still have some futures to wait for
+                pass
+
+    def get_entities_multi_texts(
+            self,
+            texts: Union[Iterable[str], Iterable[tuple[str, str]]],
+            only_cui: bool = False,
+            n_process: int = 1,
+            batch_size: int = -1,
+            batch_size_chars: int = 1_000_000,
+            ) -> Iterator[tuple[str, Union[dict, Entities, OnlyCUIEntities]]]:
+        """Get entities from multiple texts (potentially in parallel).
+
+        If `n_process` > 1, `n_process - 1` new processes will be created
+        and data will be processed on those as well as the main process in
+        parallel.
+
+        Args:
+            texts (Union[Iterable[str], Iterable[tuple[str, str]]]):
+                The input text. Either an iterable of raw text or one
+                with in the format of `(text_index, text)`.
+            only_cui (bool):
+                Whether to only return CUIs rather than other information
+                like start/end and annotated value. Defaults to False.
+            n_process (int):
+                Number of processes to use. Defaults to 1.
+            batch_size (int):
+                The number of texts to batch at a time. A batch of the
+                specified size will be given to each worker process.
+                Defaults to -1 and in this case the character count will
+                be used instead.
+            batch_size_chars (int):
+                The maximum number of characters to process in a batch.
+                Each process will be given batch of texts with a total
+                number of characters not exceeding this value. Defaults
+                to 1,000,000 characters. Set to -1 to disable.
+
+        Yields:
+            Iterator[tuple[str, Union[dict, Entities, OnlyCUIEntities]]]:
+                The results in the format of (text_index, entities).
+        """
+        text_iter = cast(
+            Union[Iterator[str], Iterator[tuple[str, str]]], iter(texts))
+        batch_iter = self._generate_batches(
+            text_iter, batch_size, batch_size_chars, only_cui)
+        if n_process == 1:
+            # just do in series
+            for batch in batch_iter:
+                for text_index, _, result in self._mp_worker_func(batch):
+                    yield text_index, result
+            return
+
+        external_processes = n_process - 1
+        with ProcessPoolExecutor(max_workers=external_processes) as executor:
+            yield from self._mp_one_batch_per_process(
+                executor, batch_iter, external_processes)
 
     def _get_entity(self, ent: MutableEntity,
                     doc_tokens: list[str],
@@ -253,6 +445,9 @@ class CAT(AbstractSerialisable):
             self, target_folder: str, pack_name: str = DEFAULT_PACK_NAME,
             serialiser_type: Union[str, AvailableSerialisers] = 'dill',
             make_archive: bool = True,
+            only_archive: bool = False,
+            add_hash_to_pack_name: bool = True,
+            change_description: Optional[str] = None,
             ) -> str:
         """Save model pack.
 
@@ -268,14 +463,22 @@ class CAT(AbstractSerialisable):
                 The serialiser type. Defaults to 'dill'.
             make_archive (bool):
                 Whether to make the arhive /.zip file. Defaults to True.
+            only_archive (bool):
+                Whether to clear the non-compressed folder. Defaults to False.
+            add_hash_to_pack_name (bool):
+                Whether to add the hash to the pack name. This is only relevant
+                if pack_name is specified. Defaults to True.
+            change_description (Optional[str]):
+                If provided, this the description will be added to the
+                model description. Defaults to None.
 
         Returns:
             str: The final model pack path.
         """
         self.config.meta.mark_saved_now()
         # figure out the location/folder of the saved files
-        hex_hash = self._versioning()
-        if pack_name == DEFAULT_PACK_NAME:
+        hex_hash = self._versioning(change_description)
+        if pack_name == DEFAULT_PACK_NAME or add_hash_to_pack_name:
             pack_name = f"{pack_name}_{hex_hash}"
         model_pack_path = os.path.join(target_folder, pack_name)
         # ensure target folder and model pack folder exist
@@ -294,9 +497,16 @@ class CAT(AbstractSerialisable):
         if make_archive:
             shutil.make_archive(model_pack_path, 'zip',
                                 root_dir=model_pack_path)
+            if only_archive:
+                logger.info("Removing the non-archived model pack folder: %s",
+                            model_pack_path)
+                shutil.rmtree(model_pack_path, ignore_errors=True)
+                # change the model pack path to the zip file so that we
+                # refer to an existing file
+                model_pack_path += ".zip"
         return model_pack_path
 
-    def _versioning(self) -> str:
+    def _get_hash(self) -> str:
         hasher = Hasher()
         logger.debug("Hashing the CDB")
         hasher.update(self.cdb.get_hash())
@@ -306,6 +516,14 @@ class CAT(AbstractSerialisable):
                              type(component).__name__)
                 hasher.update(component.get_hash())
         hex_hash = self.config.meta.hash = hasher.hexdigest()
+        return hex_hash
+
+    def _versioning(self, change_description: Optional[str]) -> str:
+        date_today = date.today().strftime("%d %B %Y")
+        if change_description is not None:
+            self.config.meta.description += (
+                f"\n[{date_today}] {change_description}")
+        hex_hash = self._get_hash()
         history = self.config.meta.history
         if not history or history[-1] != hex_hash:
             history.append(hex_hash)
