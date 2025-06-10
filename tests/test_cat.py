@@ -13,6 +13,7 @@ from medcat.config.config_meta_cat import ConfigMetaCAT
 from medcat.model_creation.cdb_maker import CDBMaker
 from medcat.cdb import CDB
 from medcat.tokenizing.tokens import UnregisteredDataPathException
+from medcat.tokenizing.tokenizers import TOKENIZER_PREFIX
 from medcat.utils.cdb_state import captured_state_cdb
 from medcat.components.addons.meta_cat.meta_cat import MetaCATAddon
 from medcat.utils.defaults import AVOID_LEGACY_CONVERSION_ENVIRON
@@ -129,6 +130,11 @@ class CATIncludingTests(unittest.TestCase):
         # CAT
         cls.cat = cat.CAT(cls.cdb, vocab)
         cls.cat.config.components.linking.train = False
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._temp_logs_folder.cleanup()
 
     def tearDown(self):
         # remove existing contents / empty file log file
@@ -414,8 +420,85 @@ class CATWithDocAddonTests(CATIncludingTests):
         self.assertEqual(self.EXAMPLE_VALUE, got)
 
 
+class MethodSpy:
+    def __init__(self, obj: object, method_name: str):
+        self.obj = obj
+        self.is_module = obj.__class__.__name__ == 'module'
+        self.method_name = method_name
+        self.call_args = []
+        self.call_results = []
+        self._patcher = None
+        self._original_method = getattr(obj, method_name)
+
+    def __enter__(self):
+        def wrapper(*args, **kwargs):
+            self.call_args.append((args, kwargs))
+            if self.is_module:
+                result = self._original_method(*args, **kwargs)
+            else:
+                result = self._original_method(self.obj, *args, **kwargs)
+            self.call_results.append(result)
+            return result
+
+        self._patcher = unittest.mock.patch.object(
+            self.obj, self.method_name, side_effect=wrapper
+        )
+        self._patcher.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._patcher.stop()
+
+    def assert_called_with(self, *args, **kwargs):
+        assert (args, kwargs) in self.call_args, (
+            f"No such args for, {self._original_method}")
+
+    def assert_called_once_with(self, *args, **kwargs):
+        assert len(self.call_args) == 1
+        self.assert_called_with(
+            *args, **kwargs)
+
+    def assert_returned(self, ret_val):
+        assert ret_val in self.call_results
+
+
 class CATWithDocAddonSpacyTests(CATWithDocAddonTests):
     TOKENIZING_PROVIDER = 'spacy'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._save_folder = tempfile.TemporaryDirectory()
+        cls.saved_model_path = cls.cat.save_model_pack(
+            cls._save_folder.name, make_archive=False)
+        # NOTE: that has changed config
+        cls.saved_spacy_path = cls.cat.config.general.nlp.modelname
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._save_folder.cleanup()
+
+    def test_saves_spacy_model(self):
+        # make sure was saved in the current folder
+        self.assertIn(self._save_folder.name, self.saved_spacy_path)
+        self.assertIn(TOKENIZER_PREFIX, self.saved_spacy_path)
+        self.assertTrue(os.path.exists(self.saved_spacy_path))
+        self.assertTrue(os.path.isdir(self.saved_spacy_path))
+
+    def test_loads_spacy_model(self):
+        import medcat.tokenizing.spacy_impl.tokenizers
+        import spacy
+        with MethodSpy(
+                medcat.tokenizing.spacy_impl.tokenizers.SpacyTokenizer,
+                "load_internals_from") as mock_load_internal:
+            with MethodSpy(spacy, "load") as mock_load:
+                model = cat.CAT.load_model_pack(self.saved_model_path)
+        self.assertIsInstance(model, cat.CAT)
+        mock_load_internal.assert_called_once_with(self.saved_spacy_path)
+        mock_load.assert_called_once_with(
+            self.saved_spacy_path,
+            disable=self.cat.config.general.nlp.disabled_components)
 
 
 class CATWithEntityAddonTests(CATIncludingTests):
