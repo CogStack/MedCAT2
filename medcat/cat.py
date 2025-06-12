@@ -557,6 +557,33 @@ class CAT(AbstractSerialisable):
         return hex_hash
 
     @classmethod
+    def attempt_unpack(cls, zip_path: str) -> str:
+        """Attempt unpack the zip to a folder and get the model pack path.
+
+        If the folder already exists, no unpacking is done.
+
+        Args:
+            zip_path (str): The ZIP path
+
+        Returns:
+            str: The model pack path
+        """
+        base_dir = os.path.dirname(zip_path)
+        filename = os.path.basename(zip_path)
+
+        foldername = filename.replace(".zip", '')
+
+        model_pack_path = os.path.join(base_dir, foldername)
+        if os.path.exists(model_pack_path):
+            logger.info(
+                "Found an existing unzipped model pack at: %s, "
+                "the provided zip will not be touched.", model_pack_path)
+        else:
+            logger.info("Unziping the model pack and loading models.")
+            shutil.unpack_archive(zip_path, extract_dir=model_pack_path)
+        return model_pack_path
+
+    @classmethod
     def load_model_pack(cls, model_pack_path: str) -> 'CAT':
         """Load the model pack from file.
 
@@ -570,13 +597,7 @@ class CAT(AbstractSerialisable):
             CAT: The loaded model pack.
         """
         if model_pack_path.endswith(".zip"):
-            folder_path = model_pack_path.rsplit(".zip", 1)[0]
-            if not os.path.exists(folder_path):
-                logger.info("Unpacking model pack from %s to %s",
-                            model_pack_path, folder_path)
-                shutil.unpack_archive(model_pack_path,
-                                      folder_path)
-            model_pack_path = folder_path
+            model_pack_path = cls.attempt_unpack(model_pack_path)
         logger.info("Attempting to load model from file: %s",
                     model_pack_path)
         is_legacy = is_legacy_model_pack(model_pack_path)
@@ -613,6 +634,26 @@ class CAT(AbstractSerialisable):
         if not isinstance(cat, CAT):
             raise ValueError(f"Unable to load CAT. Got: {cat}")
         return cat
+
+    @classmethod
+    def load_cdb(cls, model_pack_path: str) -> CDB:
+        """
+        Loads the concept database from the provided model pack path
+
+        Args:
+            model_pack_path (str): path to model pack, zip or dir.
+
+        Returns:
+            CDB: The loaded concept database
+        """
+        zip_path = (model_pack_path if model_pack_path.endswith(".zip")
+                    else model_pack_path + ".zip")
+        model_pack_path = cls.attempt_unpack(zip_path)
+        cdb_path = os.path.join(model_pack_path, "cdb")
+        cdb = deserialise(cdb_path)
+        if not isinstance(cdb, CDB):
+            raise ValueError(f"Unable to load CDB. Got {cdb}")
+        return cdb
 
     @overload
     def get_model_card(self, as_dict: Literal[True]) -> ModelCard:
