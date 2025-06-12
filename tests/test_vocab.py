@@ -180,3 +180,7 @@ class DefaultVocabTests(unittest.TestCase):
         for w, info in self.vocab.vocab.items():
             with self.subTest(w):
                 self.assertEqual(info['vector'].shape, self.EXP_SHAPE)
+
+    def test_convenience_load(self):
+        vocab = Vocab.load(self.VOCAB_PATH)
+        self.assertIsInstance(vocab, Vocab)
