@@ -48,7 +48,7 @@ class WithInitNER(types.AbstractCoreComponent):
 
     @classmethod
     def create_new_component(cls, cnf, tokenizer, cdb, vocab, model_load_path):
-        return cls(tokenizer)
+        return cls(cnf, tokenizer)
 
 
 class RegisteredCompBaseTests(unittest.TestCase):
