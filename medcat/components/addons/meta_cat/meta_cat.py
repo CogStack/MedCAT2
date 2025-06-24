@@ -177,6 +177,10 @@ class MetaCATAddon(AddonComponent):
     def deserialise_from(cls, folder_path: str, **init_kwargs
                          ) -> 'MetaCATAddon':
         # NOTE: model load path sent by kwargs
+        if "tokenizer" in init_kwargs:
+            val = init_kwargs.pop("tokenizer")
+            if "base_tokenizer" not in init_kwargs:
+                init_kwargs["base_tokenizer"] = val
         return cls.load_existing(load_path=folder_path, **init_kwargs)
 
     def get_strategy(self) -> SerialisingStrategy:
