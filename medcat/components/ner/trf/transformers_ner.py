@@ -15,7 +15,7 @@ from medcat.utils.ner import transformers_ner
 from medcat.utils.postprocessing import create_main_ann
 from medcat.utils.hasher import Hasher
 from medcat.config.config_transformers_ner import ConfigTransformersNER
-from medcat.config.config import ComponentConfig
+from medcat.config.config import ComponentConfig, Ner
 from medcat.components.ner.trf.tokenizer import (
     TransformersTokenizer)
 from medcat.utils.ner.metrics import metrics
@@ -120,7 +120,12 @@ class TransformersNER(AbstractCoreComponent):
     @classmethod
     def deserialise_from(cls, folder_path: str, **init_kwargs
                          ) -> 'TransformersNER':
-        return cls.load_existing(load_path=folder_path, **init_kwargs)
+        return cls.load_existing(
+            load_path=folder_path,
+            cdb=init_kwargs['cdb'],
+            base_tokenizer=init_kwargs['tokenizer'],
+            # from Config.components.ner (of type Ner)
+            config=init_kwargs['cnf'].custom_cnf)
 
     def get_strategy(self) -> SerialisingStrategy:
         return SerialisingStrategy.MANUAL
