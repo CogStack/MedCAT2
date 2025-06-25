@@ -15,7 +15,7 @@ from medcat.utils.ner import transformers_ner
 from medcat.utils.postprocessing import create_main_ann
 from medcat.utils.hasher import Hasher
 from medcat.config.config_transformers_ner import ConfigTransformersNER
-from medcat.config.config import ComponentConfig, Ner
+from medcat.config.config import ComponentConfig
 from medcat.components.ner.trf.tokenizer import (
     TransformersTokenizer)
 from medcat.utils.ner.metrics import metrics
