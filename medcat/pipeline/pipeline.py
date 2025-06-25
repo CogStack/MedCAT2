@@ -154,9 +154,12 @@ class Pipeline:
         logger.info("Using loaded component for '%s' for", cct_name)
         cnf: ComponentConfig = getattr(self.config.components, cct_name)
         comp = deserialise(
-            comp_folder_path, cnf=cnf, tokenizer=self.tokenizer, cdb=self.cdb,
-                vocab=self.vocab, model_load_path=os.path.dirname(
-                    os.path.dirname(comp_folder_path)))
+            comp_folder_path,
+            # NOTE: the following are keyword arguments used
+            #       for manual deserialisation
+            cnf=cnf, tokenizer=self.tokenizer, cdb=self.cdb,
+            vocab=self.vocab, model_load_path=os.path.dirname(
+                os.path.dirname(comp_folder_path)))
         if not isinstance(comp, CoreComponent):
             raise IncorrectFolderUponLoad(
                 f"Did not find a CoreComponent at {comp_folder_path} "
@@ -216,7 +219,10 @@ class Pipeline:
         # config is implicitly required argument
         model_load_path = os.path.dirname(os.path.dirname(load_from))
         addon = deserialise(
-            load_from, cnf=cnf, tokenizer=self.tokenizer, cdb=self.cdb,
+            load_from,
+            # NOTE: the following are keyword arguments used
+            #       for manual deserialisation
+            cnf=cnf, tokenizer=self.tokenizer, cdb=self.cdb,
             vocab=self.vocab, model_load_path=model_load_path)
         if not isinstance(addon, AddonComponent):
             raise IncorrectAddonLoaded(
