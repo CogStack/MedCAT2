@@ -95,7 +95,12 @@ class RelCATAddon(AddonComponent):
     def deserialise_from(cls, folder_path: str, **init_kwargs
                          ) -> 'RelCATAddon':
         # NOTE: model load path sent by kwargs
-        return cls.load_existing(load_path=folder_path, **init_kwargs)
+        return cls.load_existing(
+            load_path=folder_path,
+            base_tokenizer=init_kwargs['tokenizer'],
+            cnf=init_kwargs['cnf'],
+            cdb=init_kwargs['cdb'],
+        )
 
     def get_strategy(self) -> SerialisingStrategy:
         return SerialisingStrategy.MANUAL
