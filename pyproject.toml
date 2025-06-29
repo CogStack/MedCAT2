@@ -46,6 +46,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3 :: Only",
 ]
 
@@ -76,14 +77,15 @@ dependencies = [ # Optional
 # projects.
 [project.optional-dependencies] # Optional
 dev = [
-  "ruff~=0.1.7",
+  "ruff~=0.11.10",
   "mypy",
   "types-tqdm",
   "types-setuptools",
   "types-PyYAML",
+  "scipy~=1.15.0; python_version == '3.13'",
 ]
 spacy = [
-  "spacy",
+  "spacy>=3.8.4; python_version >= '3.10'",
   "spacy<3.8.4; python_version == '3.9'"
 ]
 meta_cat = [
